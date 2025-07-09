@@ -2049,25 +2049,28 @@ class _CommonallofflineentriesState extends State<Commonallofflineentries>
         var villageid = value.sourcelist![i]!.villageId;
         var sourceTypeId = value.sourcelist![i]!.sourceTypeId;
         var statename = value.sourcelist![i]!.stateName;
-        var sourceTypeCategoryId = value.sourcelist![i]!.sourceTypeCategoryId;
+        var sourceTypeCategoryId =
+            value.sourcelist![i]!.sourceTypeCategoryId;
         var habitationId = value.sourcelist![i]!.habitationId;
         var villageName = value.sourcelist![i]!.villageName;
-        var existTagWaterSourceId = value.sourcelist![i]!.existTagWaterSourceId;
+        var existTagWaterSourceId =
+            value.sourcelist![i]!.existTagWaterSourceId;
         var isApprovedState = value.sourcelist![i]!.isApprovedState;
         var landmark = value.sourcelist![i]!.landmark;
         var latitude = value.sourcelist![i]!.latitude;
         var longitude = value.sourcelist![i]!.longitude;
         var habitationName = value.sourcelist![i]!.habitationName;
         var location = value.sourcelist![i]!.location;
-        var sourceTypeCategory = value.sourcelist![i]!.sourceTypeCategory;
+        var sourceTypeCategory =
+            value.sourcelist![i]!.sourceTypeCategory;
         var sourceType = value.sourcelist![i]!.sourceType;
         var districtName = value.sourcelist![i]!.districtName;
         var districtId = value.sourcelist![i]!.districtId;
         var panchayatNamenew = value.sourcelist![i]!.panchayatName;
         var blocknamenew = value.sourcelist![i]!.blockName;
+        var IsWTP = value.sourcelist![i]!.IsWTP;
 
-        databaseHelperJalJeevan
-            ?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
+        databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
           schemeId: SchemeId.toString(),
           sourceId: sourceId.toString(),
           villageId: villageid.toString(),
@@ -2091,6 +2094,8 @@ class _CommonallofflineentriesState extends State<Commonallofflineentries>
           districtId: districtId.toString(),
           villageName: villageName,
           stateId: stateid.toString(),
+          IsWTP: IsWTP.toString(),
+
         ));
       }
 
@@ -2203,7 +2208,9 @@ class _CommonallofflineentriesState extends State<Commonallofflineentries>
             localData.accuracy,
             localData.photo,
            // localData.capturePointTypeId
-            localData.Selectassetsothercategory
+            localData.Selectassetsothercategory,
+            localData.WTP_capacity,
+            localData.WTP_selectedSourceIds
 
         );
 
@@ -2401,25 +2408,28 @@ class _CommonallofflineentriesState extends State<Commonallofflineentries>
         var villageid = value.sourcelist![i]!.villageId;
         var sourceTypeId = value.sourcelist![i]!.sourceTypeId;
         var statename = value.sourcelist![i]!.stateName;
-        var sourceTypeCategoryId = value.sourcelist![i]!.sourceTypeCategoryId;
+        var sourceTypeCategoryId =
+            value.sourcelist![i]!.sourceTypeCategoryId;
         var habitationId = value.sourcelist![i]!.habitationId;
         var villageName = value.sourcelist![i]!.villageName;
-        var existTagWaterSourceId = value.sourcelist![i]!.existTagWaterSourceId;
+        var existTagWaterSourceId =
+            value.sourcelist![i]!.existTagWaterSourceId;
         var isApprovedState = value.sourcelist![i]!.isApprovedState;
         var landmark = value.sourcelist![i]!.landmark;
         var latitude = value.sourcelist![i]!.latitude;
         var longitude = value.sourcelist![i]!.longitude;
         var habitationName = value.sourcelist![i]!.habitationName;
         var location = value.sourcelist![i]!.location;
-        var sourceTypeCategory = value.sourcelist![i]!.sourceTypeCategory;
+        var sourceTypeCategory =
+            value.sourcelist![i]!.sourceTypeCategory;
         var sourceType = value.sourcelist![i]!.sourceType;
         var districtName = value.sourcelist![i]!.districtName;
         var districtId = value.sourcelist![i]!.districtId;
         var panchayatNamenew = value.sourcelist![i]!.panchayatName;
         var blocknamenew = value.sourcelist![i]!.blockName;
+        var IsWTP = value.sourcelist![i]!.IsWTP;
 
-        databaseHelperJalJeevan
-            ?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
+        databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
           schemeId: SchemeId.toString(),
           sourceId: sourceId.toString(),
           villageId: villageid.toString(),
@@ -2443,6 +2453,8 @@ class _CommonallofflineentriesState extends State<Commonallofflineentries>
           districtId: districtId.toString(),
           villageName: villageName,
           stateId: stateid.toString(),
+          IsWTP: IsWTP.toString(),
+
         ));
       }
       for (int i = 0; i < value.habitationlist!.length; i++) {

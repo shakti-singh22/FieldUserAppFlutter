@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'Appcolor.dart';
+import '../addfhtc/jjm_facerd_appcolor.dart';
+
 
 class Utilityclass{
   static showInternetDialog(BuildContext context) {

@@ -1,4 +1,3 @@
-import 'package:fielduserappnew/utility/Appcolor.dart';
 import 'package:fielduserappnew/view/SplashScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,8 +5,10 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+
 import 'package:provider/provider.dart';
 
+import 'addfhtc/jjm_facerd_appcolor.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
@@ -24,7 +25,6 @@ void main() async {
 Future<void> clearCache() async {
   DefaultCacheManager().emptyCache();
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

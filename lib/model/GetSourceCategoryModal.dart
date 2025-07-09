@@ -34,12 +34,14 @@ class Result {
   String sourceType;
   int sourceTypeCategoryId;
   String sourceTypeCategory;
+  int TypeId;
 
   Result({
     required this.sourceTypeId,
     required this.sourceType,
     required this.sourceTypeCategoryId,
     required this.sourceTypeCategory,
+    required this.TypeId,
   });
 
   factory Result.fromJson(Map<String, dynamic> json) => Result(
@@ -47,6 +49,7 @@ class Result {
     sourceType: json["SourceType"],
     sourceTypeCategoryId: json["SourceTypeCategoryId"],
     sourceTypeCategory: json["SourceTypeCategory"],
+    TypeId: json["TypeId"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -54,5 +57,6 @@ class Result {
     "SourceType": sourceType,
     "SourceTypeCategoryId": sourceTypeCategoryId,
     "SourceTypeCategory": sourceTypeCategory,
+    "TypeId": TypeId,
   };
 }

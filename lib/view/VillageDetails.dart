@@ -7,13 +7,16 @@ import 'package:focus_detector/focus_detector.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
+
+
+import '../CommanScreen.dart';
+import '../Selectedvillagelist.dart';
+import '../addfhtc/jjm_facerd_appcolor.dart';
 import '../apiservice/Apiservice.dart';
 import '../database/DataBaseHelperJalJeevan.dart';
 import '../localdatamodel/Localmasterdatamodal.dart';
 import '../localdatamodel/Localpwspendinglistmodal.dart';
 import '../model/Savevillagedetails.dart';
-import '../utility/Appcolor.dart';
-import '../utility/CommanScreen.dart';
 import '../utility/Stylefile.dart';
 import '../utility/Textfile.dart';
 import 'Dashboard.dart';
@@ -26,7 +29,6 @@ import 'SIB/OfflinentriesSIB.dart';
 import 'SIB/Schemeinformationboard.dart';
 import 'SS/Offlineentriesforstoragestructure.dart';
 import 'SS/Storagestructurependingapproved.dart';
-import 'Selectedvillagelist.dart';
 
 class VillageDetails extends StatefulWidget {
   var villageid = "";
@@ -4483,57 +4485,44 @@ class _VillageDetailsState extends State<VillageDetails> {
                                 ));
                               }
 
-                              for (int i = 0;
-                                  i < value.sourcelist!.length;
-                                  i++) {
+                              for (int i = 0; i < value.sourcelist!.length; i++) {
                                 var sourceId = value.sourcelist![i]!.sourceId;
                                 var SchemeId = value.sourcelist![i]!.schemeId;
                                 var stateid = value.sourcelist![i]!.stateid;
                                 var Schemename = value.sourcelist![i]!.schemeName;
                                 var villageid = value.sourcelist![i]!.villageId;
-                                var sourceTypeId =
-                                    value.sourcelist![i]!.sourceTypeId;
+                                var sourceTypeId = value.sourcelist![i]!.sourceTypeId;
                                 var statename = value.sourcelist![i]!.stateName;
                                 var sourceTypeCategoryId =
                                     value.sourcelist![i]!.sourceTypeCategoryId;
-                                var habitationId =
-                                    value.sourcelist![i]!.habitationId;
-                                var villageName =
-                                    value.sourcelist![i]!.villageName;
+                                var habitationId = value.sourcelist![i]!.habitationId;
+                                var villageName = value.sourcelist![i]!.villageName;
                                 var existTagWaterSourceId =
                                     value.sourcelist![i]!.existTagWaterSourceId;
-                                var isApprovedState =
-                                    value.sourcelist![i]!.isApprovedState;
+                                var isApprovedState = value.sourcelist![i]!.isApprovedState;
                                 var landmark = value.sourcelist![i]!.landmark;
                                 var latitude = value.sourcelist![i]!.latitude;
                                 var longitude = value.sourcelist![i]!.longitude;
-                                var habitationName =
-                                    value.sourcelist![i]!.habitationName;
+                                var habitationName = value.sourcelist![i]!.habitationName;
                                 var location = value.sourcelist![i]!.location;
                                 var sourceTypeCategory =
                                     value.sourcelist![i]!.sourceTypeCategory;
                                 var sourceType = value.sourcelist![i]!.sourceType;
-                                var districtName =
-                                    value.sourcelist![i]!.districtName;
+                                var districtName = value.sourcelist![i]!.districtName;
                                 var districtId = value.sourcelist![i]!.districtId;
-                                var panchayatNamenew =
-                                    value.sourcelist![i]!.panchayatName;
-                                var blocknamenew =
-                                    value.sourcelist![i]!.blockName;
+                                var panchayatNamenew = value.sourcelist![i]!.panchayatName;
+                                var blocknamenew = value.sourcelist![i]!.blockName;
+                                var IsWTP = value.sourcelist![i]!.IsWTP;
 
-                                databaseHelperJalJeevan
-                                    ?.insertMasterSourcedetails(
-                                        LocalSourcelistdetailsModal(
+                                databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
                                   schemeId: SchemeId.toString(),
                                   sourceId: sourceId.toString(),
                                   villageId: villageid.toString(),
                                   schemeName: Schemename,
                                   sourceTypeId: sourceTypeId.toString(),
-                                  sourceTypeCategoryId:
-                                      sourceTypeCategoryId.toString(),
+                                  sourceTypeCategoryId: sourceTypeCategoryId.toString(),
                                   habitationId: habitationId.toString(),
-                                  existTagWaterSourceId:
-                                      existTagWaterSourceId.toString(),
+                                  existTagWaterSourceId: existTagWaterSourceId.toString(),
                                   isApprovedState: isApprovedState.toString(),
                                   landmark: landmark,
                                   latitude: latitude.toString(),
@@ -4549,6 +4538,8 @@ class _VillageDetailsState extends State<VillageDetails> {
                                   districtId: districtId.toString(),
                                   villageName: villageName,
                                   stateId: stateid.toString(),
+                                  IsWTP: IsWTP.toString(),
+
                                 ));
                               }
 

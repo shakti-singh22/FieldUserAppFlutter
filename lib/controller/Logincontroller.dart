@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:vibration/vibration.dart';
 
+import 'package:vibration/vibration.dart';
 import '../apiservice/Apiservice.dart';
 import '../database/DataBaseHelperJalJeevan.dart';
 import '../localdatamodel/Localmasterdatamodal.dart';
@@ -16,6 +16,7 @@ import '../utility/Appcolor.dart';
 import '../utility/Stylefile.dart';
 import '../view/Dashboard.dart';
 import '../view/LoginScreen.dart';
+import '../view/Villagelistzero.dart';
 
 class Logincontroller extends GetxController {
   TextEditingController emailcontroller = TextEditingController();
@@ -86,10 +87,8 @@ class Logincontroller extends GetxController {
     await databaseHelperJalJeevan!.truncateTable_localmasterhabitaionlist();
   }
 
-  void LoginApi(
-      BuildContext context, String hashpassword, String RandomNumbersalt) {
-    Apiservice.Loginapi(context, emailcontroller.text.trim().toString(),
-            hashpassword, RandomNumbersalt)
+  void LoginApi(BuildContext context, String hashpassword, String RandomNumbersalt)
+  {Apiservice.Loginapi(context, emailcontroller.text.trim().toString(), hashpassword, RandomNumbersalt)
         .then((value)
     {
       if (value["Status"].toString() == "true") {
@@ -102,6 +101,9 @@ class Logincontroller extends GetxController {
         box.write("TotalOfflineVillage", value["TotalOfflineVillage"].toString());
         box.write('loginBool', true);
         {
+
+
+
           showDialog(
             context: context,
             builder: (BuildContext builderContext) {
@@ -243,9 +245,9 @@ class Logincontroller extends GetxController {
                     var districtId = value.sourcelist![i]!.districtId;
                     var panchayatNamenew = value.sourcelist![i]!.panchayatName;
                     var blocknamenew = value.sourcelist![i]!.blockName;
+                    var IsWTP = value.sourcelist![i]!.IsWTP;
 
-                    databaseHelperJalJeevan
-                        ?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
+                    databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
                       schemeId: SchemeId.toString(),
                       sourceId: sourceId.toString(),
                       villageId: villageid.toString(),
@@ -269,6 +271,8 @@ class Logincontroller extends GetxController {
                       districtId: districtId.toString(),
                       villageName: villageName,
                       stateId: stateid.toString(),
+                      IsWTP: IsWTP.toString(),
+
                     ));
                   }
 
@@ -346,6 +350,7 @@ class Logincontroller extends GetxController {
       }
     });
   }
+
   Future getcategoryApi(
     BuildContext context,
     String token,
@@ -426,7 +431,7 @@ class Logincontroller extends GetxController {
   }
 
 
-/*
+
   Future<void> showalertdialog_workingvillzero(BuildContext context) async {
     return showDialog<void>(
       context: context,
@@ -509,7 +514,7 @@ class Logincontroller extends GetxController {
         );
       },
     );
-  }*/   /// SHAK
+  }
 
   Future getsourcetyprASSETApi(
       BuildContext context,
@@ -528,13 +533,20 @@ class Logincontroller extends GetxController {
     );
     if (response.statusCode == 200) {
       Map<String, dynamic> mResposne = jsonDecode(response.body);
-      Listofsourcetype = mResposne["Result"];
-      savesourcetypemodal =
-          Savesourcetypemodal.fromJson(jsonDecode(response.body));
-      await databaseHelperJalJeevan
-          ?.insertData_mastersourcetype_inDB(savesourcetypemodal!);
-      return jsonDecode(response.body);
+    /*  if (mResposne["Status"].toString() == "false") {
+        setState(() {
+          Get.offAll(LoginScreen());
+          box.remove("UserToken").toString();
+        });
+      } else {*/
+        Listofsourcetype = mResposne["Result"];
+        savesourcetypemodal =
+            Savesourcetypemodal.fromJson(jsonDecode(response.body));
+        await databaseHelperJalJeevan
+            ?.insertData_mastersourcetype_inDB(savesourcetypemodal!);
+        return jsonDecode(response.body);
+      //}
     }
-  }
 
+  }
 }

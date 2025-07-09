@@ -16,7 +16,6 @@ import '../model/Myresponse.dart';
 import '../model/Saveoffinevillagemodal.dart';
 import '../model/Savesourcetypemodal.dart';
 import '../model/Schememodal.dart';
-
 class DatabaseHelperJalJeevan {
   static Database? _database;
 
@@ -32,15 +31,19 @@ class DatabaseHelperJalJeevan {
     if (_database != null) {
       return _database;
     }
-    _database = await initDatabse();
+    _database = await _initDatabase();
     return _database;
   }
 
-  initDatabse() async {
-    io.Directory documentryDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentryDirectory.path, 'JalJeevanMission.db');
-    var db = await openDatabase(path, version: 6, onCreate: _oncreate);
-    return db;
+  Future<Database> _initDatabase() async {
+    io.Directory documentDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentDirectory.path, 'example.db');
+    return await openDatabase(
+      path,
+      version: 7, // Change this to trigger onUpgrade
+      onCreate: _oncreate,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   _oncreate(Database db, int version) async {
@@ -89,7 +92,7 @@ class DatabaseHelperJalJeevan {
             " SchemeId TEXT, SourceId TEXT,VillageId TEXT, Schemename TEXT,SourceTypeId TEXT, sourceTypeCategoryId TEXT, "
             " habitationId TEXT, existTagWaterSourceId TEXT, isApprovedState TEXT, landmark TEXT, latitude TEXT, "
             " longitude TEXT, habitationName TEXT, location TEXT, sourceTypeCategory TEXT, sourceType TEXT,StateName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT, districtId TEXT, "
-            " VillageName TEXT, stateid TEXT "
+            " VillageName TEXT, stateid TEXT, IsWTP TEXT"
             " )");
 
     await db.execute(
@@ -121,15 +124,36 @@ class DatabaseHelperJalJeevan {
     await db.execute(
         "CREATE TABLE Otherassetssavedataofflinetable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
             "UserId TEXT, VillageId ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
-            "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectassetsothercategory TEXT ,Capturepointlocationot TEXT )");
+            "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectassetsothercategory TEXT ,Capturepointlocationot TEXT, WTP_selectedSourceIds TEXT, WTP_capacity Text,)");
 
     await db.execute(
         "CREATE TABLE Storagestructuresavedataofflinetable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
             "UserId TEXT, VillageId ,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
             "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectstoragecategory TEXT ,Storagecapacity TEXT  )");
 
+
+
     //await _onUpgrade(db, 5, version);
   }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 7) { // Change this condition based on your current version
+      await db.execute(
+          "ALTER TABLE Otherassetssavedataofflinetable ADD COLUMN WTP_selectedSourceIds TEXT"
+      );
+      await db.execute(
+          "ALTER TABLE Otherassetssavedataofflinetable ADD COLUMN WTP_capacity TEXT"
+      );
+      await db.execute(
+          "ALTER TABLE Storagestructuresavedataofflinetable ADD COLUMN WTP_selectedSourceIds TEXT"
+      );
+      await db.execute(
+          "ALTER TABLE Storagestructuresavedataofflinetable ADD COLUMN WTP_capacity TEXT"
+      );
+    }
+  }
+
+
 
   Future<void> Tableschemelistsourcetype() async {
     var dbClient = await db;
@@ -149,6 +173,8 @@ class DatabaseHelperJalJeevan {
     );
     print('Table altered successfully');
   }
+
+
 
 /*
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -175,10 +201,14 @@ class DatabaseHelperJalJeevan {
         print("Adding source_cat column to localmasterschemelist...");
         await db.execute('ALTER TABLE localmasterschemelist ADD COLUMN source_typeCategory TEXT');
       }
+
+
       print("Database upgraded successfully.");
     }
   }
 */
+
+
 
 
   Future<Localmasterdatetime> insertMasterapidatetime(
@@ -227,7 +257,8 @@ class DatabaseHelperJalJeevan {
   Future<LocalPWSSavedData> insertpwssourcelocal(
       LocalPWSSavedData localPWSSavedData) async {
     var dbClient = await db;
-    await dbClient!.insert('Local_PWSSavedatato_server', localPWSSavedData.toJson());
+    await dbClient!
+        .insert('Local_PWSSavedatato_server', localPWSSavedData.toJson());
     return localPWSSavedData;
   }
 
@@ -384,6 +415,9 @@ class DatabaseHelperJalJeevan {
     );
   }
 
+
+
+
   Future<List<Map<String, dynamic>>?> getDistinctHabitaion(
       String villageId) async {
     var dbClient = await instance.db;
@@ -392,15 +426,11 @@ class DatabaseHelperJalJeevan {
         [villageId]);
   }
 
-  Future<List<Map<String, dynamic>>> getAllRecordsForschemelist(
-      String villageId) async {
+  Future<List<Map<String, dynamic>>> getAllRecordsForschemelist(String villageId) async {
     var dbClient = await instance.db;
 
     String query = '''
-      SELECT *
-      FROM localmasterschemelist
-      WHERE villageId = $villageId
-    ''';
+      SELECT *  FROM localmasterschemelist WHERE villageId = $villageId  ''';
     return await dbClient!.rawQuery(query);
   }
 
@@ -592,11 +622,7 @@ class DatabaseHelperJalJeevan {
     var dbClient = await instance
         .db;
     String query = '''
-    DELETE FROM localmasterschemelist
-    WHERE id NOT IN (
-        SELECT MIN(id) 
-        FROM localmasterschemelist 
-        GROUP BY SchemeId
+    DELETE FROM localmasterschemelist   WHERE id NOT IN (    SELECT MIN(id)    FROM localmasterschemelist   GROUP BY SchemeId
     )
   ''';
     await dbClient!.rawDelete(query);
@@ -605,13 +631,7 @@ class DatabaseHelperJalJeevan {
   Future<void> duplicate_entryofdashboarDB() async {
     var dbClient = await instance.db;
     String query = '''
-    DELETE FROM dashboarddynamictable
-    WHERE id NOT IN (
-        SELECT MIN(id) 
-        FROM dashboarddynamictable 
-        GROUP BY Result
-    )
-  ''';
+    DELETE FROM dashboarddynamictable WHERE id NOT IN (  SELECT MIN(id)  FROM dashboarddynamictable     GROUP BY Result  ) ''';
     await dbClient!.rawDelete(query);
   }
 
@@ -677,7 +697,8 @@ class DatabaseHelperJalJeevan {
 
     String query = '''
     DELETE FROM localmasterschemelist
-    WHERE id NOT IN (    SELECT MIN(id) 
+    WHERE id NOT IN (
+        SELECT MIN(id) 
         FROM localmasterschemelist 
         GROUP BY SchemeId, VillageId
     )
@@ -702,11 +723,8 @@ class DatabaseHelperJalJeevan {
     var dbClient = await instance.db;
 
     String query = '''
-    DELETE FROM localhabitaionlisttable
-    WHERE id NOT IN (
-        SELECT MIN(id) 
-        FROM localhabitaionlisttable 
-        GROUP BY villageId
+    DELETE FROM localhabitaionlisttable WHERE id NOT IN (  SELECT MIN(id)   FROM localhabitaionlisttable 
+        
     )
   ''';
     await dbClient!.rawDelete(query);
@@ -1415,23 +1433,33 @@ class DatabaseHelperJalJeevan {
     return localOtherassetsofflinesavemodal;
   }
 
-  Future<List<LocalOtherassetsofflinesavemodal>?>
-      getallotherassetssavedofflineentry_villageidwise(String villageId) async {
+  Future<List<LocalOtherassetsofflinesavemodal>?> getallotherassetssavedofflineentry_villageidwise(String villageId) async {
     try {
       var dbClient = await instance.db;
+
+      // Fetch data from the database
       List<Map<String, dynamic>>? maps = await dbClient?.query(
         'Otherassetssavedataofflinetable',
         where: 'VillageId = ?',
         whereArgs: [villageId],
       );
-      return List.generate(maps!.length, (i) {
+
+      // If no data is found or query returns null, return an empty list
+      if (maps == null || maps.isEmpty) {
+        return [];
+      }
+
+      // Generate and return the list of data
+      return List.generate(maps.length, (i) {
         return LocalOtherassetsofflinesavemodal.fromMap(maps[i]);
       });
     } catch (e) {
       debugPrintStack();
-      return null;
+      return [];  // Return an empty list in case of an error to avoid null issues
     }
   }
+
+
 
   Future<bool> isRecordExists_indbforotsave(
       String schemeId,
@@ -1447,17 +1475,35 @@ class DatabaseHelperJalJeevan {
     );
     return result.isNotEmpty;
   }
+/*
+  Future<List<Map<String, dynamic>>?> findSourceId(String villageId, String habitationId, String schemeId) async {
+    var dbClient = await instance.db;
 
-  Future<bool> isRecordExists_indbforsssave(
-      String schemeId,
-      String habitationId,
-      String Latitude,
-      String Longitude,
-      String Selectstoragecategory) async {
+    return await dbClient?.rawQuery(
+        "SELECT sourceTypeCategory FROM localmastersourcelistdetailstable WHERE VillageId = ? AND habitationId = ? AND SchemeId = ? ORDER BY sourceTypeCategory ASC",
+        [villageId, habitationId, schemeId]
+    );
+  }*/
+
+
+    Future<List<Map<String, dynamic>>?> findSourceTypeCategory(String schemeId) async {
+      var dbClient = await instance.db;
+
+      // Ensure you pass these as strings, trimming them in case of extra spaces
+      List<Map<String, dynamic>> result = await dbClient!.rawQuery(
+          "SELECT SourceId, location, habitationName, IsWTP FROM localmastersourcelistdetailstable WHERE isApprovedState = 1 AND SchemeId = ?",
+          [schemeId.trim()]
+      );
+
+      print("Query Result: $result");
+      return result.isNotEmpty ? result : null;
+    }
+
+
+  Future<bool> isRecordExists_indbforsssave(String schemeId, String habitationId, String Latitude, String Longitude, String Selectstoragecategory) async {
     var dbClient = await instance.db;
     List<Map<String, dynamic>> result = await dbClient!.rawQuery(
-      "SELECT * FROM Storagestructuresavedataofflinetable WHERE "
-      "SchemeId = ? AND HabitationId = ? AND Latitude = ? AND Longitude = ? AND Selectstoragecategory = ?",
+      "SELECT * FROM Storagestructuresavedataofflinetable WHERE ""SchemeId = ? AND HabitationId = ? AND Latitude = ? AND Longitude = ? AND Selectstoragecategory = ?",
       [schemeId, habitationId, Latitude, Longitude, Selectstoragecategory],
     );
     return result.isNotEmpty;
@@ -1552,7 +1598,40 @@ class DatabaseHelperJalJeevan {
       );
     } catch (e) {}
   }
+  Future<void> updateIsWTP(List<Map<String, String>> sources, String isWTPValue) async {
+    try {
+      var dbClient = await db;
 
+      // Iterate over each source and update it
+      for (var source in sources) {
+        String sourceId = source['sourceId'] ?? '';
+        String location = source['location'] ?? '';
+
+        await dbClient?.update(
+          'localmastersourcelistdetailstable',
+          {'IsWTP': isWTPValue},
+          where: 'SourceId = ? AND location = ?',
+          whereArgs: [sourceId, location],
+        );
+      }
+    } catch (e) {
+      print("Error updating IsWTP for multiple sources: $e");
+    }
+
+  }
+  Future<void> updateIslocalWTP(String sourceId, String location, String isWTPValue) async {
+    try {
+      var dbClient = await db;
+      await dbClient?.update(
+        'Otherassetssavedataofflinetable',
+        {'WTP_selectedSourceIds': isWTPValue},
+        where: 'SourceId = ? AND location = ?',
+        whereArgs: [sourceId, location],
+      );
+    } catch (e) {
+      print("Error updating IsWTP: $e");
+    }
+  }
   Future<void> updateStatusInPendingListstoragestructure(
       String villageId, String schemeId, String status) async {
     try {

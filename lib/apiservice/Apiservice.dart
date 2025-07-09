@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+
 import '../database/DataBaseHelperJalJeevan.dart';
 import '../model/GetSourceCategoryModal.dart';
 import '../model/Getmasterdatamodal.dart';
@@ -53,6 +54,7 @@ class Apiservice {
     );
     Get.back();
 
+    print("responselogin$response");
     if (response.statusCode == 200) {
     }
     return jsonDecode(response.body);
@@ -139,7 +141,9 @@ class Apiservice {
       var response = await http.get(uri).timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
+        print("response45454$response");
         Map<String, dynamic> mResposne = jsonDecode(response.body);
+
         var appvaersion = mResposne["APKVersion"];
         var appDownloadSize = mResposne["DownloadSize"];
         var appAPKVersionMessage = mResposne["APKVersionMessage"];
@@ -237,6 +241,8 @@ class Apiservice {
     String Accuracy,
     String Photo,
     String assetOtherCategory,
+      String WTP_capicity,
+      List<int> WTP_selectedSourceIds,
   ) async {
     showDialog(
         barrierDismissible: false,
@@ -273,11 +279,15 @@ class Apiservice {
         "Longitude": Longitude,
         "Accuracy": Accuracy,
         "Photo": Photo,
-        "AssetOtherCategory": assetOtherCategory
+        "AssetOtherCategory": assetOtherCategory,
+        "Capicity": WTP_capicity,
+        "WTP_SourceId": WTP_selectedSourceIds // Pass as List<int>
       }),
     );
     Get.back();
     if (response.statusCode == 200) {
+
+      print("responseother$response");
     } else {
     }
     return jsonDecode(response.body);
@@ -409,6 +419,7 @@ class Apiservice {
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
+        print("responsecat$response");
         Map<String, dynamic> mResposne = jsonDecode(response.body);
         return GetSourceCategoryModal.fromJson(jsonDecode(response.body));
       } else {
@@ -494,11 +505,7 @@ class Apiservice {
 
     try {
       var response = await http.get(
-        Uri.parse('${baseurl}' +
-            "JJM_Mobile/GetAssignedVillages?StateId=" +
-            stateid +
-            "&UserId=" +
-            userid),
+        Uri.parse('${baseurl}' + "JJM_Mobile/GetAssignedVillages?StateId=" + stateid + "&UserId=" + userid),
         headers: {
           'Content-Type': 'application/json',
           'APIKey': token ?? 'DEFAULT_API_KEY'
@@ -525,13 +532,7 @@ class Apiservice {
       String stateid, String userid, String token) async {
     try {
       var response = await http.get(
-        Uri.parse('${baseurl}' +
-            "JJM_Mobile/GetVillageGeoTaggingDetails?VillageId=" +
-            villageid +
-            "&StateId=" +
-            stateid +
-            "&UserId=" +
-            userid),
+        Uri.parse('${baseurl}' + "JJM_Mobile/GetVillageGeoTaggingDetails?VillageId=" + villageid + "&StateId=" + stateid + "&UserId=" + userid),
         headers: {
           'Content-Type': 'application/json',
           'APIKey': token ?? 'DEFAULT_API_KEY'
@@ -558,15 +559,7 @@ class Apiservice {
       String userid, String token, String Status) async {
     try {
       var response = await http.get(
-        Uri.parse('${baseurl}' +
-            "JJM_Mobile/GetGeotaggedWaterSource?VillageId=" +
-            villageid +
-            "&StateId=" +
-            stateid +
-            "&UserId=" +
-            userid +
-            "&Status=" +
-            Status),
+        Uri.parse('${baseurl}' + "JJM_Mobile/GetGeotaggedWaterSource?VillageId=" + villageid + "&StateId=" + stateid + "&UserId=" + userid + "&Status=" + Status),
         headers: {
           'Content-Type': 'application/json',
           'APIKey': token ?? 'DEFAULT_API_KEY'

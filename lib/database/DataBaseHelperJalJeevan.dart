@@ -132,7 +132,6 @@ class DatabaseHelperJalJeevan {
             "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectstoragecategory TEXT ,Storagecapacity TEXT  )");
 
 
-
     //await _onUpgrade(db, 5, version);
   }
 

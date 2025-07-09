@@ -175,8 +175,6 @@ class DatabaseHelperJalJeevan {
         print("Adding source_cat column to localmasterschemelist...");
         await db.execute('ALTER TABLE localmasterschemelist ADD COLUMN source_typeCategory TEXT');
       }
-
-
       print("Database upgraded successfully.");
     }
   }

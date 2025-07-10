@@ -37,7 +37,7 @@ class DatabaseHelperJalJeevan {
 
   Future<Database> _initDatabase() async {
     io.Directory documentDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentDirectory.path, 'example.db');
+    String path = join(documentDirectory.path, 'JalJeevanMission.db');
     return await openDatabase(
       path,
       version: 7, // Change this to trigger onUpgrade
@@ -109,12 +109,12 @@ class DatabaseHelperJalJeevan {
 
     await db.execute(
         "CREATE TABLE sibsavedatatable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "UserId TEXT, VillageId ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
+            "UserId TEXT, VillageId TEXT ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
             "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT)");
 
     await db.execute(
         "CREATE TABLE localmaster_sibdetailstable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "UserId TEXT, VillageId ,StateId TEXT,schemeId TEXT , DistrictName TEXT ,BlockName TEXT,PanchayatName TEXT,VillageName TEXT,HabitationName TEXT, Latitude TEXT, Longitude TEXT, SourceName TEXT, SchemeName TEXT, "
+            "UserId TEXT, VillageId TEXT ,StateId TEXT,schemeId TEXT , DistrictName TEXT ,BlockName TEXT,PanchayatName TEXT,VillageName TEXT,HabitationName TEXT, Latitude TEXT, Longitude TEXT, SourceName TEXT, SchemeName TEXT, "
             "Message TEXT, Status TEXT)");
 
     await db.execute(
@@ -123,12 +123,12 @@ class DatabaseHelperJalJeevan {
 
     await db.execute(
         "CREATE TABLE Otherassetssavedataofflinetable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "UserId TEXT, VillageId ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
-            "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectassetsothercategory TEXT ,Capturepointlocationot TEXT, WTP_selectedSourceIds TEXT, WTP_capacity Text,)");
+            "UserId TEXT, VillageId TEXT ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
+            "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectassetsothercategory TEXT ,Capturepointlocationot TEXT, WTP_selectedSourceIds TEXT, WTP_capacity TEXT)");
 
     await db.execute(
         "CREATE TABLE Storagestructuresavedataofflinetable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "UserId TEXT, VillageId ,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
+            "UserId TEXT, VillageId TEXT ,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
             "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectstoragecategory TEXT ,Storagecapacity TEXT  )");
 
 

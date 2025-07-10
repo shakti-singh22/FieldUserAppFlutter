@@ -59,16 +59,16 @@ class Logincontroller extends GetxController {
   late GetSourceCategoryModal getSourceCategoryModal;
 
   Future<void> cleartable_localmasterschemelisttable() async {
-    await databaseHelperJalJeevan!.cleardb_localmasterschemelist();
-    await databaseHelperJalJeevan!.cleartable_villagelist();
-    await databaseHelperJalJeevan!.cleartable_villagedetails();
-    await databaseHelperJalJeevan!.cleardb_sourcetypecategorytable();
-    await databaseHelperJalJeevan!.cleardb_sourcassettypetable();
-    await databaseHelperJalJeevan!.cleardb_localhabitaionlisttable();
-    await databaseHelperJalJeevan!.cleardb_sourcedetailstable();
-    await databaseHelperJalJeevan!.truncatetable_dashboardtable();
-    await databaseHelperJalJeevan!.cleardb_sibmasterlist();
-    await databaseHelperJalJeevan!.truncatetable_sibmasterdeatils();
+    await databaseHelperJalJeevan?.cleardb_localmasterschemelist();
+    await databaseHelperJalJeevan?.cleartable_villagelist();
+    await databaseHelperJalJeevan?.cleartable_villagedetails();
+    await databaseHelperJalJeevan?.cleardb_sourcetypecategorytable();
+    await databaseHelperJalJeevan?.cleardb_sourcassettypetable();
+    await databaseHelperJalJeevan?.cleardb_localhabitaionlisttable();
+    await databaseHelperJalJeevan?.cleardb_sourcedetailstable();
+    await databaseHelperJalJeevan?.truncatetable_dashboardtable();
+    await databaseHelperJalJeevan?.cleardb_sibmasterlist();
+    await databaseHelperJalJeevan?.truncatetable_sibmasterdeatils();
   }
 
   Future<void> truncateTable_localmasterdatatable() async {
@@ -533,12 +533,6 @@ class Logincontroller extends GetxController {
     );
     if (response.statusCode == 200) {
       Map<String, dynamic> mResposne = jsonDecode(response.body);
-    /*  if (mResposne["Status"].toString() == "false") {
-        setState(() {
-          Get.offAll(LoginScreen());
-          box.remove("UserToken").toString();
-        });
-      } else {*/
         Listofsourcetype = mResposne["Result"];
         savesourcetypemodal =
             Savesourcetypemodal.fromJson(jsonDecode(response.body));

@@ -40,7 +40,7 @@ class DatabaseHelperJalJeevan {
     String path = join(documentDirectory.path, 'JalJeevanMission.db');
     return await openDatabase(
       path,
-      version: 7, // Change this to trigger onUpgrade
+      version: 10, // Change this to trigger onUpgrade
       onCreate: _oncreate,
       onUpgrade: _onUpgrade,
     );
@@ -109,12 +109,12 @@ class DatabaseHelperJalJeevan {
 
     await db.execute(
         "CREATE TABLE sibsavedatatable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "UserId TEXT, VillageId TEXT ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
+            "UserId TEXT, VillageId ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
             "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT)");
 
     await db.execute(
         "CREATE TABLE localmaster_sibdetailstable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "UserId TEXT, VillageId TEXT ,StateId TEXT,schemeId TEXT , DistrictName TEXT ,BlockName TEXT,PanchayatName TEXT,VillageName TEXT,HabitationName TEXT, Latitude TEXT, Longitude TEXT, SourceName TEXT, SchemeName TEXT, "
+            "UserId TEXT, VillageId ,StateId TEXT,schemeId TEXT , DistrictName TEXT ,BlockName TEXT,PanchayatName TEXT,VillageName TEXT,HabitationName TEXT, Latitude TEXT, Longitude TEXT, SourceName TEXT, SchemeName TEXT, "
             "Message TEXT, Status TEXT)");
 
     await db.execute(
@@ -123,12 +123,13 @@ class DatabaseHelperJalJeevan {
 
     await db.execute(
         "CREATE TABLE Otherassetssavedataofflinetable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "UserId TEXT, VillageId TEXT ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
-            "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectassetsothercategory TEXT ,Capturepointlocationot TEXT, WTP_selectedSourceIds TEXT, WTP_capacity TEXT,WTPTypeId TEXT)");
+            "UserId TEXT, VillageId ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
+            "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectassetsothercategory TEXT "
+            ",Capturepointlocationot TEXT, WTP_selectedSourceIds TEXT, WTP_capacity TEXT,WTPTypeId TEXT)");
 
     await db.execute(
         "CREATE TABLE Storagestructuresavedataofflinetable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "UserId TEXT, VillageId TEXT ,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
+            "UserId TEXT, VillageId ,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
             "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectstoragecategory TEXT ,Storagecapacity TEXT  )");
 
 
@@ -138,13 +139,18 @@ class DatabaseHelperJalJeevan {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 7) { // Change this condition based on your current version
+    if (oldVersion < 10) { // Change this condition based on your current version
       await db.execute(
           "ALTER TABLE Otherassetssavedataofflinetable ADD COLUMN WTP_selectedSourceIds TEXT"
       );
       await db.execute(
           "ALTER TABLE Otherassetssavedataofflinetable ADD COLUMN WTP_capacity TEXT"
       );
+
+      await db.execute(
+          "ALTER TABLE Otherassetssavedataofflinetable ADD COLUMN WTPTypeId TEXT");
+
+
       await db.execute(
           "ALTER TABLE Storagestructuresavedataofflinetable ADD COLUMN WTP_selectedSourceIds TEXT"
       );

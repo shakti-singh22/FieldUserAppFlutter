@@ -203,6 +203,7 @@ class _NewTagWaterState extends State<NewTagWater> {
   String? ESRstoragestructuretype;
 
   var Othersmain;
+  var WTPTypeId;
   String? Capturepointotherscategory;
   String? Capturepointotherscategorypumphouse;
   String? Capturepointotherscategorywatertreatment;
@@ -2916,8 +2917,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                   groupValue: Othersmain,
                                                   onChanged: (value) {
                                                     setState(() {
-                                                      Othersmain =
-                                                          value.toString();
+                                                      Othersmain = value.toString();
 
                                                       Clorinatorcategory = true;
                                                       PumphouseOthercategory = false;
@@ -3493,6 +3493,111 @@ class _NewTagWaterState extends State<NewTagWater> {
                               const SizedBox(
                                 height: 5,
                               ),
+
+
+
+                              Visibility(
+                                visible: WTP_capacity,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      margin: const EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: Appcolor.white,
+                                        border: Border.all(
+                                          color: Appcolor.lightgrey,
+                                          width: 1,
+                                        ),
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(
+                                            10.0,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(10.0),
+                                            child: Text(
+                                              'Select WTP Type',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16),
+                                            ),
+                                          ),
+                                          const Divider(
+                                            height: 10,
+                                            color: Appcolor.lightgrey,
+                                            thickness: 1,
+                                          ),
+                                          Container(
+                                            margin: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                              BorderRadius.circular(8),
+                                              border: Border.all(
+                                                  color: Appcolor.lightgrey),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                              children: [
+                                                RadioListTile(
+                                                  visualDensity:
+                                                  const VisualDensity(
+                                                      horizontal:
+                                                      VisualDensity
+                                                          .minimumDensity,
+                                                      vertical: VisualDensity
+                                                          .minimumDensity),
+                                                  contentPadding:
+                                                  EdgeInsets.zero,
+                                                  title: const Text("Traditional water treatment plants"),
+                                                  value: "1",
+                                                  groupValue: WTPTypeId,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      WTPTypeId = value.toString();
+                                                    });
+                                                  },
+                                                ),
+                                                RadioListTile(
+                                                  visualDensity:
+                                                  const VisualDensity(
+                                                      horizontal: VisualDensity.minimumDensity,
+                                                      vertical: VisualDensity.minimumDensity),
+                                                  contentPadding:
+                                                  EdgeInsets.zero,
+                                                  title: const Text("Point treatment units such as IRP/AIRP/FRP etc."),
+                                                  value: "2",
+                                                  groupValue: WTPTypeId,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      WTPTypeId = value.toString();
+                                                    });
+                                                  },
+                                                ),
+
+
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+
+
                               Visibility(
                                 visible: Getgeolocation_SIB,
                                 child: Container(
@@ -4358,6 +4463,7 @@ class _NewTagWaterState extends State<NewTagWater> {
 
                                             }
                                           },
+                                          //otherassest4
                                           child: const Text(
                                             'Save',
                                             style: TextStyle(
@@ -4422,43 +4528,21 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                               "The record has been already saved successfully.");
                                                     } else {
                                                       databaseHelperJalJeevan!.insertstoragestructureofflinesaveindb(LocalStoragestructureofflinesavemodal(
-                                                          userId: box
-                                                              .read("userid")
-                                                              .toString(),
-                                                          villageId:
-                                                              widget.villageid,
-                                                          stateId: box
-                                                              .read("stateid"),
+                                                          userId: box.read("userid").toString(),
+                                                          villageId: widget.villageid,
+                                                          stateId: box.read("stateid"),
                                                           schemeId: _mySchemeid,
-                                                          SchemeName:
-                                                              selectschamename,
+                                                          SchemeName: selectschamename,
                                                           sourceId: "0",
-                                                          sourcename: sourcetypelocal
-                                                              .toString(),
-                                                          SourceTypeId:
-                                                              getclickedstatus
-                                                                  .toString(),
-                                                          divisionId: box.read(
-                                                              "DivisionId"),
-                                                          habitationId:
-                                                              selecthabitaionid,
-                                                          HabitationName:
-                                                              selecthabitaionname,
-                                                          landmark:
-                                                              locationlandmarkcontroller
-                                                                  .text
-                                                                  .toString(),
-                                                          latitude:
-                                                              _currentPosition!
-                                                                  .latitude
-                                                                  .toString(),
-                                                          longitude:
-                                                              _currentPosition!
-                                                                  .longitude
-                                                                  .toString(),
-                                                          accuracy:
-                                                              accuracyofgetlocation
-                                                                  .toString(),
+                                                          sourcename: sourcetypelocal.toString(),
+                                                          SourceTypeId: getclickedstatus.toString(),
+                                                          divisionId: box.read("DivisionId"),
+                                                          habitationId: selecthabitaionid,
+                                                          HabitationName: selecthabitaionname,
+                                                          landmark: locationlandmarkcontroller.text.toString(),
+                                                          latitude: _currentPosition!.latitude.toString(),
+                                                          longitude: _currentPosition!.longitude.toString(),
+                                                          accuracy: accuracyofgetlocation.toString(),
                                                           photo: base64Image,
                                                           VillageName: getvillagename,
                                                           DistrictName: districtname,

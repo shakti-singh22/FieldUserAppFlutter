@@ -124,7 +124,7 @@ class DatabaseHelperJalJeevan {
     await db.execute(
         "CREATE TABLE Otherassetssavedataofflinetable(id INTEGER PRIMARY KEY AUTOINCREMENT, "
             "UserId TEXT, VillageId ,CapturePointTypeId TEXT,SchemeId TEXT , SchemeName TEXT ,StateId TEXT,SourceId TEXT,SourceTypeId TEXT,sourcename TEXT, DivisionId TEXT, HabitationId TEXT, HabitationName TEXT, Landmark TEXT, "
-            "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectassetsothercategory TEXT ,Capturepointlocationot TEXT, WTP_selectedSourceIds TEXT, WTP_capacity Text,)");
+            "Latitude TEXT, Longitude TEXT, Accuracy TEXT,Photo TEXT , VillageName TEXT, DistrictName TEXT, BlockName TEXT,PanchayatName TEXT  , Status TEXT , Selectassetsothercategory TEXT ,Capturepointlocationot TEXT, WTP_selectedSourceIds TEXT, WTP_capacity Text,WTPTypeId Text)");
 
     await db.execute(
         "CREATE TABLE Storagestructuresavedataofflinetable(id INTEGER PRIMARY KEY AUTOINCREMENT, "

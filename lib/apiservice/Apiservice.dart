@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -13,7 +14,8 @@ import '../view/LoginScreen.dart';
 
 class Apiservice {
      // static String baseurl = "http://10.22.3.161:8086/api/";
-    static String baseurl = "https://ejalshakti.gov.in/krcpwa/api/";
+  //  static String baseurl = "https://ejalshakti.gov.in/krcpwa/api/";
+    static String baseurl = "https://ejalshakti.gov.in/jjmapp/api/";
 
 
   static GetStorage box = GetStorage();
@@ -40,21 +42,28 @@ class Apiservice {
             ],
           );
         });
+
     var response = await http.post(
       Uri.parse('${baseurl}' + "JJM_Mobile/Login"),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+
       body: jsonEncode({
         "LoginId": userid,
         "Password": password,
         "txtSaltedHash": randomsalt
       }),
+
     );
     Get.back();
-
-    print("responselogin$response");
+    log('URL : - ${baseurl}' + 'JJM_Mobile/Login' + '\n ${jsonEncode({
+      "LoginId": userid,
+      "Password": password,
+      "txtSaltedHash": randomsalt
+    })}');
+    log('RESPONSE  : - ${response.body}');
     if (response.statusCode == 200) {
     }
     return jsonDecode(response.body);

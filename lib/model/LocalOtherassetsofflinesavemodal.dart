@@ -26,6 +26,7 @@ class LocalOtherassetsofflinesavemodal {
   final String Capturepointlocationot;
   final List<int> WTP_selectedSourceIds;// Change to List<int>
   final String WTP_capacity;
+  final String WTPTypeId;
 
   LocalOtherassetsofflinesavemodal({
     this.id,
@@ -55,6 +56,7 @@ class LocalOtherassetsofflinesavemodal {
     required this.Capturepointlocationot,
     required this.WTP_selectedSourceIds, // Change to List<int>
     required this.WTP_capacity,
+    required this.WTPTypeId,
   });
 
   factory LocalOtherassetsofflinesavemodal.fromMap(Map<String, dynamic> map) {
@@ -89,6 +91,7 @@ class LocalOtherassetsofflinesavemodal {
           .map((e) => int.parse(e))
           .toList(), // Convert comma-separated string to List<int>
       WTP_capacity: map['WTP_capacity'],
+      WTPTypeId: map['WTPTypeId'],
     );
   }
 
@@ -121,6 +124,7 @@ class LocalOtherassetsofflinesavemodal {
       'Capturepointlocationot': Capturepointlocationot,
       'WTP_selectedSourceIds': WTP_selectedSourceIds.join(','), // Convert List<int> back to comma-separated string
       'WTP_capacity': WTP_capacity,
+      'WTPTypeId': WTPTypeId,
     };
   }
 }

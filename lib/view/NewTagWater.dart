@@ -4394,10 +4394,11 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                     BlockName: blockname,
                                                     PanchayatName: panchayatname,
                                                     Status: "Pending",
-                                                    Selectassetsothercategory: Othersmain.toString(),
+                                                    Selectassetsothercategory: Othersmain,
                                                     Capturepointlocationot: "",
                                                     WTP_selectedSourceIds: selectedSourceIdsString, // You may need to adjust this based on your database schema
                                                     WTP_capacity: capacitycontroller.text,
+                                                    WTPTypeId: WTPTypeId,
                                                   ),
                                                 );
 
@@ -4451,6 +4452,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                     Capturepointlocationot: "",
                                                     WTP_selectedSourceIds: [0], // You may need to adjust this based on your database schema
                                                     WTP_capacity: "0",
+                                                    WTPTypeId: "0",
                                                   ),
                                                 );
 

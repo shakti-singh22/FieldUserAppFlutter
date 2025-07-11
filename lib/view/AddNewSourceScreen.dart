@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
@@ -63,25 +64,25 @@ class AddNewSourceScreen extends StatefulWidget {
         required this.source_typeCategorysend,
         required this.SourceTypeCategoryIdsend,
 
-      required this.selectscheme,
-      required this.selecthabitation,
-      required this.selectlocationlanmark,
-      required this.villageid,
-      required this.assettaggingid,
-      required this.StateId,
-      required this.schemeid,
-      required this.SourceId,
-      required this.HabitationId,
-      required this.SourceTypeId,
-      required this.SourceTypeCategoryId,
-      required this.villagename,
-      required this.latitute,
-      required this.longitute,
-      required this.districtname,
-      required this.blockname,
-      required this.sourcetype,
-      required this.panchayatname,
-      super.key});
+        required this.selectscheme,
+        required this.selecthabitation,
+        required this.selectlocationlanmark,
+        required this.villageid,
+        required this.assettaggingid,
+        required this.StateId,
+        required this.schemeid,
+        required this.SourceId,
+        required this.HabitationId,
+        required this.SourceTypeId,
+        required this.SourceTypeCategoryId,
+        required this.villagename,
+        required this.latitute,
+        required this.longitute,
+        required this.districtname,
+        required this.blockname,
+        required this.sourcetype,
+        required this.panchayatname,
+        super.key});
 
   @override
   State<AddNewSourceScreen> createState() => _AddNewSourceScreenState(
@@ -95,8 +96,8 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
   _AddNewSourceScreenState(
       {required this.villageName,
-      required this.villageId,
-      required this.stateId});
+        required this.villageId,
+        required this.stateId});
 
   CroppedFile? croppedFile;
 
@@ -222,9 +223,9 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
   }
 
   Future gethabitaionlist(
-    BuildContext context,
-    String token,
-  ) async {
+      BuildContext context,
+      String token,
+      ) async {
     var uri = Uri.parse(
         '${Apiservice.baseurl}JJM_Mobile/GetHabitationlist?UserId=' +
             box.read("userid") +
@@ -290,7 +291,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
           // Fetching TypeId
           // Fetching TypeId based on SourceTypeCategory and SourceTypeId
 
-       /*   int? typeid; // Declare typeid as nullable or as a specific type
+          /*   int? typeid; // Declare typeid as nullable or as a specific type
 
           for (var i = 0; i < mainListsourcecategory.length; i++) {
             // Check if SourceTypeId matches widget.Sourceid_typesend and SourceTypeCategoryId matches
@@ -377,7 +378,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
   Future<void> _fetchhabitaiondropdownDropdownItems(String villageId) async {
     List<Map<String, dynamic>>? distinctSchemes =
-        await databaseHelperJalJeevan!.getDistinctHabitaion(villageId);
+    await databaseHelperJalJeevan!.getDistinctHabitaion(villageId);
     habitationlist.clear();
     habitationlist.add(habitaionlistmodal);
     for (int i = 0; i < distinctSchemes!.length; i++) {
@@ -574,7 +575,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                   Container(
                                     child: const Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         Text(Textfile.headingjaljeevan,
                                             textAlign: TextAlign.justify,
@@ -610,7 +611,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           ),
                                         ),
                                         actionsAlignment:
-                                            MainAxisAlignment.center,
+                                        MainAxisAlignment.center,
                                         title: Container(
                                           color: Appcolor.red,
                                           child: const Center(
@@ -636,7 +637,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                   style: TextStyle(
                                                       fontSize: 16,
                                                       fontWeight:
-                                                          FontWeight.bold,
+                                                      FontWeight.bold,
                                                       color: Appcolor.black),
                                                 ),
                                               ),
@@ -654,7 +655,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                 width: 1,
                                               ),
                                               borderRadius:
-                                                  BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                             ),
                                             child: TextButton(
                                               child: const Text(
@@ -679,7 +680,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                 width: 1,
                                               ),
                                               borderRadius:
-                                                  BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                             ),
                                             child: TextButton(
                                               child: const Text(
@@ -782,7 +783,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                             height: 10,
                           ),
 //source_type
-                   /*       widget.Sourceid_typesend == "6"
+                          /*       widget.Sourceid_typesend == "6"
                               ? Container(
                                   decoration: BoxDecoration(
                                     color: Appcolor.lightgrey,
@@ -854,319 +855,146 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
 
 
-                      Column(
-                        children: [
-                          Visibility(
-                            visible: widget.Sourceid_typesend == "6",
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Appcolor.lightgrey,
-                                border: Border.all(
-                                  color: Appcolor.lightgrey,
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(10.0),
-                                ),
-                              ),
-                              child: Material(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: InkWell(
-                                  splashColor: Appcolor.splashcolor,
-                                  onTap: () {},
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(10.0),
-                                        child: Text(
-                                          "Source category",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const Divider(
-                                        height: 10,
-                                        color: Appcolor.lightgrey,
-                                        thickness: 1,
-                                      ),
-
-                                      Padding(
-                                        padding: const EdgeInsets.all(10.0),
-                                        child: RichText(
-                                          text: TextSpan(
-                                            text: SourceTypeCategory + ":-",
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                                color: Appcolor.black),
-                                            children: <TextSpan>[
-                                              TextSpan(
-                                                  text: bulksourcetypename,
-                                                  style: new TextStyle(
-                                                      fontWeight:
-                                                      FontWeight.w400,
-                                                      fontSize: 14,
-                                                      color:
-                                                      Appcolor.black)),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Visibility(
-                            visible: widget.Sourceid_typesend == "1",
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Appcolor.lightgrey,
-                                border: Border.all(
-                                  color: Appcolor.lightgrey,
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(10.0),
-                                ),
-                              ),
-                              child: Material(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: InkWell(
-                                  splashColor: Appcolor.splashcolor,
-                                  onTap: () {},
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(10.0),
-                                        child: Text(
-                                          "Source category",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const Divider(
-                                        height: 10,
-                                        color: Appcolor.lightgrey,
-                                        thickness: 1,
-                                      ),
-                                      Container(
-                                        child:
-
-                                          Column(
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.all(10.0),
-                                                child: Text(widget.source_typeCategorysend),
-                                              ),
-
-                                            ],
-                                          )
-
-
-
-                                      ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Visibility(
-                            visible: widget.Sourceid_typesend == "10",
-                            child:              Container(
-
-                              //  margin: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                color:  Appcolor.lightgrey,
-                                border: Border.all(
-                                  color: Appcolor.lightgrey,
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(
-                                    10.0,
-                                  ), //                 <--- border radius here
-                                ),
-                              ),
-                              child: Material(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: InkWell(
-                                    splashColor: Appcolor.splashcolor,
-                                    onTap: () {},
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-
-                                        const Padding(
-                                          padding: EdgeInsets.all(10.0),
-                                          child: Text(
-                                            "Select source category",
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        const Divider(
-                                          height: 10,
-                                          color: Appcolor.lightgrey,
-                                          thickness: 1,
-                                          // indent : 10,
-                                          //endIndent : 10,
-                                        ),
-                                        Container(
-                                          child: ListView.builder(
-                                              itemCount: distinctlist.length,
-                                              shrinkWrap: true,
-                                              physics: NeverScrollableScrollPhysics(),
-                                              itemBuilder: (context, int index) {
-                                                return Container(
-                                                  margin: const EdgeInsets.only(left: 3 , right: 3 , bottom: 5 ),
-                                                  child: Material(
-                                                    elevation: 5,
-                                                    borderRadius: BorderRadius.circular(
-                                                        10.0),
-                                                    child: InkWell(
-                                                      splashColor: Appcolor.splashcolor,
-                                                      onTap: () {},
-                                                      child: Column(
-                                                        mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                        crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
-                                                        children: [
-                                                          Container(
-
-                                                              margin: const EdgeInsets.all(0),
-                                                              child:
-                                                              RadioListTile(
-                                                                activeColor: Appcolor
-                                                                    .btncolor,
-                                                                //   toggleable: true,
-                                                                enableFeedback: true,
-                                                                //contentPadding: EdgeInsets.symmetric(horizontal: 0.0 , vertical: 0.0),
-                                                                contentPadding:
-                                                                const EdgeInsets.symmetric(
-                                                                    horizontal: 0),
-                                                                visualDensity:
-                                                                const VisualDensity(
-                                                                    horizontal: VisualDensity.minimumDensity,
-                                                                    vertical: VisualDensity.minimumDensity),
-                                                                title: new Text(distinctlist[index].toString()),
-                                                                value: distinctlist[index].toString(),
-                                                                groupValue: selectradiobutton,
-
-                                                                onChanged: (value) {
-                                                                  setState(() {
-                                                                    selectradiobutton = value!;
-                                                                    selectradiobutton_category = distinct_categorylist[index]!;
-                                                                    print("selectradiobutton_cate" +distinct_categorylist[index]! );
-
-                                                                  });
-                                                                },
-                                                              )
-                                                          ),
-
-
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              }),
-                                        ),
-
-                                        SizedBox(height: 2,),
-
-
-
-
-
-
-
-                                      ],
-                                    )),
-                              ),
-                            ),
-                          ),
-
-
-                          Visibility(
-                            visible: widget.Sourceid_typesend == "2",
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Appcolor.lightgrey,
-                                border: Border.all(
-                                  color: Appcolor.lightgrey,
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(10.0),
-                                ),
-                              ),
-                              child: Material(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: InkWell(
-                                  splashColor: Appcolor.splashcolor,
-                                  onTap: () {},
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(10.0),
-                                        child: Text("Source category",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const Divider(
-                                        height: 10,
-                                        color: Appcolor.lightgrey,
-                                        thickness: 1,
-                                      ),
-                                      Container(
-                                        child:
-                                       Padding(
-                                         padding: const EdgeInsets.all(10.0),
-                                         child: Text(widget.source_typeCategorysend),
-                                       )
-                                      ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                          Container(
-                                  margin: const EdgeInsets.only(
-                                      top: 10, right: 0, left: 0, bottom: 10),
+                          Column(
+                            children: [
+                              Visibility(
+                                visible: widget.Sourceid_typesend == "6",
+                                child: Container(
                                   decoration: BoxDecoration(
-                                    color: Appcolor.white,
+                                    color: Appcolor.lightgrey,
+                                    border: Border.all(
+                                      color: Appcolor.lightgrey,
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      onTap: () {},
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(10.0),
+                                            child: Text(
+                                              "Source category",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const Divider(
+                                            height: 10,
+                                            color: Appcolor.lightgrey,
+                                            thickness: 1,
+                                          ),
+
+                                          Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: RichText(
+                                              text: TextSpan(
+                                                text: SourceTypeCategory + ":-",
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: Appcolor.black),
+                                                children: <TextSpan>[
+                                                  TextSpan(
+                                                      text: bulksourcetypename,
+                                                      style: new TextStyle(
+                                                          fontWeight:
+                                                          FontWeight.w400,
+                                                          fontSize: 14,
+                                                          color:
+                                                          Appcolor.black)),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 2,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Visibility(
+                                visible: widget.Sourceid_typesend == "1",
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Appcolor.lightgrey,
+                                    border: Border.all(
+                                      color: Appcolor.lightgrey,
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      onTap: () {},
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(10.0),
+                                            child: Text(
+                                              "Source category",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const Divider(
+                                            height: 10,
+                                            color: Appcolor.lightgrey,
+                                            thickness: 1,
+                                          ),
+                                          Container(
+                                              child:
+
+                                              Column(
+                                                children: [
+                                                  Padding(
+                                                    padding: const EdgeInsets.all(10.0),
+                                                    child: Text(widget.source_typeCategorysend),
+                                                  ),
+
+                                                ],
+                                              )
+
+
+
+                                          ),
+                                          const SizedBox(
+                                            height: 2,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Visibility(
+                                visible: widget.Sourceid_typesend == "10",
+                                child:              Container(
+
+                                  //  margin: const EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    color:  Appcolor.lightgrey,
                                     border: Border.all(
                                       color: Appcolor.lightgrey,
                                       width: 1,
@@ -1174,56 +1002,229 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                     borderRadius: const BorderRadius.all(
                                       Radius.circular(
                                         10.0,
+                                      ), //                 <--- border radius here
+                                    ),
+                                  ),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                        splashColor: Appcolor.splashcolor,
+                                        onTap: () {},
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+
+                                            const Padding(
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Text(
+                                                "Select source category",
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                            const Divider(
+                                              height: 10,
+                                              color: Appcolor.lightgrey,
+                                              thickness: 1,
+                                              // indent : 10,
+                                              //endIndent : 10,
+                                            ),
+                                            Container(
+                                              child: ListView.builder(
+                                                  itemCount: distinctlist.length,
+                                                  shrinkWrap: true,
+                                                  physics: NeverScrollableScrollPhysics(),
+                                                  itemBuilder: (context, int index) {
+                                                    return Container(
+                                                      margin: const EdgeInsets.only(left: 3 , right: 3 , bottom: 5 ),
+                                                      child: Material(
+                                                        elevation: 5,
+                                                        borderRadius: BorderRadius.circular(
+                                                            10.0),
+                                                        child: InkWell(
+                                                          splashColor: Appcolor.splashcolor,
+                                                          onTap: () {},
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                            MainAxisAlignment.start,
+                                                            crossAxisAlignment:
+                                                            CrossAxisAlignment.start,
+                                                            children: [
+                                                              Container(
+
+                                                                  margin: const EdgeInsets.all(0),
+                                                                  child:
+                                                                  RadioListTile(
+                                                                    activeColor: Appcolor
+                                                                        .btncolor,
+                                                                    //   toggleable: true,
+                                                                    enableFeedback: true,
+                                                                    //contentPadding: EdgeInsets.symmetric(horizontal: 0.0 , vertical: 0.0),
+                                                                    contentPadding:
+                                                                    const EdgeInsets.symmetric(
+                                                                        horizontal: 0),
+                                                                    visualDensity:
+                                                                    const VisualDensity(
+                                                                        horizontal: VisualDensity.minimumDensity,
+                                                                        vertical: VisualDensity.minimumDensity),
+                                                                    title: new Text(distinctlist[index].toString()),
+                                                                    value: distinctlist[index].toString(),
+                                                                    groupValue: selectradiobutton,
+
+                                                                    onChanged: (value) {
+                                                                      setState(() {
+                                                                        selectradiobutton = value!;
+                                                                        selectradiobutton_category = distinct_categorylist[index]!;
+                                                                        print("selectradiobutton_cate" +distinct_categorylist[index]! );
+
+                                                                      });
+                                                                    },
+                                                                  )
+                                                              ),
+
+
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }),
+                                            ),
+
+                                            SizedBox(height: 2,),
+
+
+
+
+
+
+
+                                          ],
+                                        )),
+                                  ),
+                                ),
+                              ),
+
+
+                              Visibility(
+                                visible: widget.Sourceid_typesend == "2",
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Appcolor.lightgrey,
+                                    border: Border.all(
+                                      color: Appcolor.lightgrey,
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      onTap: () {},
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(10.0),
+                                            child: Text("Source category",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const Divider(
+                                            height: 10,
+                                            color: Appcolor.lightgrey,
+                                            thickness: 1,
+                                          ),
+                                          Container(
+                                              child:
+                                              Padding(
+                                                padding: const EdgeInsets.all(10.0),
+                                                child: Text(widget.source_typeCategorysend),
+                                              )
+                                          ),
+                                          const SizedBox(
+                                            height: 2,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      widget.source_typeCategorysend == "Ground Water"
-                                          ? ListView.builder(
-                                        itemCount: minisource.length,
-                                        shrinkWrap: true,
-                                        physics: const NeverScrollableScrollPhysics(),
-                                        itemBuilder: (context, int index) {
-                                          return RadioListTile(
-                                            activeColor: Appcolor.btncolor,
-                                            value: minisource[index].toString(),
-                                            groupValue: select_sourcetyperadiobutton,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                select_sourcetyperadiobutton = value!;
-                                                select_sourcetypeid = sourcetypeidlistone[index].toString();
-                                              });
-                                            },
-                                            title: Text(minisource[index]),
-                                          );
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          Container(
+                              margin: const EdgeInsets.only(
+                                  top: 10, right: 0, left: 0, bottom: 10),
+                              decoration: BoxDecoration(
+                                color: Appcolor.white,
+                                border: Border.all(
+                                  color: Appcolor.lightgrey,
+                                  width: 1,
+                                ),
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(
+                                    10.0,
+                                  ),
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  widget.source_typeCategorysend == "Ground Water"
+                                      ? ListView.builder(
+                                    itemCount: minisource.length,
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (context, int index) {
+                                      return RadioListTile(
+                                        activeColor: Appcolor.btncolor,
+                                        value: minisource[index].toString(),
+                                        groupValue: select_sourcetyperadiobutton,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            select_sourcetyperadiobutton = value!;
+                                            select_sourcetypeid = sourcetypeidlistone[index].toString();
+                                          });
                                         },
-                                      )
-                                          : const SizedBox(), widget.source_typeCategorysend == "Surface Water"
-                                          ? ListView.builder(
-                                        itemCount: minisource2.length,
-                                        shrinkWrap: true,
-                                        physics: const NeverScrollableScrollPhysics(),
-                                        itemBuilder: (context, int index) {
-                                          return RadioListTile(
-                                            activeColor: Appcolor.btncolor,
-                                            value: minisource2[index].toString(),
-                                            groupValue: select_sourcetyperadiobutton,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                select_sourcetyperadiobutton = value!;
-                                                select_sourcetypeid = sourcetypeidlist[index].toString();
-                                              });
-                                            },
-                                            title: Text(minisource2[index]),
-                                          );
-                                        },
-                                      )
-                                          : const SizedBox(),
-                                    ],
+                                        title: Text(minisource[index]),
+                                      );
+                                    },
                                   )
+                                      : const SizedBox(), widget.source_typeCategorysend == "Surface Water"
+                                      ? ListView.builder(
+                                    itemCount: minisource2.length,
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (context, int index) {
+                                      return RadioListTile(
+                                        activeColor: Appcolor.btncolor,
+                                        value: minisource2[index].toString(),
+                                        groupValue: select_sourcetyperadiobutton,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            select_sourcetyperadiobutton = value!;
+                                            select_sourcetypeid = sourcetypeidlist[index].toString();
+                                          });
+                                        },
+                                        title: Text(minisource2[index]),
+                                      );
+                                    },
+                                  )
+                                      : const SizedBox(),
+                                ],
+                              )
 
                           ),
 
@@ -1470,7 +1471,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                         ),
                                         value: habitaionlistmodal,
                                         items:
-                                            habitationlist.map((habitations) {
+                                        habitationlist.map((habitations) {
                                           return DropdownMenuItem<
                                               Habitaionlistmodal>(
                                             value: habitations,
@@ -1532,12 +1533,12 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                             FirstNonNumericalFormatter(),
                                           ],
                                           controller:
-                                              locationlandmarkcontroller,
+                                          locationlandmarkcontroller,
                                           decoration: InputDecoration(
                                             fillColor: Colors.grey.shade100,
                                             border: OutlineInputBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                             ),
                                             hintText: "Enter landmark/location",
                                             hintStyle: const TextStyle(
@@ -1545,7 +1546,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                 fontWeight: FontWeight.w400),
                                           ),
                                           keyboardType:
-                                              TextInputType.visiblePassword,
+                                          TextInputType.visiblePassword,
                                           textInputAction: TextInputAction.done,
                                         ),
                                       ),
@@ -1636,27 +1637,27 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           padding: const EdgeInsets.all(5.0),
                                           child: locationprogress == true
                                               ? const Center(
-                                                  child: Padding(
-                                                    padding:
-                                                        EdgeInsets.all(5.0),
-                                                    child: SizedBox(
-                                                        height: 15,
-                                                        width: 15,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          strokeWidth: 1,
-                                                        )),
-                                                  ),
-                                                )
+                                            child: Padding(
+                                              padding:
+                                              EdgeInsets.all(5.0),
+                                              child: SizedBox(
+                                                  height: 15,
+                                                  width: 15,
+                                                  child:
+                                                  CircularProgressIndicator(
+                                                    strokeWidth: 1,
+                                                  )),
+                                            ),
+                                          )
                                               : Text(
-                                                  ' ${_currentPosition?.latitude ?? ""}',
-                                                  maxLines: 4,
-                                                  style: const TextStyle(
-                                                      color: Appcolor.black,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      fontSize: 14),
-                                                ),
+                                            ' ${_currentPosition?.latitude ?? ""}',
+                                            maxLines: 4,
+                                            style: const TextStyle(
+                                                color: Appcolor.black,
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                fontSize: 14),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1704,27 +1705,27 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           padding: const EdgeInsets.all(5.0),
                                           child: locationprogress == true
                                               ? const Center(
-                                                  child: Padding(
-                                                    padding:
-                                                        EdgeInsets.all(5.0),
-                                                    child: SizedBox(
-                                                        height: 15,
-                                                        width: 15,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          strokeWidth: 1,
-                                                        )),
-                                                  ),
-                                                )
+                                            child: Padding(
+                                              padding:
+                                              EdgeInsets.all(5.0),
+                                              child: SizedBox(
+                                                  height: 15,
+                                                  width: 15,
+                                                  child:
+                                                  CircularProgressIndicator(
+                                                    strokeWidth: 1,
+                                                  )),
+                                            ),
+                                          )
                                               : Text(
-                                                  ' ${_currentPosition?.longitude ?? ""}',
-                                                  maxLines: 4,
-                                                  style: const TextStyle(
-                                                      color: Appcolor.black,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      fontSize: 14),
-                                                ),
+                                            ' ${_currentPosition?.longitude ?? ""}',
+                                            maxLines: 4,
+                                            style: const TextStyle(
+                                                color: Appcolor.black,
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                fontSize: 14),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1756,53 +1757,53 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                   children: [
                                     imgFile == null
                                         ? Center(
-                                            child: Container(
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(5),
-                                                  border: Border.all(
-                                                      width: 2,
-                                                      color: Appcolor
-                                                          .COLOR_PRIMARY),
-                                                ),
-                                                padding:
-                                                    const EdgeInsets.all(3),
-                                                margin: const EdgeInsets.only(
-                                                    left: 0, top: 10),
-                                                width: 260,
-                                                height: 200,
-                                                child: const Image(
-                                                  width: 260,
-                                                  height: 200,
-                                                  fit: BoxFit.fill,
-                                                  image: AssetImage(
-                                                    'images/imagenot.png',
-                                                  ),
-                                                )),
-                                          )
-                                        : Center(
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                border: Border.all(
-                                                    width: 2,
-                                                    color:
-                                                        Appcolor.COLOR_PRIMARY),
-                                              ),
-                                              padding: const EdgeInsets.all(3),
-                                              margin: const EdgeInsets.only(
-                                                  left: 10, top: 10),
-                                              width: 260,
-                                              height: 200,
-                                              child: Image.file(
-                                                imgFile!,
-                                                width: 260,
-                                                height: 200,
-                                                fit: BoxFit.fill,
-                                              ),
-                                            ),
+                                      child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                            BorderRadius.circular(5),
+                                            border: Border.all(
+                                                width: 2,
+                                                color: Appcolor
+                                                    .COLOR_PRIMARY),
                                           ),
+                                          padding:
+                                          const EdgeInsets.all(3),
+                                          margin: const EdgeInsets.only(
+                                              left: 0, top: 10),
+                                          width: 260,
+                                          height: 200,
+                                          child: const Image(
+                                            width: 260,
+                                            height: 200,
+                                            fit: BoxFit.fill,
+                                            image: AssetImage(
+                                              'images/imagenot.png',
+                                            ),
+                                          )),
+                                    )
+                                        : Center(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                          BorderRadius.circular(5),
+                                          border: Border.all(
+                                              width: 2,
+                                              color:
+                                              Appcolor.COLOR_PRIMARY),
+                                        ),
+                                        padding: const EdgeInsets.all(3),
+                                        margin: const EdgeInsets.only(
+                                            left: 10, top: 10),
+                                        width: 260,
+                                        height: 200,
+                                        child: Image.file(
+                                          imgFile!,
+                                          width: 260,
+                                          height: 200,
+                                          fit: BoxFit.fill,
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(
                                       height: 25,
                                     ),
@@ -1814,14 +1815,14 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                         decoration: BoxDecoration(
                                             color: const Color(0xFF0D3A98),
                                             borderRadius:
-                                                BorderRadius.circular(8)),
+                                            BorderRadius.circular(8)),
                                         child: TextButton(
                                           onPressed: () {
                                             if (_currentPosition == null) {
                                               Stylefile
                                                   .showmessageforvalidationfalse(
-                                                      context,
-                                                      "Please enter latitude longitude ");
+                                                  context,
+                                                  "Please enter latitude longitude ");
                                             } else {
                                               openCamera();
                                             }
@@ -1887,8 +1888,8 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           context, "Please select image");
                                     } else {
                                       bool? exists =
-                                          await databaseHelperJalJeevan
-                                              ?.isRecordExistsLocallyaddnew(
+                                      await databaseHelperJalJeevan
+                                          ?.isRecordExistsLocallyaddnew(
                                         _currentPosition!.latitude.toString(),
                                         _currentPosition!.longitude.toString(),
                                         widget.schemeid.toString(),
@@ -1901,45 +1902,45 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                       } else {
                                         databaseHelperJalJeevan
                                             ?.insertpwssourcelocal(
-                                                LocalPWSSavedData(
-                                          userId: box.read("userid"),
-                                          villageId:
+                                            LocalPWSSavedData(
+                                              userId: box.read("userid"),
+                                              villageId:
                                               widget.villageid.toString(),
-                                          assetTaggingId:
+                                              assetTaggingId:
                                               widget.assettaggingid.toString(),
-                                          stateId: box.read("stateid"),
-                                          schemeId: widget.schemeid.toString(),
-                                          schemename:
+                                              stateId: box.read("stateid"),
+                                              schemeId: widget.schemeid.toString(),
+                                              schemename:
                                               widget.selectscheme.toString(),
-                                          blockName:
+                                              blockName:
                                               widget.blockname.toString(),
-                                          villageName:
+                                              villageName:
                                               widget.villagename.toString(),
-                                          panchayatName:
+                                              panchayatName:
                                               getpanchayatname.toString(),
-                                          sourceName: bulsourcetypecatename,
-                                          sourceType: bulksourcetypename,
-                                          sourceId: widget.SourceId.toString(),
-                                          divisionId:
+                                              sourceName: bulsourcetypecatename,
+                                              sourceType: bulksourcetypename,
+                                              sourceId: widget.SourceId.toString(),
+                                              divisionId:
                                               box.read("DivisionId").toString(),
-                                          habitationId:
+                                              habitationId:
                                               selecthabitaionid.toString(),
-                                          habitationName:
+                                              habitationName:
                                               selecthabitaionname.toString(),
-                                          landmark: locationlandmarkcontroller
-                                              .text
-                                              .toString(),
-                                          latitude: _currentPosition!.latitude
-                                              .toString(),
-                                          longitude: _currentPosition!.longitude
-                                              .toString(),
-                                          accuracy:
+                                              landmark: locationlandmarkcontroller
+                                                  .text
+                                                  .toString(),
+                                              latitude: _currentPosition!.latitude
+                                                  .toString(),
+                                              longitude: _currentPosition!.longitude
+                                                  .toString(),
+                                              accuracy:
                                               accuracyofgetlocation.toString(),
-                                          image: base64Image,
-                                          sourceTypeCategoryId: bulsourcetypecategoryid,
-                                          subsourceaddnew: bulsourcetypeid,
-                                          Status: "Pending",
-                                        ))
+                                              image: base64Image,
+                                              sourceTypeCategoryId: bulsourcetypecategoryid,
+                                              subsourceaddnew: bulsourcetypeid,
+                                              Status: "Pending",
+                                            ))
                                             .then((value) {
                                           showAlertDialog(context);
                                         });
@@ -1949,7 +1950,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
 
                                   else {
-                                   /* if (selectradiobutton.toString() == "") {
+                                    /* if (selectradiobutton.toString() == "") {
                                       Stylefile.showmessageforvalidationfalse(
                                           context, "Please select source ");
                                     } else*/ if (select_sourcetyperadiobutton ==
@@ -1982,8 +1983,8 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           context, "Please select image");
                                     } else {
                                       bool? exists =
-                                          await databaseHelperJalJeevan
-                                              ?.isRecordExistsLocallyaddnew(
+                                      await databaseHelperJalJeevan
+                                          ?.isRecordExistsLocallyaddnew(
                                         _currentPosition!.latitude.toString(),
                                         _currentPosition!.longitude.toString(),
                                         widget.schemeid.toString(),
@@ -1996,51 +1997,51 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                       } else {
                                         databaseHelperJalJeevan
                                             ?.insertpwssourcelocal(
-                                                LocalPWSSavedData(
-                                          userId: box.read("userid"),
-                                          villageId:
+                                            LocalPWSSavedData(
+                                              userId: box.read("userid"),
+                                              villageId:
                                               widget.villageid.toString(),
-                                          assetTaggingId:
+                                              assetTaggingId:
                                               widget.assettaggingid.toString(),
-                                          stateId: box.read("stateid"),
-                                          schemeId: widget.schemeid.toString(),
-                                          schemename:
+                                              stateId: box.read("stateid"),
+                                              schemeId: widget.schemeid.toString(),
+                                              schemename:
                                               widget.selectscheme.toString(),
-                                          blockName:
+                                              blockName:
                                               widget.blockname.toString(),
-                                          villageName:
+                                              villageName:
                                               widget.villagename.toString(),
-                                          panchayatName:
+                                              panchayatName:
                                               getpanchayatname.toString(),
-                                          sourceName: widget.source_typeCategorysend,
-                                          // select_sourcetyperadiobutton >> in this openwell
+                                              sourceName: widget.source_typeCategorysend,
+                                              // select_sourcetyperadiobutton >> in this openwell
 
 
-                                          sourceType: select_sourcetyperadiobutton.toString(),
-                                          sourceId: widget.SourceId.toString(),
+                                              sourceType: select_sourcetyperadiobutton.toString(),
+                                              sourceId: widget.SourceId.toString(),
 
 
-                                          divisionId:
+                                              divisionId:
                                               box.read("DivisionId").toString(),
-                                          habitationId:
+                                              habitationId:
                                               selecthabitaionid.toString(),
-                                          habitationName:
+                                              habitationName:
                                               selecthabitaionname.toString(),
-                                          landmark: locationlandmarkcontroller
-                                              .text
-                                              .toString(),
-                                          latitude: _currentPosition!.latitude
-                                              .toString(),
-                                          longitude: _currentPosition!.longitude
-                                              .toString(),
-                                          accuracy:
+                                              landmark: locationlandmarkcontroller
+                                                  .text
+                                                  .toString(),
+                                              latitude: _currentPosition!.latitude
+                                                  .toString(),
+                                              longitude: _currentPosition!.longitude
+                                                  .toString(),
+                                              accuracy:
                                               accuracyofgetlocation.toString(),
-                                          image: base64Image,
-                                          sourceTypeCategoryId: widget.SourceTypeCategoryIdsend.toString(),
-                                          subsourceaddnew:
+                                              image: base64Image,
+                                              sourceTypeCategoryId: widget.SourceTypeCategoryIdsend.toString(),
+                                              subsourceaddnew:
                                               select_sourcetypeid.toString(),
-                                          Status: "Pending",
-                                        ))
+                                              Status: "Pending",
+                                            ))
                                             .then((value) {
                                           showAlertDialog(context);
                                         });
@@ -2176,37 +2177,37 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                             context, "Please select image");
                                       } else {
                                         Apiservice.PWSSourceSavetaggingapi(
-                                                context,
-                                                box.read("UserToken").toString(),
-                                                box.read("userid").toString(),
-                                                widget.villageid.toString(),
-                                                widget.assettaggingid.toString(),
-                                                box.read("stateid"),
-                                                widget.schemeid.toString(),
+                                            context,
+                                            box.read("UserToken").toString(),
+                                            box.read("userid").toString(),
+                                            widget.villageid.toString(),
+                                            widget.assettaggingid.toString(),
+                                            box.read("stateid"),
+                                            widget.schemeid.toString(),
 
 
-                                                widget.SourceId.toString(),
+                                            widget.SourceId.toString(),
 
 
 
-                                                /* sourceName: bulsourcetypecatename,
+                                            /* sourceName: bulsourcetypecatename,
                                           sourceType: bulksourcetypename,*/
-                                                box.read("DivisionId").toString(),
-                                                selecthabitaionid.toString(),
-                                                /*select_sourcetypeid.toString(),
+                                            box.read("DivisionId").toString(),
+                                            selecthabitaionid.toString(),
+                                            /*select_sourcetypeid.toString(),
                                               selectradiobutton_category.toString(),*/
-                                                bulsourcetypeid.toString(),
-                                                bulsourcetypecategoryid.toString(),
+                                            bulsourcetypeid.toString(),
+                                            bulsourcetypecategoryid.toString(),
 
-                                                locationlandmarkcontroller.text
-                                                    .toString(),
-                                                _currentPosition!.latitude
-                                                    .toString(),
-                                                _currentPosition!.longitude
-                                                    .toString(),
-                                                accuracyofgetlocation
-                                                    .toString(),
-                                                base64Image)
+                                            locationlandmarkcontroller.text
+                                                .toString(),
+                                            _currentPosition!.latitude
+                                                .toString(),
+                                            _currentPosition!.longitude
+                                                .toString(),
+                                            accuracyofgetlocation
+                                                .toString(),
+                                            base64Image)
                                             .then((value) {
                                           bulsourcetypecategoryid="";
                                           Get.back();
@@ -2214,20 +2215,20 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                               "false") {
                                             Stylefile
                                                 .showmessageforvalidationtrue(
-                                                    context,
-                                                    value["msg"].toString());
+                                                context,
+                                                value["msg"].toString());
                                           } else if (value["Status"]
-                                                  .toString() ==
+                                              .toString() ==
                                               "true") {
                                             Stylefile
                                                 .showmessageforvalidationtrue(
-                                                    context,
-                                                    value["msg"].toString());
+                                                context,
+                                                value["msg"].toString());
                                             cleartable_localmastertables();
                                             Apiservice.Getmasterapi(context).then((value) {
                                               for (int i = 0;
-                                                  i < value.villagelist!.length;
-                                                  i++) {
+                                              i < value.villagelist!.length;
+                                              i++) {
                                                 var userid = value
                                                     .villagelist![i]!.userId;
 
@@ -2241,26 +2242,26 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                 databaseHelperJalJeevan
                                                     ?.insertMastervillagelistdata(
-                                                        Localmasterdatanodal(
-                                                            UserId: userid
-                                                                .toString(),
-                                                            villageId: villageId
-                                                                .toString(),
-                                                            StateId: stateId
-                                                                .toString(),
-                                                            villageName:
-                                                                villageName
-                                                                    .toString()))
+                                                    Localmasterdatanodal(
+                                                        UserId: userid
+                                                            .toString(),
+                                                        villageId: villageId
+                                                            .toString(),
+                                                        StateId: stateId
+                                                            .toString(),
+                                                        villageName:
+                                                        villageName
+                                                            .toString()))
                                                     .then((value) {});
                                               }
                                               databaseHelperJalJeevan!
                                                   .removeDuplicateEntries();
 
                                               for (int i = 0;
-                                                  i <
-                                                      value.villageDetails!
-                                                          .length;
-                                                  i++) {
+                                              i <
+                                                  value.villageDetails!
+                                                      .length;
+                                              i++) {
                                                 var stateName = "Assam";
 
                                                 var districtName = value
@@ -2334,64 +2335,64 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                 databaseHelperJalJeevan
                                                     ?.insertMastervillagedetails(
-                                                        Localmasterdatamodal_VillageDetails(
-                                                  status: "0",
-                                                  stateName: stateName,
-                                                  districtName: districtName,
-                                                  blockName: blockName,
-                                                  panchayatName: panchayatName,
-                                                  stateId:
+                                                    Localmasterdatamodal_VillageDetails(
+                                                      status: "0",
+                                                      stateName: stateName,
+                                                      districtName: districtName,
+                                                      blockName: blockName,
+                                                      panchayatName: panchayatName,
+                                                      stateId:
                                                       stateidnew.toString(),
-                                                  userId: userId.toString(),
-                                                  villageId: villageIddetails
-                                                      .toString(),
-                                                  villageName: villageName,
-                                                  totalNoOfScheme:
+                                                      userId: userId.toString(),
+                                                      villageId: villageIddetails
+                                                          .toString(),
+                                                      villageName: villageName,
+                                                      totalNoOfScheme:
                                                       totalNoOfScheme
                                                           .toString(),
-                                                  totalNoOfWaterSource:
+                                                      totalNoOfWaterSource:
                                                       totalNoOfWaterSource
                                                           .toString(),
-                                                  totalWsGeoTagged:
+                                                      totalWsGeoTagged:
                                                       totalWsGeoTagged
                                                           .toString(),
-                                                  pendingWsTotal:
+                                                      pendingWsTotal:
                                                       pendingWsTotal.toString(),
-                                                  balanceWsTotal:
+                                                      balanceWsTotal:
                                                       balanceWsTotal.toString(),
-                                                  totalSsGeoTagged:
+                                                      totalSsGeoTagged:
                                                       totalSsGeoTagged
                                                           .toString(),
-                                                  pendingApprovalSsTotal:
+                                                      pendingApprovalSsTotal:
                                                       pendingApprovalSsTotal
                                                           .toString(),
-                                                  totalIbRequiredGeoTagged:
+                                                      totalIbRequiredGeoTagged:
                                                       totalIbRequiredGeoTagged
                                                           .toString(),
-                                                  totalIbGeoTagged:
+                                                      totalIbGeoTagged:
                                                       totalIbGeoTagged
                                                           .toString(),
-                                                  pendingIbTotal:
+                                                      pendingIbTotal:
                                                       pendingIbTotal.toString(),
-                                                  balanceIbTotal:
+                                                      balanceIbTotal:
                                                       balanceIbTotal.toString(),
-                                                  totalOaGeoTagged:
+                                                      totalOaGeoTagged:
                                                       totalOaGeoTagged
                                                           .toString(),
-                                                  balanceOaTotal:
+                                                      balanceOaTotal:
                                                       balanceOaTotal.toString(),
-                                                  totalNoOfSchoolScheme:
+                                                      totalNoOfSchoolScheme:
                                                       totalNoOfSchoolScheme
                                                           .toString(),
-                                                  totalNoOfPwsScheme:
+                                                      totalNoOfPwsScheme:
                                                       totalNoOfPwsScheme
                                                           .toString(),
-                                                ));
+                                                    ));
                                               }
 
                                               for (int i = 0;
-                                                  i < value.schmelist!.length;
-                                                  i++) {
+                                              i < value.schmelist!.length;
+                                              i++) {
                                                 var source_type = value
                                                     .schmelist![i]!.source_type;
                                                 var schemeidnew = value
@@ -2407,19 +2408,19 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                 databaseHelperJalJeevan
                                                     ?.insertMasterSchmelist(
-                                                        Localmasterdatamoda_Scheme(
-                                                  source_type:
+                                                    Localmasterdatamoda_Scheme(
+                                                      source_type:
                                                       source_type.toString(),
-                                                  schemeid:
+                                                      schemeid:
                                                       schemeidnew.toString(),
-                                                  villageId:
+                                                      villageId:
                                                       villageid.toString(),
-                                                  schemename:
+                                                      schemename:
                                                       schemenamenew.toString(),
-                                                  category: schemenacategorynew.toString(),
-                                                          SourceTypeCategoryId: SourceTypeCategoryId.toString(),
-                                                          source_typeCategory: source_typeCategory.toString(),
-                                                ));
+                                                      category: schemenacategorynew.toString(),
+                                                      SourceTypeCategoryId: SourceTypeCategoryId.toString(),
+                                                      source_typeCategory: source_typeCategory.toString(),
+                                                    ));
                                               }
 
                                               for (int i = 0; i < value.sourcelist!.length; i++) {
@@ -2481,10 +2482,10 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                               }
 
                                               for (int i = 0;
-                                                  i <
-                                                      value.habitationlist!
-                                                          .length;
-                                                  i++) {
+                                              i <
+                                                  value.habitationlist!
+                                                      .length;
+                                              i++) {
                                                 var villafgeid = value
                                                     .habitationlist![i]!
                                                     .villageId;
@@ -2497,31 +2498,31 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                 databaseHelperJalJeevan
                                                     ?.insertMasterhabitaionlist(
-                                                        LocalHabitaionlistModal(
-                                                            villageId:
-                                                                villafgeid
-                                                                    .toString(),
-                                                            HabitationId:
-                                                                habitationId
-                                                                    .toString(),
-                                                            HabitationName:
-                                                                habitationName
-                                                                    .toString()));
+                                                    LocalHabitaionlistModal(
+                                                        villageId:
+                                                        villafgeid
+                                                            .toString(),
+                                                        HabitationId:
+                                                        habitationId
+                                                            .toString(),
+                                                        HabitationName:
+                                                        habitationName
+                                                            .toString()));
                                               }
                                               for (int i = 0; i < value.informationBoardList!.length; i++) {
                                                 databaseHelperJalJeevan?.insertmastersibdetails(LocalmasterInformationBoardItemModal(
                                                     userId: value.informationBoardList![i]!.userId.toString(),
                                                     villageId: value.informationBoardList![i]!.villageId.toString(),
                                                     stateId: value.informationBoardList![i]!.stateId
-                                                            .toString(),
+                                                        .toString(),
                                                     schemeId: value
                                                         .informationBoardList![
-                                                            i]!
+                                                    i]!
                                                         .schemeId
                                                         .toString(),
                                                     districtName: value
                                                         .informationBoardList![
-                                                            i]!
+                                                    i]!
                                                         .districtName,
                                                     blockName: value
                                                         .informationBoardList![i]!
@@ -2544,7 +2545,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
 
                                     else {
-                                    /*  if (selectradiobutton.toString() == "") {
+                                      /*  if (selectradiobutton.toString() == "") {
                                         Stylefile.showmessageforvalidationfalse(
                                             context, "Please select source ");
                                       } else */if (select_sourcetyperadiobutton ==
@@ -2553,7 +2554,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                             context,
                                             "Please select source type");
                                       } else if (selecthabitaionname
-                                              .toString() ==
+                                          .toString() ==
                                           "-- Select Habitation --") {
                                         Stylefile.showmessageforvalidationfalse(
                                             context, "Please select habitaion");
@@ -2582,8 +2583,8 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                             "-- Select Habitation --") {
                                           Stylefile
                                               .showmessageforvalidationfalse(
-                                                  context,
-                                                  "Please select habitaion");
+                                              context,
+                                              "Please select habitaion");
                                         } else if (locationlandmarkcontroller
                                             .text
                                             .trim()
@@ -2605,56 +2606,56 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                         } else if (imgFile == null) {
                                           Stylefile
                                               .showmessageforvalidationfalse(
-                                                  context,
-                                                  "Please select image");
+                                              context,
+                                              "Please select image");
                                         } else {
                                           /*select_sourcetypeid.toString(),
                                               selectradiobutton_category.toString()*/
                                           /* var source_typeCategorysend;
                                                  var SourceTypeCategoryIdsend;*/
                                           Apiservice.PWSSourceSavetaggingapi(
-                                                  context,
-                                                  box.read("UserToken").toString(),
-                                                  box.read("userid").toString(),
-                                                  widget.villageid.toString(),
-                                                  widget.assettaggingid.toString(),
-                                                  box.read("stateid"),
-                                                  widget.schemeid.toString(),
-                                                  widget.SourceId.toString(),
-                                                  box.read("DivisionId").toString(),
-                                                  selecthabitaionid.toString(),
-                                                  select_sourcetypeid.toString(),
-                                                  widget.SourceTypeCategoryIdsend.toString(),
-                                             /* widget.source_typeCategorysend,
+                                              context,
+                                              box.read("UserToken").toString(),
+                                              box.read("userid").toString(),
+                                              widget.villageid.toString(),
+                                              widget.assettaggingid.toString(),
+                                              box.read("stateid"),
+                                              widget.schemeid.toString(),
+                                              widget.SourceId.toString(),
+                                              box.read("DivisionId").toString(),
+                                              selecthabitaionid.toString(),
+                                              select_sourcetypeid.toString(),
+                                              widget.SourceTypeCategoryIdsend.toString(),
+                                              /* widget.source_typeCategorysend,
                                               widget.SourceTypeCategoryIdsend,*/
-                                                  locationlandmarkcontroller.text.toString(),
-                                                  _currentPosition!.latitude.toString(),
-                                                  _currentPosition!.longitude.toString(),
-                                                  accuracyofgetlocation.toString(),
-                                                  base64Image)
+                                              locationlandmarkcontroller.text.toString(),
+                                              _currentPosition!.latitude.toString(),
+                                              _currentPosition!.longitude.toString(),
+                                              accuracyofgetlocation.toString(),
+                                              base64Image)
                                               .then((value) {
                                             Get.back();
                                             if (value["Status"].toString() ==
                                                 "false") {
                                               Stylefile
                                                   .showmessageforvalidationtrue(
-                                                      context,
-                                                      value["msg"].toString());
+                                                  context,
+                                                  value["msg"].toString());
                                             } else if (value["Status"]
-                                                    .toString() ==
+                                                .toString() ==
                                                 "true") {
                                               Stylefile
                                                   .showmessageforvalidationtrue(
-                                                      context,
-                                                      value["msg"].toString());
+                                                  context,
+                                                  value["msg"].toString());
                                               cleartable_localmastertables();
                                               Apiservice.Getmasterapi(context)
                                                   .then((value) {
                                                 for (int i = 0;
-                                                    i <
-                                                        value.villagelist!
-                                                            .length;
-                                                    i++) {
+                                                i <
+                                                    value.villagelist!
+                                                        .length;
+                                                i++) {
                                                   var userid = value
                                                       .villagelist![i]!.userId;
 
@@ -2669,26 +2670,26 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                   databaseHelperJalJeevan
                                                       ?.insertMastervillagelistdata(
-                                                          Localmasterdatanodal(
-                                                              UserId: userid
-                                                                  .toString(),
-                                                              villageId: villageId
-                                                                  .toString(),
-                                                              StateId: stateId
-                                                                  .toString(),
-                                                              villageName:
-                                                                  villageName
-                                                                      .toString()))
+                                                      Localmasterdatanodal(
+                                                          UserId: userid
+                                                              .toString(),
+                                                          villageId: villageId
+                                                              .toString(),
+                                                          StateId: stateId
+                                                              .toString(),
+                                                          villageName:
+                                                          villageName
+                                                              .toString()))
                                                       .then((value) {});
                                                 }
                                                 databaseHelperJalJeevan!
                                                     .removeDuplicateEntries();
 
                                                 for (int i = 0;
-                                                    i <
-                                                        value.villageDetails!
-                                                            .length;
-                                                    i++) {
+                                                i <
+                                                    value.villageDetails!
+                                                        .length;
+                                                i++) {
                                                   var stateName = "Assam";
 
                                                   var districtName = value
@@ -2763,70 +2764,70 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                   databaseHelperJalJeevan
                                                       ?.insertMastervillagedetails(
-                                                          Localmasterdatamodal_VillageDetails(
-                                                    status: "0",
-                                                    stateName: stateName,
-                                                    districtName: districtName,
-                                                    blockName: blockName,
-                                                    panchayatName:
+                                                      Localmasterdatamodal_VillageDetails(
+                                                        status: "0",
+                                                        stateName: stateName,
+                                                        districtName: districtName,
+                                                        blockName: blockName,
+                                                        panchayatName:
                                                         panchayatName,
-                                                    stateId:
+                                                        stateId:
                                                         stateidnew.toString(),
-                                                    userId: userId.toString(),
-                                                    villageId: villageIddetails
-                                                        .toString(),
-                                                    villageName: villageName,
-                                                    totalNoOfScheme:
+                                                        userId: userId.toString(),
+                                                        villageId: villageIddetails
+                                                            .toString(),
+                                                        villageName: villageName,
+                                                        totalNoOfScheme:
                                                         totalNoOfScheme
                                                             .toString(),
-                                                    totalNoOfWaterSource:
+                                                        totalNoOfWaterSource:
                                                         totalNoOfWaterSource
                                                             .toString(),
-                                                    totalWsGeoTagged:
+                                                        totalWsGeoTagged:
                                                         totalWsGeoTagged
                                                             .toString(),
-                                                    pendingWsTotal:
+                                                        pendingWsTotal:
                                                         pendingWsTotal
                                                             .toString(),
-                                                    balanceWsTotal:
+                                                        balanceWsTotal:
                                                         balanceWsTotal
                                                             .toString(),
-                                                    totalSsGeoTagged:
+                                                        totalSsGeoTagged:
                                                         totalSsGeoTagged
                                                             .toString(),
-                                                    pendingApprovalSsTotal:
+                                                        pendingApprovalSsTotal:
                                                         pendingApprovalSsTotal
                                                             .toString(),
-                                                    totalIbRequiredGeoTagged:
+                                                        totalIbRequiredGeoTagged:
                                                         totalIbRequiredGeoTagged
                                                             .toString(),
-                                                    totalIbGeoTagged:
+                                                        totalIbGeoTagged:
                                                         totalIbGeoTagged
                                                             .toString(),
-                                                    pendingIbTotal:
+                                                        pendingIbTotal:
                                                         pendingIbTotal
                                                             .toString(),
-                                                    balanceIbTotal:
+                                                        balanceIbTotal:
                                                         balanceIbTotal
                                                             .toString(),
-                                                    totalOaGeoTagged:
+                                                        totalOaGeoTagged:
                                                         totalOaGeoTagged
                                                             .toString(),
-                                                    balanceOaTotal:
+                                                        balanceOaTotal:
                                                         balanceOaTotal
                                                             .toString(),
-                                                    totalNoOfSchoolScheme:
+                                                        totalNoOfSchoolScheme:
                                                         totalNoOfSchoolScheme
                                                             .toString(),
-                                                    totalNoOfPwsScheme:
+                                                        totalNoOfPwsScheme:
                                                         totalNoOfPwsScheme
                                                             .toString(),
-                                                  ));
+                                                      ));
                                                 }
 
                                                 for (int i = 0;
-                                                    i < value.schmelist!.length;
-                                                    i++) {
+                                                i < value.schmelist!.length;
+                                                i++) {
                                                   var source_type = value
                                                       .schmelist![i]!
                                                       .source_type;
@@ -2846,19 +2847,19 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                   databaseHelperJalJeevan
                                                       ?.insertMasterSchmelist(
-                                                          Localmasterdatamoda_Scheme(
-                                                    source_type:
+                                                      Localmasterdatamoda_Scheme(
+                                                        source_type:
                                                         source_type.toString(),
-                                                    schemeid:
+                                                        schemeid:
                                                         schemeidnew.toString(),
-                                                    villageId:
+                                                        villageId:
                                                         villageid.toString(),
-                                                    schemename: schemenamenew
-                                                        .toString(),
-                                                    category: schemenacategorynew.toString(),
-                                                            SourceTypeCategoryId: SourceTypeCategoryId.toString(),
-                                                            source_typeCategory: source_typeCategory.toString(),
-                                                  ));
+                                                        schemename: schemenamenew
+                                                            .toString(),
+                                                        category: schemenacategorynew.toString(),
+                                                        SourceTypeCategoryId: SourceTypeCategoryId.toString(),
+                                                        source_typeCategory: source_typeCategory.toString(),
+                                                      ));
                                                 }
 
                                                 for (int i = 0; i < value.sourcelist!.length; i++) {
@@ -2920,10 +2921,10 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                 }
 
                                                 for (int i = 0;
-                                                    i <
-                                                        value.habitationlist!
-                                                            .length;
-                                                    i++) {
+                                                i <
+                                                    value.habitationlist!
+                                                        .length;
+                                                i++) {
                                                   var villafgeid = value
                                                       .habitationlist![i]!
                                                       .villageId;
@@ -2936,40 +2937,40 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                   databaseHelperJalJeevan
                                                       ?.insertMasterhabitaionlist(
-                                                          LocalHabitaionlistModal(
-                                                              villageId:
-                                                                  villafgeid
-                                                                      .toString(),
-                                                              HabitationId:
-                                                                  habitationId
-                                                                      .toString(),
-                                                              HabitationName:
-                                                                  habitationName
-                                                                      .toString()));
+                                                      LocalHabitaionlistModal(
+                                                          villageId:
+                                                          villafgeid
+                                                              .toString(),
+                                                          HabitationId:
+                                                          habitationId
+                                                              .toString(),
+                                                          HabitationName:
+                                                          habitationName
+                                                              .toString()));
                                                 }
                                                 for (int i = 0;
-                                                    i <
-                                                        value
-                                                            .informationBoardList!
-                                                            .length;
-                                                    i++) {
+                                                i <
+                                                    value
+                                                        .informationBoardList!
+                                                        .length;
+                                                i++) {
                                                   databaseHelperJalJeevan?.insertmastersibdetails(LocalmasterInformationBoardItemModal(
                                                       userId: value.informationBoardList![i]!.userId
                                                           .toString(),
                                                       villageId: value
                                                           .informationBoardList![
-                                                              i]!
+                                                      i]!
                                                           .villageId
                                                           .toString(),
                                                       stateId:
-                                                          value.informationBoardList![i]!.stateId
-                                                              .toString(),
+                                                      value.informationBoardList![i]!.stateId
+                                                          .toString(),
                                                       schemeId:
-                                                          value.informationBoardList![i]!.schemeId
-                                                              .toString(),
+                                                      value.informationBoardList![i]!.schemeId
+                                                          .toString(),
                                                       districtName: value
                                                           .informationBoardList![
-                                                              i]!
+                                                      i]!
                                                           .districtName,
                                                       blockName: value
                                                           .informationBoardList![i]!
@@ -3020,7 +3021,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
   Future<void> uploadLocalDataAndClear(BuildContext context) async {
     try {
       final List<LocalPWSSavedData>? localDataList =
-          await databaseHelperJalJeevan?.getAllLocalPWSSavedData();
+      await databaseHelperJalJeevan?.getAllLocalPWSSavedData();
       if (localDataList!.isEmpty) {
         return;
       }

@@ -4696,7 +4696,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                             .toString(),
                                                                         Othersmain,
                                                                 capacitycontroller.text,
-                                                                    selectedSourceIdsString
+                                                                    selectedSourceIdsString,WTPTypeId
                                                                 ).then((value) {
 
                                                                   if (value["Status"]
@@ -4737,74 +4737,36 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                               else {
                                                                 List<int> selectedSourceIdsString = selectedSourceIds.map(int.parse).toList();
                                                                 Apiservice.OtherassetSavetaggingapi(context,
-                                                                        box.read(
-                                                                                "UserToken")
-                                                                            .toString(),
-                                                                        box
-                                                                            .read(
-                                                                                "userid")
-                                                                            .toString(),
-                                                                        widget
-                                                                            .villageid,
-                                                                        box.read(
-                                                                            "stateid"),
+                                                                        box.read("UserToken").toString(),
+                                                                        box.read("userid").toString(),
+                                                                        widget.villageid,
+                                                                        box.read("stateid"),
                                                                         _mySchemeid,
                                                                         "4",
-                                                                        box
-                                                                            .read(
-                                                                                "DivisionId")
-                                                                            .toString(),
+                                                                        box.read("DivisionId").toString(),
                                                                         selecthabitaionid,
-                                                                        locationlandmarkcontroller
-                                                                            .text
-                                                                            .toString(),
-                                                                        _currentPosition!
-                                                                            .latitude
-                                                                            .toString(),
-                                                                        _currentPosition!
-                                                                            .longitude
-                                                                            .toString(),
-                                                                        accuracyofgetlocation
-                                                                            .toString(),
-                                                                        base64Image
-                                                                            .toString(),
-                                                                        Othersmain,
-                                                                "0",
-                                                                    [0]
+                                                                        locationlandmarkcontroller.text.toString(),
+                                                                        _currentPosition!.latitude.toString(),
+                                                                        _currentPosition!.longitude.toString(),
+                                                                        accuracyofgetlocation.toString(),
+                                                                        base64Image.toString(),
+                                                                        Othersmain, "0",
+                                                                        [0],"0"
                                                                 ).then((value) {
 
-                                                                  if (value["Status"]
-                                                                          .toString() ==
-                                                                      "false") {
-                                                                    Stylefile.showmessageforvalidationfalse(
-                                                                        context,
-                                                                        value["msg"]
-                                                                            .toString());
-
-                                                                    if (value["msg"]
-                                                                            .toString() ==
-                                                                        "Token is wrong or expire") {
-                                                                      setState(
-                                                                          () {
-                                                                        Get.off(
-                                                                            LoginScreen());
-                                                                        box
-                                                                            .remove("UserToken")
-                                                                            .toString();
+                                                                  if (value["Status"].toString() == "false") {
+                                                                    Stylefile.showmessageforvalidationfalse(context, value["msg"].toString());
+                                                                    if (value["msg"].toString() == "Token is wrong or expire") {
+                                                                      setState(()
+                                                                      {
+                                                                        Get.off(LoginScreen());
+                                                                        box.remove("UserToken").toString();
                                                                         cleartable_localmastertables();
                                                                       });
                                                                     }
-                                                                  } else if (value[
-                                                                              "Status"]
-                                                                          .toString() ==
-                                                                      "true") {
-                                                                    Stylefile.showmessageforvalidationtrue(
-                                                                        context,
-                                                                        value["msg"]
-                                                                            .toString());
-
+                                                                  } else if (value["Status"].toString() == "true") {
+                                                                    Stylefile.showmessageforvalidationtrue(context, value["msg"].toString());
                                                                     cleartable_localmastertables();
-
                                                                   }
                                                                 });
                                                               }

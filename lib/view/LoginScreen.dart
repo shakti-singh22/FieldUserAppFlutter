@@ -295,10 +295,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               onChanged: (password) {
                                 var bytes = utf8.encode(password);
                                 var digest = sha512.convert(bytes);
-                                hashedPassword =
-                                    digest.toString().toUpperCase();
-                                HASHpassword = hashedPassword +
-                                    RandomNumbersalt.toString();
+                                hashedPassword = digest.toString().toUpperCase();
+                                HASHpassword = hashedPassword + RandomNumbersalt.toString();
                               },
                             ),
                           ),

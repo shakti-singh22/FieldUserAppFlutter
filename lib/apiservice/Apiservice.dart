@@ -13,52 +13,72 @@ import '../view/LoginScreen.dart';
 
 class Apiservice {
      // static String baseurl = "http://10.22.3.161:8086/api/";
-    static String baseurl = "https://ejalshakti.gov.in/krcpwa/api/";
+    static String baseurl = "https://ejalshakti.gov.in/jjmapp/api/";
 
 
   static GetStorage box = GetStorage();
   late DatabaseHelperJalJeevan databaseHelperJalJeevan;
 
-  static Future Loginapi(
-    BuildContext context,
-    String userid,
-    String password,
-    String randomsalt,
-  ) async {
-    showDialog(
+    static Future Loginapi(
+        BuildContext context,
+        String userid,
+        String password,
+        String randomsalt,
+        ) async {
+      // Show loading dialog
+      showDialog(
         barrierDismissible: false,
         context: context,
         builder: (context) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: Image.asset("images/loading.gif")),
-            ],
+          return const Center(
+            child: SizedBox(
+              height: 40,
+              width: 40,
+              child: Image(image: AssetImage("images/loading.gif")),
+            ),
           );
-        });
-    var response = await http.post(
-      Uri.parse('${baseurl}' + "JJM_Mobile/Login"),
-      headers: {
+        },
+      );
+
+      // Construct URL and body
+      final url = Uri.parse('${baseurl}JJM_Mobile/Login');
+      final headers = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-      },
-      body: jsonEncode({
+      };
+      final body = {
         "LoginId": userid,
         "Password": password,
         "txtSaltedHash": randomsalt
-      }),
-    );
-    Get.back();
+      };
 
-    print("responselogin$response");
-    if (response.statusCode == 200) {
+      // Print request
+      print("🔐 Sending Login Request:");
+      print("➡️ URL: $url");
+      print("➡️ Headers: $headers");
+      print("➡️ Body: ${jsonEncode(body)}");
+
+      // Send request
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: jsonEncode(body),
+      );
+
+      // Close dialog
+      Get.back();
+
+      // Print response
+      print("📥 Received Response:");
+      print("⬅️ Status Code: ${response.statusCode}");
+      print("⬅️ Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        // Handle successful login if needed
+      }
+
+      return jsonDecode(response.body);
     }
-    return jsonDecode(response.body);
-  }
 
 
   static Future PWSSourceSavetaggingapi(
@@ -129,277 +149,365 @@ class Apiservice {
     return jsonDecode(response.body);
   }
 
-  static Future<Getmasterdatamodal> Getmasterapi(BuildContext context) async {
-    try {
-      var connectivityResult = await (Connectivity().checkConnectivity());
-      if (connectivityResult == ConnectivityResult.none) {
-        throw Exception("No internet connection available");
+    static Future<Getmasterdatamodal> Getmasterapi(BuildContext context) async {
+      try {
+        var connectivityResult = await (Connectivity().checkConnectivity());
+        if (connectivityResult == ConnectivityResult.none) {
+          throw Exception("No internet connection available");
+        }
+
+        String stateId = box.read("stateid") ?? "";
+        String userId = box.read("userid") ?? "";
+
+        var uri = Uri.parse("${Apiservice.baseurl}JJM_Mobile/Get_MasterData?&StateId=$stateId&UserId=$userId");
+
+        print("🔗 [GET] Request URL: $uri");
+
+        var response = await http.get(uri).timeout(Duration(seconds: 30));
+
+        print("📡 [RESPONSE] Status Code: ${response.statusCode}");
+        print("📥 [RESPONSE] Body: ${response.body}");
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> mResposne = jsonDecode(response.body);
+
+          var appvaersion = mResposne["APKVersion"];
+          var appDownloadSize = mResposne["DownloadSize"];
+          var appAPKVersionMessage = mResposne["APKVersionMessage"];
+          var appAPKURL = mResposne["APKURL"];
+
+          box.write("appvaersion", appvaersion);
+          box.write("appDownloadSize", appDownloadSize);
+          box.write("appAPKVersionMessage", appAPKVersionMessage);
+          box.write("appAPKURL", appAPKURL);
+
+          return Getmasterdatamodal.fromJson(mResposne);
+        } else {
+          throw Exception("Failed to fetch data: ${response.statusCode}");
+        }
+      } catch (e) {
+        print("❌ [ERROR] $e");
+        throw Exception("Error occurred: $e");
       }
+    }
+    static Future SIBSavetaggingapi(
+        BuildContext context,
+        String token,
+        String UserId,
+        String VillageId,
+        String CapturePointTypeId,
+        String StateId,
+        String SchemeId,
+        String SourceId,
+        String DivisionId,
+        String HabitationId,
+        String Landmark,
+        String Latitude,
+        String Longitude,
+        String Accuracy,
+        String Photo,
+        ) async {
+      try {
+        showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (context) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: Image.asset("images/loading.gif"),
+                ),
+              ],
+            );
+          },
+        );
 
-      var uri = Uri.parse("${Apiservice.baseurl}JJM_Mobile/Get_MasterData?&StateId=" + box.read("stateid") + "&UserId=" + box.read("userid"));
+        final uri = Uri.parse('${baseurl}JJM_Mobile/SaveInformationBoard');
 
-      var response = await http.get(uri).timeout(Duration(seconds: 30));
+        final headers = {
+          'Content-Type': 'application/json',
+          'APIKey': token.isNotEmpty ? token : 'DEFAULT_API_KEY',
+        };
 
-      if (response.statusCode == 200) {
-        print("response45454$response");
-        Map<String, dynamic> mResposne = jsonDecode(response.body);
+        final body = {
+          "UserId": box.read("userid"),
+          "VillageId": VillageId,
+          "CapturePointTypeId": CapturePointTypeId,
+          "StateId": StateId,
+          "SchemeId": SchemeId,
+          "SourceId": SourceId,
+          "DivisionId": DivisionId,
+          "HabitationId": HabitationId,
+          "Landmark": Landmark,
+          "Latitude": Latitude,
+          "Longitude": Longitude,
+          "Accuracy": Accuracy,
+          "Photo": Photo,
+        };
 
-        var appvaersion = mResposne["APKVersion"];
-        var appDownloadSize = mResposne["DownloadSize"];
-        var appAPKVersionMessage = mResposne["APKVersionMessage"];
-        var appAPKURL = mResposne["APKURL"];
+        print("🔗 [POST] Request URL: $uri");
+        print("📤 [HEADERS]: $headers");
+        print("📤 [BODY]: ${jsonEncode(body)}");
 
-        box.write("appvaersion", appvaersion);
-        box.write("appDownloadSize", appDownloadSize);
-        box.write("appAPKVersionMessage", appAPKVersionMessage);
-        box.write("appAPKURL", appAPKURL);
+        final response = await http
+            .post(uri, headers: headers, body: jsonEncode(body))
+            .timeout(Duration(seconds: 30));
 
-        return Getmasterdatamodal.fromJson(jsonDecode(response.body));
-      } else {
-        Map<String, dynamic> mResposne = jsonDecode(response.body);
-        throw Exception("Failed to fetch data: ${response.statusCode}");
+        print("📡 [RESPONSE] Status Code: ${response.statusCode}");
+        print("📥 [RESPONSE] Body: ${response.body}");
+
+        Get.back();
+
+        if (response.statusCode == 200) {
+          return jsonDecode(response.body);
+        } else {
+          throw Exception("Server error: ${response.statusCode}");
+        }
+      } catch (e) {
+        Get.back(); // Close dialog in case of failure
+        print("❌ [ERROR] $e");
+        throw Exception("Something went wrong: $e");
       }
-    } catch (e) {
-      throw Exception("Error occurred: $e");
     }
-  }
 
-  static Future SIBSavetaggingapi(
-    BuildContext context,
-    String token,
-    String UserId,
-    String VillageId,
-    String CapturePointTypeId,
-    String StateId,
-    String SchemeId,
-    String SourceId,
-    String DivisionId,
-    String HabitationId,
-    String Landmark,
-    String Latitude,
-    String Longitude,
-    String Accuracy,
-    String Photo,
-  ) async {
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
+
+    static Future OtherassetSavetaggingapi(
+        BuildContext context,
+        String token,
+        String UserId,
+        String VillageId,
+        String StateId,
+        String SchemeId,
+        String SourceId,
+        String DivisionId,
+        String HabitationId,
+        String Landmark,
+        String Latitude,
+        String Longitude,
+        String Accuracy,
+        String Photo,
+        String assetOtherCategory,
+        String WTP_capicity,
+        List<int> WTP_selectedSourceIds,
+        String WTPTypeId,
+        ) async {
+      try {
+        showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (context) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
                   height: 40,
                   width: 40,
-                  child: Image.asset("images/loading.gif")),
-            ],
-          );
-        });
-    var response = await http.post(
-      Uri.parse('${baseurl}' + "JJM_Mobile/SaveInformationBoard"),
-      headers: {
-        'Content-Type': 'application/json',
-        'APIKey': token ?? 'DEFAULT_API_KEY'
-      },
-      body: jsonEncode({
-        "UserId": box.read("userid"),
-        "VillageId": VillageId,
-        "CapturePointTypeId": CapturePointTypeId,
-        "StateId": StateId,
-        "SchemeId": SchemeId,
-        "SourceId": SourceId,
-        "DivisionId": DivisionId,
-        "HabitationId": HabitationId,
-        "Landmark": Landmark,
-        "Latitude": Latitude,
-        "Longitude": Longitude,
-        "Accuracy": Accuracy,
-        "Photo": Photo
-      }),
-    );
-    Get.back();
-    if (response.statusCode == 200) {
-      var responsede = response.body;
-    }
-    return jsonDecode(response.body);
-  }
+                  child: Image.asset("images/loading.gif"),
+                ),
+              ],
+            );
+          },
+        );
 
-  static Future OtherassetSavetaggingapi(
-    BuildContext context,
-    String token,
-    String UserId,
-    String VillageId,
-    String StateId,
-    String SchemeId,
-    String SourceId,
-    String DivisionId,
-    String HabitationId,
-    String Landmark,
-    String Latitude,
-    String Longitude,
-    String Accuracy,
-    String Photo,
-    String assetOtherCategory,
-      String WTP_capicity,
-      List<int> WTP_selectedSourceIds,
-  ) async {
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
+        final uri = Uri.parse('${baseurl}JJM_Mobile/SaveTagWater_Others');
+
+        final headers = {
+          'Content-Type': 'application/json',
+          'APIKey': token.isNotEmpty ? token : 'DEFAULT_API_KEY',
+        };
+
+        final body = {
+          "UserId": box.read("userid"),
+          "VillageId": VillageId,
+          "StateId": StateId,
+          "SchemeId": SchemeId,
+          "SourceId": SourceId,
+          "DivisionId": DivisionId,
+          "HabitationId": HabitationId,
+          "Landmark": Landmark,
+          "Latitude": Latitude,
+          "Longitude": Longitude,
+          "Accuracy": Accuracy,
+          "Photo": Photo,
+          "AssetOtherCategory": assetOtherCategory,
+          "Capicity": WTP_capicity,
+          "WTP_SourceId": WTP_selectedSourceIds, // List<int>
+          "WTPTypeId": WTPTypeId
+        };
+
+        print("🔗 [POST] Request URL: $uri");
+        print("📤 [HEADERS]: $headers");
+        print("📤 [BODY]: ${jsonEncode(body)}");
+
+        final response = await http
+            .post(uri, headers: headers, body: jsonEncode(body))
+            .timeout(Duration(seconds: 30));
+
+        print("📡 [RESPONSE] Status Code: ${response.statusCode}");
+        print("📥 [RESPONSE] Body: ${response.body}");
+
+        Get.back();
+
+        if (response.statusCode == 200) {
+          return jsonDecode(response.body);
+        } else {
+          throw Exception("Failed with status code: ${response.statusCode}");
+        }
+      } catch (e) {
+        Get.back(); // Ensure dialog closes on error
+        print("❌ [ERROR] $e");
+        throw Exception("Something went wrong: $e");
+      }
+    }
+
+    static Future StoragestructureSavetaggingapi(
+        BuildContext context,
+        String token,
+        String UserId,
+        String VillageId,
+        String StateId,
+        String SchemeId,
+        String SourceId,
+        String DivisionId,
+        String HabitationId,
+        String Landmark,
+        String Latitude,
+        String Longitude,
+        String Accuracy,
+        String Photo,
+        String capacityInltr,
+        String storageStructureType,
+        ) async {
+      try {
+        showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (context) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
                   height: 40,
                   width: 40,
-                  child: Image.asset("images/loading.gif")),
-            ],
-          );
-        });
+                  child: Image.asset("images/loading.gif"),
+                ),
+              ],
+            );
+          },
+        );
 
-    var response = await http.post(
-      Uri.parse('${baseurl}' + "JJM_Mobile/SaveTagWater_Others"),
-      headers: {
-        'Content-Type': 'application/json',
-        'APIKey': token ?? 'DEFAULT_API_KEY'
-      },
-      body: jsonEncode({
-        "UserId": box.read("userid"),
-        "VillageId": VillageId,
-        "StateId": StateId,
-        "SchemeId": SchemeId,
-        "SourceId": SourceId,
-        "DivisionId": DivisionId,
-        "HabitationId": HabitationId,
-        "Landmark": Landmark,
-        "Latitude": Latitude,
-        "Longitude": Longitude,
-        "Accuracy": Accuracy,
-        "Photo": Photo,
-        "AssetOtherCategory": assetOtherCategory,
-        "Capicity": WTP_capicity,
-        "WTP_SourceId": WTP_selectedSourceIds // Pass as List<int>
-      }),
-    );
-    Get.back();
-    if (response.statusCode == 200) {
+        final uri = Uri.parse('${baseurl}JJM_Mobile/SaveTagWater_StorageStructure');
 
-      print("responseother$response");
-    } else {
+        final headers = {
+          'Content-Type': 'application/json',
+          'APIKey': token.isNotEmpty ? token : 'DEFAULT_API_KEY',
+        };
+
+        final body = {
+          "UserId": box.read("userid"),
+          "VillageId": VillageId,
+          "StateId": StateId,
+          "SchemeId": SchemeId,
+          "SourceId": SourceId,
+          "DivisionId": DivisionId,
+          "HabitationId": HabitationId,
+          "Landmark": Landmark,
+          "Latitude": Latitude,
+          "Longitude": Longitude,
+          "Accuracy": Accuracy,
+          "Photo": Photo,
+          "CapacityInltr": capacityInltr,
+          "StorageStructureType": storageStructureType,
+        };
+
+        print("🔗 [POST] Request URL: $uri");
+        print("📤 [HEADERS]: $headers");
+        print("📤 [BODY]: ${jsonEncode(body)}");
+
+        final response = await http
+            .post(uri, headers: headers, body: jsonEncode(body))
+            .timeout(Duration(seconds: 30));
+
+        print("📡 [RESPONSE] Status Code: ${response.statusCode}");
+        print("📥 [RESPONSE] Body: ${response.body}");
+
+        Get.back();
+
+        return jsonDecode(response.body);
+      } catch (e) {
+        Get.back();
+        print("❌ [ERROR] $e");
+        throw Exception("Something went wrong: $e");
+      }
     }
-    return jsonDecode(response.body);
-  }
 
-  static Future StoragestructureSavetaggingapi(
-    BuildContext context,
-    String token,
-    String UserId,
-    String VillageId,
-    String StateId,
-    String SchemeId,
-    String SourceId,
-    String DivisionId,
-    String HabitationId,
-    String Landmark,
-    String Latitude,
-    String Longitude,
-    String Accuracy,
-    String Photo,
-    String capacityInltr,
-    String storageStructureType,
-  ) async {
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
+
+    static Future SaveOfflinevilaagesApi(
+        BuildContext context,
+        String token,
+        String UserId,
+        List Villagelist,
+        String StateId,
+        ) async {
+      try {
+        showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (context) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
                   height: 40,
                   width: 40,
-                  child: Image.asset("images/loading.gif")),
-            ],
-          );
-        });
-    var response = await http.post(
-      Uri.parse('${baseurl}' + "JJM_Mobile/SaveTagWater_StorageStructure"),
-      headers: {
-        'Content-Type': 'application/json',
-        'APIKey': token ?? 'DEFAULT_API_KEY'
-      },
-      body: jsonEncode({
-        "UserId": box.read("userid"),
-        "VillageId": VillageId,
-        "StateId": StateId,
-        "SchemeId": SchemeId,
-        "SourceId": SourceId,
-        "DivisionId": DivisionId,
-        "HabitationId": HabitationId,
-        "Landmark": Landmark,
-        "Latitude": Latitude,
-        "Longitude": Longitude,
-        "Accuracy": Accuracy,
-        "Photo": Photo,
-        "CapacityInltr": capacityInltr,
-        "StorageStructureType": storageStructureType
-      }),
-    );
-    Get.back();
-    if (response.statusCode == 200) {
-      var responsede = response.body;
-    } else {
-      var responsede = response.body;
-    }
-    return jsonDecode(response.body);
-  }
+                  child: Image.asset("images/loading.gif"),
+                ),
+              ],
+            );
+          },
+        );
 
-  static Future SaveOfflinevilaagesApi(
-    BuildContext context,
-    String token,
-    String UserId,
-    List Villagelist,
-    String StateId,
-  ) async {
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: Image.asset("images/loading.gif")),
-            ],
-          );
-        });
+        final uri = Uri.parse('${baseurl}JJM_Mobile/SaveOfflineVillage');
 
-    var response = await http.post(
-      Uri.parse('${baseurl}' + "JJM_Mobile/SaveOfflineVillage"),
-      headers: {
-        'Content-Type': 'application/json',
-        'APIKey': token ?? 'DEFAULT_API_KEY'
-      },
-      body: jsonEncode({
-        "UserId": box.read("userid"),
-        "VillageList": Villagelist,
-        "StateId": StateId,
-      }),
-    );
-    Get.back();
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      return jsonDecode(response.body);
+        final headers = {
+          'Content-Type': 'application/json',
+          'APIKey': token.isNotEmpty ? token : 'DEFAULT_API_KEY',
+        };
+
+        final body = {
+          "UserId": box.read("userid"),
+          "VillageList": Villagelist,
+          "StateId": StateId,
+        };
+
+        print("🔗 [POST] Request URL: $uri");
+        print("📤 [HEADERS]: $headers");
+        print("📤 [BODY]: ${jsonEncode(body)}");
+
+        final response = await http
+            .post(uri, headers: headers, body: jsonEncode(body))
+            .timeout(Duration(seconds: 30));
+
+        print("📡 [RESPONSE] Status Code: ${response.statusCode}");
+        print("📥 [RESPONSE] Body: ${response.body}");
+
+        Get.back();
+
+        return jsonDecode(response.body);
+      } catch (e) {
+        Get.back(); // Ensure dialog is closed on error
+        print("❌ [ERROR] $e");
+        throw Exception("Something went wrong: $e");
+      }
     }
-  }
+
 
   Future<void> cleartable_localmasterschemelisttable() async {
     await databaseHelperJalJeevan?.cleardb_localmasterschemelist();

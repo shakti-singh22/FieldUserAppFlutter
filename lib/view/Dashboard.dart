@@ -664,7 +664,8 @@ class _DashboardState extends State<Dashboard> {
             //localData.capturePointTypeId
             localData.Selectassetsothercategory,
             localData.WTP_capacity,
-            localData.WTP_selectedSourceIds
+            localData.WTP_selectedSourceIds,
+          localData.WTPTypeId
 
         );
 
@@ -4711,7 +4712,9 @@ class _DashboardState extends State<Dashboard> {
             localData.photo,
             localData.Selectassetsothercategory,
             localData.WTP_capacity,
-            localData.WTP_selectedSourceIds);
+            localData.WTP_selectedSourceIds,
+            localData.WTPTypeId
+        );
         //localData.capturePointTypeId);
 
         if (response["Status"].toString() == "true") {

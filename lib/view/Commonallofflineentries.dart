@@ -2210,7 +2210,8 @@ class _CommonallofflineentriesState extends State<Commonallofflineentries>
            // localData.capturePointTypeId
             localData.Selectassetsothercategory,
             localData.WTP_capacity,
-            localData.WTP_selectedSourceIds
+            localData.WTP_selectedSourceIds,
+          localData.WTPTypeId
 
         );
 

@@ -171,6 +171,7 @@ class Sourcelist {
   int? stateid;
   int? districtId;
   String? villageId;
+  int? IsWTP;
 
   Sourcelist({
     this.schemeId,
@@ -196,6 +197,7 @@ class Sourcelist {
     this.stateid,
     this.districtId,
     this.villageId,
+    this.IsWTP,
   });
 
   factory Sourcelist.fromJson(Map<String, dynamic> json) => Sourcelist(
@@ -222,6 +224,7 @@ class Sourcelist {
     stateid: json["stateid"],
     districtId: json["DistrictId"],
     villageId: json["VillageId"],
+    IsWTP: json["IsWTP"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -248,6 +251,7 @@ class Sourcelist {
     "stateid": stateid,
     "DistrictId": districtId,
     "VillageId": villageId,
+    "IsWTP": IsWTP,
   };
 }
 

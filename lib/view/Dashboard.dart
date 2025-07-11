@@ -1,18 +1,23 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:focus_detector/focus_detector.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:http/http.dart' as http;
+
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import '../Selectedvillagelist.dart';
+import '../addfhtc/jjm_facerd_appcolor.dart';
 import '../apiservice/Apiservice.dart';
 import '../database/DataBaseHelperJalJeevan.dart';
 import '../localdatamodel/LocalSIBsavemodal.dart';
@@ -30,15 +35,13 @@ import '../model/Savevillagedetails.dart';
 import '../model/Schememodal.dart';
 import '../model/Villagelistforsend.dart';
 import '../model/Villagelistmodal.dart';
-import '../utility/Appcolor.dart';
 import '../utility/Stylefile.dart';
 import '../utility/SyncronizationData.dart';
 import '../utility/Textfile.dart';
 import 'Commonallofflineentries.dart';
-import 'LoginScreen.dart';
-import 'Selectedvillagelist.dart';
-import 'Villagelistzero.dart';
 
+import 'LoginScreen.dart';
+import 'Villagelistzero.dart';
 
 class Dashboard extends StatefulWidget {
   String stateid;
@@ -47,9 +50,9 @@ class Dashboard extends StatefulWidget {
 
   Dashboard(
       {required this.stateid,
-      required this.userid,
-      required this.usertoken,
-      Key? key})
+        required this.userid,
+        required this.usertoken,
+        Key? key})
       : super(key: key);
 
   @override
@@ -213,6 +216,8 @@ class _DashboardState extends State<Dashboard> {
   String schemecategory = "";
   String schemeid = "";
   late Schememodal schememodal;
+  String? _currentAddress;
+  Position? _currentPosition;
   List<dynamic> ListResponse = [];
   String newschameid = "";
   String newschemename = "";
@@ -278,7 +283,7 @@ class _DashboardState extends State<Dashboard> {
   var distinct_categorylist = [];
   List listResult = [];
   bool floatingloader = false;
-  var versionapk = 9 ;
+  var versionapk = 9;
 
   callfornumber() async {
     if (Nolistpresent == null) {
@@ -350,12 +355,12 @@ class _DashboardState extends State<Dashboard> {
 
   void fetchDateandtimefromtable(String userId) async {
     List<Map<String, dynamic>> data =
-        await databaseHelperJalJeevan!.getDatatime(userId);
+    await databaseHelperJalJeevan!.getDatatime(userId);
   }
 
   Future<void> getallpwssaveoffline() async {
     final List<LocalPWSSavedData>? localDataList =
-        await databaseHelperJalJeevan?.getAllLocalPWSSavedData();
+    await databaseHelperJalJeevan?.getAllLocalPWSSavedData();
 
     totalpwssource = localDataList!.length.toString();
   }
@@ -365,8 +370,8 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> getallstoragestructuresaveoffline() async {
     final List<LocalStoragestructureofflinesavemodal>? localDataList =
-        await databaseHelperJalJeevan
-            ?.getallofflineentriesforstoragestructure();
+    await databaseHelperJalJeevan
+        ?.getallofflineentriesforstoragestructure();
     setState(() {
       totalstoragestructureofflineentreies = localDataList!.length.toString();
     });
@@ -374,7 +379,7 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> getallsibsaveoffline() async {
     final List<LocalSIBsavemodal>? localDataList =
-        await databaseHelperJalJeevan?.getallofflineentriessib();
+    await databaseHelperJalJeevan?.getallofflineentriessib();
     setState(() {
       totalsibboard = localDataList!.length.toString();
     });
@@ -382,15 +387,14 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> getallotherassetssaveoffline() async {
     final List<LocalOtherassetsofflinesavemodal>? localDataList =
-        await databaseHelperJalJeevan?.getallofflineentriesforotherassets();
+    await databaseHelperJalJeevan?.getallofflineentriesforotherassets();
     setState(() {
       totalotherassetsofflineentreies = localDataList!.length.toString();
     });
   }
 
   getload() async {
-    saveoffinevillaglist =
-        await databaseHelperJalJeevan!.fetchData_fromdb_saveofflinevilage();
+    saveoffinevillaglist = await databaseHelperJalJeevan!.fetchData_fromdb_saveofflinevilage();
     setState(() {
       for (int i = 0; i < saveoffinevillaglist.length; i++) {
         offlinevillagelistlist = saveoffinevillaglist![i]!["Villagelist"];
@@ -658,7 +662,10 @@ class _DashboardState extends State<Dashboard> {
             localData.accuracy,
             localData.photo,
             //localData.capturePointTypeId
-            localData.Selectassetsothercategory
+            localData.Selectassetsothercategory,
+            localData.WTP_capacity,
+            localData.WTP_selectedSourceIds,
+          localData.WTPTypeId
 
         );
 
@@ -707,13 +714,7 @@ class _DashboardState extends State<Dashboard> {
       String stateid, String userid, String token) async {
     try {
       var response = await http.get(
-        Uri.parse('${Apiservice.baseurl}' +
-            "JJM_Mobile/GetVillageGeoTaggingDetails?VillageId=" +
-            villageid +
-            "&StateId=" +
-            stateid +
-            "&UserId=" +
-            userid),
+        Uri.parse('${Apiservice.baseurl}' + "JJM_Mobile/GetVillageGeoTaggingDetails?VillageId=" + villageid + "&StateId=" + stateid + "&UserId=" + userid),
         headers: {
           'Content-Type': 'application/json',
           'APIKey': token ?? 'DEFAULT_API_KEY'
@@ -749,12 +750,12 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Future SaveOfflinevilaagesApi(
-    BuildContext context,
-    String token,
-    String UserId,
-    List Villagelist,
-    String StateId,
-  ) async {
+      BuildContext context,
+      String token,
+      String UserId,
+      List Villagelist,
+      String StateId,
+      ) async {
     showDialog(
         barrierDismissible: false,
         context: context,
@@ -796,7 +797,7 @@ class _DashboardState extends State<Dashboard> {
 
   Future getvillagelist() async {
     var url = '${Apiservice.baseurl}'
-            "JJM_Mobile/GetAssignedVillages?StateId=" +
+        "JJM_Mobile/GetAssignedVillages?StateId=" +
         box.read("stateid") +
         "&UserId=" +
         box.read("userid");
@@ -851,10 +852,10 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Future getschemesource(
-    BuildContext context,
-    String token,
-    String villageid,
-  ) async {
+      BuildContext context,
+      String token,
+      String villageid,
+      ) async {
     final queryParameters = {
       'UserId': box.read("userid").toString(),
       'StateId': box.read("stateid"),
@@ -893,7 +894,7 @@ class _DashboardState extends State<Dashboard> {
 
   loaddata() async {
     List<Localmasterdatanodal> records =
-        await databaseHelperJalJeevan!.Fatchdatafrommastertable();
+    await databaseHelperJalJeevan!.Fatchdatafrommastertable();
 
     setState(() {
       localmasterdatalist = databaseHelperJalJeevan!.Fatchdatafrommastertable();
@@ -941,10 +942,10 @@ class _DashboardState extends State<Dashboard> {
 
                 databaseHelperJalJeevan
                     ?.insertMastervillagelistdata(Localmasterdatanodal(
-                        UserId: userid.toString(),
-                        villageId: villageId.toString(),
-                        StateId: stateId.toString(),
-                        villageName: villageName.toString()))
+                    UserId: userid.toString(),
+                    villageId: villageId.toString(),
+                    StateId: stateId.toString(),
+                    villageName: villageName.toString()))
                     .then((value) {});
               }
               databaseHelperJalJeevan!.removeDuplicateEntries();
@@ -982,31 +983,31 @@ class _DashboardState extends State<Dashboard> {
 
                 databaseHelperJalJeevan?.insertMastervillagedetails(
                     Localmasterdatamodal_VillageDetails(
-                  status: "0",
-                  stateName: stateName,
-                  districtName: districtName,
-                  blockName: blockName,
-                  panchayatName: panchayatName,
-                  stateId: stateidnew.toString(),
-                  userId: userId.toString(),
-                  villageId: villageIddetails.toString(),
-                  villageName: villageName,
-                  totalNoOfScheme: totalNoOfScheme.toString(),
-                  totalNoOfWaterSource: totalNoOfWaterSource.toString(),
-                  totalWsGeoTagged: totalWsGeoTagged.toString(),
-                  pendingWsTotal: pendingWsTotal.toString(),
-                  balanceWsTotal: balanceWsTotal.toString(),
-                  totalSsGeoTagged: totalSsGeoTagged.toString(),
-                  pendingApprovalSsTotal: pendingApprovalSsTotal.toString(),
-                  totalIbRequiredGeoTagged: totalIbRequiredGeoTagged.toString(),
-                  totalIbGeoTagged: totalIbGeoTagged.toString(),
-                  pendingIbTotal: pendingIbTotal.toString(),
-                  balanceIbTotal: balanceIbTotal.toString(),
-                  totalOaGeoTagged: totalOaGeoTagged.toString(),
-                  balanceOaTotal: balanceOaTotal.toString(),
-                  totalNoOfSchoolScheme: totalNoOfSchoolScheme.toString(),
-                  totalNoOfPwsScheme: totalNoOfPwsScheme.toString(),
-                ));
+                      status: "0",
+                      stateName: stateName,
+                      districtName: districtName,
+                      blockName: blockName,
+                      panchayatName: panchayatName,
+                      stateId: stateidnew.toString(),
+                      userId: userId.toString(),
+                      villageId: villageIddetails.toString(),
+                      villageName: villageName,
+                      totalNoOfScheme: totalNoOfScheme.toString(),
+                      totalNoOfWaterSource: totalNoOfWaterSource.toString(),
+                      totalWsGeoTagged: totalWsGeoTagged.toString(),
+                      pendingWsTotal: pendingWsTotal.toString(),
+                      balanceWsTotal: balanceWsTotal.toString(),
+                      totalSsGeoTagged: totalSsGeoTagged.toString(),
+                      pendingApprovalSsTotal: pendingApprovalSsTotal.toString(),
+                      totalIbRequiredGeoTagged: totalIbRequiredGeoTagged.toString(),
+                      totalIbGeoTagged: totalIbGeoTagged.toString(),
+                      pendingIbTotal: pendingIbTotal.toString(),
+                      balanceIbTotal: balanceIbTotal.toString(),
+                      totalOaGeoTagged: totalOaGeoTagged.toString(),
+                      balanceOaTotal: balanceOaTotal.toString(),
+                      totalNoOfSchoolScheme: totalNoOfSchoolScheme.toString(),
+                      totalNoOfPwsScheme: totalNoOfPwsScheme.toString(),
+                    ));
               }
 
               for (int i = 0; i < value.schmelist!.length; i++) {
@@ -1049,15 +1050,16 @@ class _DashboardState extends State<Dashboard> {
                 var longitude = value.sourcelist![i]!.longitude;
                 var habitationName = value.sourcelist![i]!.habitationName;
                 var location = value.sourcelist![i]!.location;
-                var sourceTypeCategory = value.sourcelist![i]!.sourceTypeCategory;
+                var sourceTypeCategory =
+                    value.sourcelist![i]!.sourceTypeCategory;
                 var sourceType = value.sourcelist![i]!.sourceType;
                 var districtName = value.sourcelist![i]!.districtName;
                 var districtId = value.sourcelist![i]!.districtId;
                 var panchayatNamenew = value.sourcelist![i]!.panchayatName;
                 var blocknamenew = value.sourcelist![i]!.blockName;
+                var IsWTP = value.sourcelist![i]!.IsWTP;
 
-                databaseHelperJalJeevan
-                    ?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
+                databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
                   schemeId: SchemeId.toString(),
                   sourceId: sourceId.toString(),
                   villageId: villageid.toString(),
@@ -1081,6 +1083,8 @@ class _DashboardState extends State<Dashboard> {
                   districtId: districtId.toString(),
                   villageName: villageName,
                   stateId: stateid.toString(),
+                  IsWTP: IsWTP.toString(),
+
                 ));
               }
 
@@ -1100,28 +1104,28 @@ class _DashboardState extends State<Dashboard> {
                     LocalmasterInformationBoardItemModal(
                         userId: value.informationBoardList![i]!.userId.toString(),
                         villageId:
-                            value.informationBoardList![i]!.villageId.toString(),
+                        value.informationBoardList![i]!.villageId.toString(),
                         stateId:
-                            value.informationBoardList![i]!.stateId.toString(),
+                        value.informationBoardList![i]!.stateId.toString(),
                         schemeId:
-                            value.informationBoardList![i]!.schemeId.toString(),
+                        value.informationBoardList![i]!.schemeId.toString(),
                         districtName:
-                            value.informationBoardList![i]!.districtName,
+                        value.informationBoardList![i]!.districtName,
                         blockName: value.informationBoardList![i]!.blockName,
                         panchayatName:
-                            value.informationBoardList![i]!.panchayatName,
+                        value.informationBoardList![i]!.panchayatName,
                         villageName: value.informationBoardList![i]!.villageName,
                         habitationName:
-                            value.informationBoardList![i]!.habitationName,
+                        value.informationBoardList![i]!.habitationName,
                         latitude:
-                            value.informationBoardList![i]!.latitude.toString(),
+                        value.informationBoardList![i]!.latitude.toString(),
                         longitude:
-                            value.informationBoardList![i]!.longitude.toString(),
+                        value.informationBoardList![i]!.longitude.toString(),
                         sourceName: value.informationBoardList![i]!.sourceName,
                         schemeName: value.informationBoardList![i]!.schemeName,
                         message: value.informationBoardList![i]!.message,
                         status:
-                            value.informationBoardList![i]!.status.toString()));
+                        value.informationBoardList![i]!.status.toString()));
               }
             });
           }
@@ -1137,23 +1141,21 @@ class _DashboardState extends State<Dashboard> {
 
         });
 
-setState(()  {
-  cleartable_ofmastersourceandcategory();
-  getcategoryApi(context, box.read("UserToken"));
-  getsourcetyprASSETApi(context, box.read("UserToken"));
-  print("nimacho");
+        setState(()  {
+          cleartable_ofmastersourceandcategory();
+          getcategoryApi(context, box.read("UserToken"));
+          getsourcetyprASSETApi(context, box.read("UserToken"));
+          print("nimacho");
 
-});
+        });
       }
 
-
-
-    /*  Stylefile.showmessageforvalidationtrue(
+      /*  Stylefile.showmessageforvalidationtrue(
           context,
           "Master data downloaded successfully.");*/
     } on SocketException catch (_) {
       List<Myresponse> dataList =
-          await databaseHelperJalJeevan!.fetchData_fromdb_ofdashboard();
+      await databaseHelperJalJeevan!.fetchData_fromdb_ofdashboard();
       setState(() {
         hasinternetconnection = false;
       });
@@ -1265,7 +1267,7 @@ setState(()  {
                       subResulgeotaggingassignvillageschemelist =
                           subheadingofmainmenulist.result;
                       for (var lables
-                          in subResulgeotaggingassignvillageschemelist!) {
+                      in subResulgeotaggingassignvillageschemelist!) {
                         schemeinformationtext = lables.lableText.toString();
                         schemeinformationvalue = lables.lableValue.toString();
                         schemeinformationicon = lables.icon.toString();
@@ -1347,9 +1349,9 @@ setState(()  {
   }
 
   Future getcategoryApi(
-    BuildContext context,
-    String token,
-  ) async {
+      BuildContext context,
+      String token,
+      ) async {
     var uri = Uri.parse(
         '${Apiservice.baseurl}Master/GetSourceCategorylist?UserId=' +
             box.read("userid"));
@@ -1375,19 +1377,19 @@ setState(()  {
         SourceTypeCategoryList_id.add(SourceTypeCategoryIdget);
 
         final SourceTypeCategory =
-            mainListsourcecategory![i]!["SourceTypeCategory"];
+        mainListsourcecategory![i]!["SourceTypeCategory"];
         SourceTypeCategoryList.add(SourceTypeCategory);
 
         final sourcetypeid = mainListsourcecategory![i]!["SourceTypeId"];
         sourcetypelistone_id.add(sourcetypeid);
 
         final jsonList =
-            SourceTypeCategoryList.map((item) => jsonEncode(item)).toList();
+        SourceTypeCategoryList.map((item) => jsonEncode(item)).toList();
         final uniqueJsonList = jsonList.toSet().toList();
         distinctlist = uniqueJsonList.map((item) => jsonDecode(item)).toList();
 
         final categoryid =
-            SourceTypeCategoryList_id.map((item) => jsonEncode(item)).toList();
+        SourceTypeCategoryList_id.map((item) => jsonEncode(item)).toList();
         final categorylist = categoryid.toSet().toList();
         distinct_categorylist =
             categorylist.map((item) => jsonDecode(item)).toList();
@@ -1412,12 +1414,12 @@ setState(()  {
 
   Future getData() async {
     var url = '${Apiservice.baseurl}'
-            "JJM_Mobile/GetUsermenu?UserId=" +
+        "JJM_Mobile/GetUsermenu?UserId=" +
         widget.userid.toString() +
         "&StateId=" +
         widget.stateid;
     final response =
-        await http.post(Uri.parse(url), headers: {"APIKey": widget.usertoken});
+    await http.post(Uri.parse(url), headers: {"APIKey": widget.usertoken});
 
     myresponse = Myresponse.fromJson(jsonDecode(response.body));
 
@@ -1529,7 +1531,7 @@ setState(()  {
                         subResulgeotaggingassignvillagelist =
                             subheadingofmainmenulist.result;
                         for (var lables
-                            in subResulgeotaggingassignvillagelist!) {
+                        in subResulgeotaggingassignvillagelist!) {
                           leftmenuheading = lables.lableText.toString();
                           leftmenuheadingvalue = lables.lableValue.toString();
                           leftmenuheadingicon = lables.icon.toString();
@@ -1540,7 +1542,7 @@ setState(()  {
                         subResulgeotaggingassignvillageschemelist =
                             subheadingofmainmenulist.result;
                         for (var lables
-                            in subResulgeotaggingassignvillageschemelist!) {
+                        in subResulgeotaggingassignvillageschemelist!) {
                           schemeinformationtext = lables.lableText.toString();
                           schemeinformationvalue = lables.lableValue.toString();
                           schemeinformationicon = lables.icon.toString();
@@ -1615,7 +1617,7 @@ setState(()  {
               }
 
               setState(() {
-               // getsourcetyprASSETApi(context, box.read("UserToken").toString());
+                // getsourcetyprASSETApi(context, box.read("UserToken").toString());
               });
             } catch (e) {
             } finally {
@@ -1630,9 +1632,9 @@ setState(()  {
   }
 
   Future getsourcetyprASSETApi(
-    BuildContext context,
-    String token,
-  ) async {
+      BuildContext context,
+      String token,
+      ) async {
     setState(() {
       _loading = true;
     });
@@ -1669,8 +1671,9 @@ setState(()  {
   }
 
   void showAlertDialogforupdateapp(BuildContext context) async {
-    List<String> messageParts =
-    box.read("appAPKVersionMessage").toString().split("\\n");
+    List<String> messageParts = box.read("appAPKVersionMessage") != null
+        ? box.read("appAPKVersionMessage").toString().split("\\n")
+        : ["No update message available."];
 
     showDialog<void>(
       context: context,
@@ -1685,9 +1688,7 @@ setState(()  {
             buttonPadding: const EdgeInsets.all(00),
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(
-                Radius.circular(
-                  5.0,
-                ),
+                Radius.circular(5.0),
               ),
             ),
             actionsAlignment: MainAxisAlignment.center,
@@ -1737,16 +1738,14 @@ setState(()  {
                         ),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child:
-
-                      TextButton(
+                      child: TextButton(
                         onPressed: () {
                           try {
-                            launchUrl(box.read("appAPKURL"));
+                            launch(box.read("appAPKURL"));
                           } on PlatformException catch (e) {
-                            launchUrl(box.read("appAPKURL"));
+                            launch(box.read("appAPKURL"));
                           } finally {
-                            launchUrl(box.read("appAPKURL"));
+                            launch(box.read("appAPKURL"));
                           }
                           box.remove("UserToken");
                           box.remove('loginBool');
@@ -1762,17 +1761,19 @@ setState(()  {
                           ),
                         ),
                       ),
-                    ) ,
-
-
-                    SizedBox(height: 15,),
-                    totalpwssource=="0" && totalstoragestructureofflineentreies=="0" && totalsibboard=="0" &&  totalotherassetsofflineentreies=="0" ?   SizedBox() :  Column(
+                    ),
+                    SizedBox(height: 15),
+                    totalpwssource == "0" &&
+                        totalstoragestructureofflineentreies == "0" &&
+                        totalsibboard == "0" &&
+                        totalotherassetsofflineentreies == "0"
+                        ? SizedBox()
+                        : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Align(
-                          alignment:
-                          Alignment.centerLeft,
+                          alignment: Alignment.centerLeft,
                           child: Text(
                             "Offline data saved, will be erased if not synced using the below option.",
                             textAlign: TextAlign.justify,
@@ -1780,30 +1781,27 @@ setState(()  {
                                 fontSize: 16, fontWeight: FontWeight.w400),
                           ),
                         ),
-                        SizedBox(height: 15,),
-                        
+                        SizedBox(height: 15),
                         SizedBox(
                           height: 40,
                           child: Directionality(
-                            textDirection:
-                            TextDirection.rtl,
+                            textDirection: TextDirection.rtl,
                             child: ElevatedButton.icon(
-                              style:
-                              ElevatedButton.styleFrom(
-                                elevation: 6, backgroundColor: Appcolor.orange,
-                                shape:
-                                RoundedRectangleBorder(
-                                  borderRadius:
-                                  BorderRadius.circular(
-                                      10.0),
+                              style: ElevatedButton.styleFrom(
+                                elevation: 6,
+                                backgroundColor: Appcolor.orange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                              onPressed: ()  async{
+                              onPressed: () async {
                                 try {
-                                  final result = await InternetAddress.lookup('example.com');
-                                  if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-
-                                    Totaluploadofflineserver_appupdatecase().then((value) {
+                                  final result = await InternetAddress.lookup(
+                                      'example.com');
+                                  if (result.isNotEmpty &&
+                                      result[0].rawAddress.isNotEmpty) {
+                                    Totaluploadofflineserver_appupdatecase()
+                                        .then((value) {
                                       try {
                                         launch(box.read("appAPKURL"));
                                       } on PlatformException catch (e) {
@@ -1816,28 +1814,18 @@ setState(()  {
                                       cleartable_localmasterschemelisttable();
                                       Get.offAll(LoginScreen());
                                     });
-
-                                    // Navigator.of(context).pop();
-
                                   }
                                 } on SocketException catch (_) {
-                                  Stylefile
-                                      .showmessageforvalidationfalse(
+                                  Stylefile.showmessageforvalidationfalse(
                                       context,
                                       "Unable to Connect to the Internet. Please check your network settings.");
-
                                 }
-
-
-                                //Get.offAll(LoginScreen());
-                                // cleartable_localmasterschemelisttable();
                               },
                               label: const Text(
                                   'Sync offline data & download app',
                                   style: TextStyle(
                                       fontSize: 16,
-                                      fontWeight:
-                                      FontWeight.bold,
+                                      fontWeight: FontWeight.bold,
                                       color: Appcolor.white)),
                               icon: const Icon(
                                 Icons.upload,
@@ -1847,21 +1835,18 @@ setState(()  {
                             ),
                           ),
                         ),
-
                       ],
-
                     ),
-                    SizedBox(height: 10,),
+                    SizedBox(height: 10),
                     const Text(
                       "*For a better experience, please uninstall the application before updating.*",
                       textAlign: TextAlign.left,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 15,
                         fontWeight: FontWeight.w400,
                         color: Colors.red,
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -1871,6 +1856,7 @@ setState(()  {
       },
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1918,2044 +1904,1979 @@ setState(()  {
                   ),
                   child: _loading == true
                       ? const Center(
-                          child: SizedBox(
-                              height: 40,
-                              width: 40,
-                              child: CircularProgressIndicator(
-                                  color: Appcolor.btncolor)),
-                        )
+                    child: SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: CircularProgressIndicator(
+                            color: Appcolor.btncolor)),
+                  )
                       : SingleChildScrollView(
-                          child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          SizedBox(
+                                            child: Image.asset(
+                                              'images/bharat.png',
+                                              width: 60,
+                                              height: 60,
+                                            ),
+                                          ),
+                                          Container(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                    Textfile.headingjaljeevan,
+                                                    textAlign:
+                                                    TextAlign.justify,
+                                                    style: Stylefile
+                                                        .mainheadingstyle),
+                                                const SizedBox(
+                                                  child: Text(
+                                                      Textfile
+                                                          .subheadingjaljeevan,
+                                                      textAlign:
+                                                      TextAlign.start,
+                                                      style: Stylefile
+                                                          .submainheadingstyle),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      InkWell(
+                                        onTap: () {
+                                          showDialog<void>(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                backgroundColor:
+                                                Appcolor.white,
+                                                titlePadding:
+                                                const EdgeInsets.only(
+                                                    top: 0,
+                                                    left: 0,
+                                                    right: 00),
+                                                buttonPadding:
+                                                const EdgeInsets.all(10),
+                                                shape:
+                                                const RoundedRectangleBorder(
+                                                  borderRadius:
+                                                  BorderRadius.all(
+                                                    Radius.circular(
+                                                      5.0,
+                                                    ),
+                                                  ),
+                                                ),
+                                                actionsAlignment:
+                                                MainAxisAlignment.center,
+                                                title: Container(
+                                                  color: Appcolor.red,
+                                                  child: const Center(
+                                                    child: Padding(
+                                                      padding:
+                                                      EdgeInsets.all(8.0),
+                                                      child: Text(
+                                                        "Jal jeevan mission",
+                                                        style: TextStyle(
+                                                            fontSize: 18,
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .bold,
+                                                            color: Appcolor
+                                                                .white),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                content:
+                                                const SingleChildScrollView(
+                                                  child: ListBody(
+                                                    children: <Widget>[
+                                                      Padding(
+                                                        padding:
+                                                        EdgeInsets.all(
+                                                            8.0),
+                                                        child: Text(
+                                                          "Are you sure want to sign out from this application ?",
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                              FontWeight
+                                                                  .bold,
+                                                              color: Appcolor
+                                                                  .black),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                actions: <Widget>[
+                                                  Container(
+                                                    height: 40,
+                                                    width: 100,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      border: Border.all(
+                                                        color: Appcolor.red,
+                                                        width: 1,
+                                                      ),
+                                                      borderRadius:
+                                                      BorderRadius
+                                                          .circular(10),
+                                                    ),
+                                                    child: TextButton(
+                                                      child: const Text(
+                                                        'No',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .bold,
+                                                            color: Appcolor
+                                                                .black),
+                                                      ),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    height: 40,
+                                                    width: 100,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      border: Border.all(
+                                                        color: Appcolor.red,
+                                                        width: 1,
+                                                      ),
+                                                      borderRadius:
+                                                      BorderRadius
+                                                          .circular(10),
+                                                    ),
+                                                    child: TextButton(
+                                                      child: const Text(
+                                                        'Yes',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .bold,
+                                                            color: Appcolor
+                                                                .black),
+                                                      ),
+                                                      onPressed: () async {
+                                                        Navigator.of(context)
+                                                            .pop();
+
+                                                        box.remove(
+                                                            "UserToken");
+                                                        box.remove(
+                                                            'loginBool');
+                                                        cleartable_localmasterschemelisttable();
+
+                                                        Get.offAll(
+                                                            LoginScreen());
+
+                                                        Stylefile
+                                                            .showmessageforvalidationtrue(
+                                                            context,
+                                                            "Sign out successfully");
+                                                      },
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        },
+                                        child: ClipRRect(
+                                          borderRadius:
+                                          BorderRadius.circular(20.0),
+                                          child: const Icon(
+                                            Icons.logout,
+                                            size: 35,
+                                            color: Appcolor.btncolor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFC2C2C2)
+                                        .withOpacity(0.3),
+                                    border: Border.all(
+                                      color: const Color(0xFFC2C2C2)
+                                          .withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(
+                                        10.0,
+                                      ),
+                                    ),
+                                  ),
+                                  margin: const EdgeInsets.all(10),
+                                  child: SizedBox(
+                                      width: double.infinity,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(5.0),
+                                        child: Column(
                                           children: [
-                                            SizedBox(
-                                              child: Image.asset(
-                                                'images/bharat.png',
-                                                width: 60,
-                                                height: 60,
+                                            Row(
+                                              children: [
+                                                Image.asset(
+                                                  "images/profile.png",
+                                                  width: 60,
+                                                  height: 60,
+                                                ),
+                                                const SizedBox(
+                                                  width: 10,
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                  CrossAxisAlignment
+                                                      .start,
+                                                  children: [
+                                                    Text(
+                                                      username.toString(),
+                                                      style: const TextStyle(
+                                                          fontWeight:
+                                                          FontWeight.bold,
+                                                          fontSize: 20,
+                                                          color:
+                                                          Colors.black),
+                                                    ),
+                                                    Container(
+                                                      width: 250,
+                                                      child: Text(
+                                                        maxLines: 3,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        UserDescription
+                                                            .toString(),
+                                                        style: const TextStyle(
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .w400,
+                                                            fontSize: 16,
+                                                            color: Appcolor
+                                                                .dark),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                            const SizedBox(
+                                              height: 10,
+                                            ),
+                                            subResult!.length == 0
+                                                ? const SizedBox()
+                                                : Column(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment
+                                                  .start,
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment
+                                                  .start,
+                                              children: [
+                                                Container(
+                                                    padding:
+                                                    const EdgeInsets
+                                                        .all(2),
+                                                    decoration: BoxDecoration(
+                                                        color: Colors
+                                                            .white,
+                                                        borderRadius:
+                                                        BorderRadius
+                                                            .circular(
+                                                            8)),
+                                                    child:
+                                                    ScrollConfiguration(
+                                                      behavior: const ScrollBehavior()
+                                                          .copyWith(
+                                                          overscroll:
+                                                          false),
+                                                      child: ListView
+                                                          .builder(
+                                                          itemCount:
+                                                          subResult!
+                                                              .length,
+                                                          shrinkWrap:
+                                                          true,
+                                                          physics:
+                                                          const NeverScrollableScrollPhysics(),
+                                                          itemBuilder:
+                                                              (context,
+                                                              int index) {
+                                                            if (subResult![index].lableMenuId.toString() ==
+                                                                "21") {
+                                                              assignedvillage = subResult![index]
+                                                                  .lableValue
+                                                                  .toString();
+                                                            }
+
+                                                            if (subResult![index].lableMenuId.toString() ==
+                                                                "22") {
+                                                              pwstotalscheme = subResult![index]
+                                                                  .lableValue
+                                                                  .toString();
+                                                            }
+                                                            if (subResult![index].lableMenuId.toString() ==
+                                                                "23") {
+                                                              awsschoolschemetotal = subResult![index]
+                                                                  .lableValue
+                                                                  .toString();
+                                                            }
+                                                            try {
+                                                              totalSchemes =
+                                                                  int.parse(pwstotalscheme) + int.parse(awsschoolschemetotal);
+                                                            } catch (e) {
+                                                              debugPrintStack();
+                                                            }
+                                                            return Container(
+                                                              margin: const EdgeInsets
+                                                                  .all(
+                                                                  2),
+                                                              child:
+                                                              Material(
+                                                                elevation:
+                                                                2.0,
+                                                                borderRadius:
+                                                                BorderRadius.circular(10.0),
+                                                                child:
+                                                                InkWell(
+                                                                  splashColor: Appcolor.splashcolor,
+                                                                  customBorder: RoundedRectangleBorder(
+                                                                    borderRadius: BorderRadius.circular(10.0),
+                                                                  ),
+                                                                  onTap: () {},
+                                                                  child: Container(
+                                                                    margin: const EdgeInsets.all(5),
+                                                                    child: Row(children: [
+                                                                      subResult![index].lableMenuId == "21"
+                                                                          ? const SizedBox()
+                                                                          : const Icon(
+                                                                        Icons.radio_button_checked,
+                                                                        size: 20,
+                                                                        color: Colors.orange,
+                                                                      ),
+                                                                      const SizedBox(
+                                                                        width: 10,
+                                                                      ),
+                                                                      Padding(
+                                                                        padding: const EdgeInsets.all(2.0),
+                                                                        child: Row(
+                                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                          children: [
+                                                                            subResult![index].lableMenuId.toString() == "35"
+                                                                                ? Row(
+                                                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                                                              children: [
+                                                                                Text("${subResult![index].lableText}  : ${subResult![index].lableValue} ", style: const TextStyle(color: Appcolor.black, fontSize: 17, fontWeight: FontWeight.w500)),
+                                                                                const SizedBox(
+                                                                                  width: 10,
+                                                                                ),
+                                                                                GestureDetector(
+                                                                                  onTap: () {
+                                                                                    if (assignedvillage == "0") {
+                                                                                      Stylefile.showmessageapierrors(context, "There is no assigned villages to you please contact to division officer.");
+                                                                                    } else {
+                                                                                      Get.to(Villagelistzero(assignedvillage: assignedvillage));
+                                                                                    }
+                                                                                  },
+                                                                                  child: const Padding(
+                                                                                    padding: EdgeInsets.all(0.0),
+                                                                                    child: Icon(
+                                                                                      Icons.edit_note_outlined,
+                                                                                      color: Appcolor.btncolor,
+                                                                                      size: 30,
+                                                                                    ),
+                                                                                  ),
+                                                                                )
+                                                                              ],
+                                                                            )
+                                                                                : Text(
+                                                                              "${subResult![index].lableText} : ${subResult![index].lableValue} ",
+                                                                              style: const TextStyle(color: Appcolor.black, fontSize: 17, fontWeight: FontWeight.w500),
+                                                                            )
+                                                                          ],
+                                                                        ),
+                                                                      )
+                                                                    ]),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }),
+                                                    )),
+                                                const SizedBox(
+                                                  height: 5,
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      )),
+                                ),
+
+                                Container(
+                                  margin: const EdgeInsets.only(
+                                      left: 10,
+                                      right: 10,
+                                      top: 1,
+                                      bottom: 10),
+                                  child: Material(
+                                    elevation: 6.0,
+                                    color: const Color(0xFF0D3A98),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      customBorder: RoundedRectangleBorder(
+                                        borderRadius:
+                                        BorderRadius.circular(10.0),
+                                      ),
+                                      onTap: () {
+                                        if (assignedvillage == "0") {
+                                          Stylefile.showmessageapierrors(
+                                              context,
+                                              "There is no village assigned to you. Please contact to division officer.");
+                                        } else if (workingvillage == "0") {
+                                          if (workingvillage == "0") {
+                                            Stylefile
+                                                .showmessageforvalidationtrue(
+                                                context,
+                                                "There is no villages assigned to you. Please select villages first.");
+                                            Get.to(Villagelistzero(
+                                                assignedvillage:
+                                                assignedvillage));
+                                          }
+                                        } else {
+                                          Get.to(Selectedvillaglist(
+                                            stateId: stateId,
+                                            userId: userid,
+                                            usertoken: usertoken!,
+                                          ));
+                                        }
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10, right: 0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                          children: [
+                                            const Text(
+                                              'Add/Geo-tag PWS assets ',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.white,
+                                                fontSize: 18.0,
                                               ),
                                             ),
                                             Container(
-                                              child: const Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                      Textfile.headingjaljeevan,
-                                                      textAlign:
-                                                          TextAlign.justify,
-                                                      style: Stylefile
-                                                          .mainheadingstyle),
-                                                  SizedBox(
-                                                    child: Text(
-                                                        Textfile
-                                                            .subheadingjaljeevan,
-                                                        textAlign:
-                                                            TextAlign.start,
-                                                        style: Stylefile
-                                                            .submainheadingstyle),
+                                              margin: const EdgeInsets.all(5),
+                                              child: CircleAvatar(
+                                                minRadius: 20,
+                                                maxRadius: 20,
+                                                backgroundColor:
+                                                const Color(0xffffffff),
+                                                child: IconButton(
+                                                  color:
+                                                  const Color(0xFF0D3A98),
+                                                  onPressed: () {
+                                                    if (assignedvillage ==
+                                                        "0") {
+                                                      Stylefile
+                                                          .showmessageapierrors(
+                                                          context,
+                                                          "There is no assigned villages to you please contact to division officer.");
+                                                    } else if (workingvillage ==
+                                                        "0") {
+                                                      Stylefile
+                                                          .showmessageapierrors(
+                                                          context,
+                                                          "There is no village assigned to you for geotagging assets. Please select villages first.");
+                                                    } else {
+                                                      Get.to(
+                                                          Selectedvillaglist(
+                                                            stateId: stateId,
+                                                            userId: userid,
+                                                            usertoken: usertoken!,
+                                                          ));
+                                                    }
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons.add,
+                                                    weight: 100,
+                                                    size: 25,
                                                   ),
-                                                ],
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                totalpwssource == "0"
+                                    ? const SizedBox()
+                                    : Container(
+                                  margin: const EdgeInsets.only(
+                                      left: 10, right: 10),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Appcolor.btncolor,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius:
+                                    BorderRadius.circular(10.0),
+                                  ),
+                                  height: 50,
+                                  child: Material(
+                                    elevation: 6.0,
+                                    color: Appcolor.white,
+                                    borderRadius: BorderRadius.circular(
+                                      10.0,
+                                    ),
+                                    child: InkWell(
+                                      customBorder:
+                                      RoundedRectangleBorder(
+                                          borderRadius:
+                                          BorderRadius.circular(
+                                              10.0)),
+                                      onTap: () async {
+                                        await Get.to(
+                                            Commonallofflineentries(
+                                                clickforallscreen:
+                                                "0"));
+                                        setState(() {});
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10, right: 0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                          children: [
+                                            const Text(
+                                              'Tagged PWS Sources (Offline)',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 18.0,
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                              const EdgeInsets.all(
+                                                  10.0),
+                                              child: Text(
+                                                totalpwssource,
+                                                style: const TextStyle(
+                                                  fontWeight:
+                                                  FontWeight.w500,
+                                                  color: Colors.black,
+                                                  fontSize: 20.0,
+                                                ),
                                               ),
                                             ),
                                           ],
                                         ),
-                                        InkWell(
-                                          onTap: () {
-                                            showDialog<void>(
-                                              context: context,
-                                              barrierDismissible: true,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  backgroundColor:
-                                                      Appcolor.white,
-                                                  titlePadding:
-                                                      const EdgeInsets.only(
-                                                          top: 0,
-                                                          left: 0,
-                                                          right: 00),
-                                                  buttonPadding:
-                                                      const EdgeInsets.all(10),
-                                                  shape:
-                                                      const RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                      Radius.circular(
-                                                        5.0,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  actionsAlignment:
-                                                      MainAxisAlignment.center,
-                                                  title: Container(
-                                                    color: Appcolor.red,
-                                                    child: const Center(
-                                                      child: Padding(
-                                                        padding:
-                                                            EdgeInsets.all(8.0),
-                                                        child: Text(
-                                                          "Jal jeevan mission",
-                                                          style: TextStyle(
-                                                              fontSize: 18,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: Appcolor
-                                                                  .white),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  content:
-                                                      const SingleChildScrollView(
-                                                    child: ListBody(
-                                                      children: <Widget>[
-                                                        Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  8.0),
-                                                          child: Text(
-                                                            "Are you sure want to sign out from this application ?",
-                                                            style: TextStyle(
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: Appcolor
-                                                                    .black),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  actions: <Widget>[
-                                                    Container(
-                                                      height: 40,
-                                                      width: 100,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        border: Border.all(
-                                                          color: Appcolor.red,
-                                                          width: 1,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
-                                                      ),
-                                                      child: TextButton(
-                                                        child: const Text(
-                                                          'No',
-                                                          style: TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: Appcolor
-                                                                  .black),
-                                                        ),
-                                                        onPressed: () {
-                                                          Navigator.of(context)
-                                                              .pop();
-                                                        },
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      height: 40,
-                                                      width: 100,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        border: Border.all(
-                                                          color: Appcolor.red,
-                                                          width: 1,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
-                                                      ),
-                                                      child: TextButton(
-                                                        child: const Text(
-                                                          'Yes',
-                                                          style: TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: Appcolor
-                                                                  .black),
-                                                        ),
-                                                        onPressed: () async {
-                                                          Navigator.of(context)
-                                                              .pop();
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                totalsibboard == "0"
+                                    ? const SizedBox()
+                                    : Container(
+                                  margin: const EdgeInsets.only(
+                                      left: 10, right: 10),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Appcolor.btncolor,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius:
+                                    BorderRadius.circular(10.0),
+                                  ),
+                                  height: 50,
+                                  child: Material(
+                                    elevation: 6.0,
+                                    color: Appcolor.white,
+                                    borderRadius:
+                                    BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      customBorder:
+                                      RoundedRectangleBorder(
+                                        borderRadius:
+                                        BorderRadius.circular(10.0),
+                                      ),
+                                      onTap: () async {
+                                        await Get.to(
+                                            Commonallofflineentries(
+                                                clickforallscreen:
+                                                "1"));
+                                        setState(() {});
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10, right: 0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                          children: [
+                                            const Text(
+                                              'Information boards (Offline)',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 18.0,
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                              const EdgeInsets.all(
+                                                  10.0),
+                                              child: Text(
+                                                totalsibboard,
+                                                style: const TextStyle(
+                                                  fontWeight:
+                                                  FontWeight.w500,
+                                                  color: Colors.black,
+                                                  fontSize: 20.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                totalotherassetsofflineentreies == "0"
+                                    ? const SizedBox()
+                                    : Container(
+                                  margin: const EdgeInsets.only(
+                                      left: 10, right: 10),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Appcolor.btncolor,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius:
+                                    BorderRadius.circular(10.0),
+                                  ),
+                                  height: 50,
+                                  child: Material(
+                                    elevation: 6.0,
+                                    color: Appcolor.white,
+                                    borderRadius:
+                                    BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      customBorder:
+                                      RoundedRectangleBorder(
+                                        borderRadius:
+                                        BorderRadius.circular(10.0),
+                                      ),
+                                      onTap: () async {
+                                        await Get.to(
+                                            Commonallofflineentries(
+                                                clickforallscreen:
+                                                "2"));
+                                        setState(() {});
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10, right: 0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                          children: [
+                                            const Text(
+                                              'Other assets (Offline)',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 18.0,
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                              const EdgeInsets.all(
+                                                  10.0),
+                                              child: Text(
+                                                totalotherassetsofflineentreies,
+                                                style: const TextStyle(
+                                                  fontWeight:
+                                                  FontWeight.w500,
+                                                  color: Colors.black,
+                                                  fontSize: 20.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                totalstoragestructureofflineentreies == "0"
+                                    ? const SizedBox()
+                                    : Container(
+                                  margin: const EdgeInsets.only(
+                                      left: 10, top: 10, right: 10),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Appcolor.btncolor,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius:
+                                    BorderRadius.circular(10.0),
+                                  ),
+                                  height: 50,
+                                  child: Material(
+                                    elevation: 6.0,
+                                    color: Appcolor.white,
+                                    borderRadius:
+                                    BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      customBorder:
+                                      RoundedRectangleBorder(
+                                        borderRadius:
+                                        BorderRadius.circular(10.0),
+                                      ),
+                                      onTap: () async {
+                                        await Get.to(
+                                            Commonallofflineentries(
+                                                clickforallscreen:
+                                                "3"));
+                                        setState(() {});
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10, right: 0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                          children: [
+                                            const Text(
+                                              'Storage structure (Offline)',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 18.0,
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                              const EdgeInsets.all(
+                                                  10.0),
+                                              child: Text(
+                                                totalstoragestructureofflineentreies,
+                                                style: const TextStyle(
+                                                  fontWeight:
+                                                  FontWeight.w500,
+                                                  color: Colors.black,
+                                                  fontSize: 20.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
 
-                                                          box.remove(
-                                                              "UserToken");
-                                                          box.remove(
-                                                              'loginBool');
-                                                          cleartable_localmasterschemelisttable();
-
-                                                          Get.offAll(
-                                                              LoginScreen());
-
-                                                          Stylefile
-                                                              .showmessageforvalidationtrue(
-                                                                  context,
-                                                                  "Sign out successfully");
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          },
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(20.0),
-                                            child: const Icon(
-                                              Icons.logout,
-                                              size: 35,
-                                              color: Appcolor.btncolor,
+                                const SizedBox(
+                                  height: 10,
+                                ), totalpwssource=="0" && totalstoragestructureofflineentreies=="0" && totalsibboard=="0" &&  totalotherassetsofflineentreies=="0" ?
+                                const SizedBox()
+                                    : Center(
+                                  child: Container(
+                                    width: MediaQuery.of(context)
+                                        .size
+                                        .width,
+                                    margin: const EdgeInsets.only(
+                                        left: 10,
+                                        right: 10,
+                                        bottom: 10),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFFFFF)
+                                          .withOpacity(0.3),
+                                      borderRadius:
+                                      const BorderRadius.all(
+                                        Radius.circular(10.0),
+                                      ),
+                                    ),
+                                    child: SizedBox(
+                                      height: 40,
+                                      child: Directionality(
+                                        textDirection:
+                                        TextDirection.rtl,
+                                        child: ElevatedButton.icon(
+                                          style:
+                                          ElevatedButton.styleFrom(
+                                            elevation: 6, backgroundColor: Appcolor.orange,
+                                            shape:
+                                            RoundedRectangleBorder(
+                                              borderRadius:
+                                              BorderRadius.circular(
+                                                  10.0),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFC2C2C2)
-                                          .withOpacity(0.3),
-                                      border: Border.all(
-                                        color: const Color(0xFFC2C2C2)
-                                            .withOpacity(0.3),
-                                        width: 1,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(
-                                          10.0,
-                                        ),
-                                      ),
-                                    ),
-                                    margin: const EdgeInsets.all(10),
-                                    child: SizedBox(
-                                        width: double.infinity,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(5.0),
-                                          child: Column(
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Image.asset(
-                                                    "images/profile.png",
-                                                    width: 60,
-                                                    height: 60,
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        username.toString(),
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 20,
-                                                            color:
-                                                                Colors.black),
-                                                      ),
-                                                      Container(
-                                                        width: 250,
-                                                        child: Text(
-                                                          maxLines: 3,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          UserDescription
-                                                              .toString(),
-                                                          style: const TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              fontSize: 16,
-                                                              color: Appcolor
-                                                                  .dark),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                              const SizedBox(
-                                                height: 10,
-                                              ),
-                                              subResult!.length == 0
-                                                  ? const SizedBox()
-                                                  : Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .start,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(2),
-                                                            decoration: BoxDecoration(
-                                                                color: Colors
-                                                                    .white,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            8)),
-                                                            child:
-                                                                ScrollConfiguration(
-                                                              behavior: const ScrollBehavior()
-                                                                  .copyWith(
-                                                                      overscroll:
-                                                                          false),
-                                                              child: ListView
-                                                                  .builder(
-                                                                      itemCount:
-                                                                          subResult!
-                                                                              .length,
-                                                                      shrinkWrap:
-                                                                          true,
-                                                                      physics:
-                                                                      const NeverScrollableScrollPhysics(),
-                                                                      itemBuilder:
-                                                                          (context,
-                                                                              int index) {
-                                                                        if (subResult![index].lableMenuId.toString() ==
-                                                                            "21") {
-                                                                          assignedvillage = subResult![index]
-                                                                              .lableValue
-                                                                              .toString();
-                                                                        }
-
-                                                                        if (subResult![index].lableMenuId.toString() ==
-                                                                            "22") {
-                                                                          pwstotalscheme = subResult![index]
-                                                                              .lableValue
-                                                                              .toString();
-                                                                        }
-                                                                        if (subResult![index].lableMenuId.toString() ==
-                                                                            "23") {
-                                                                          awsschoolschemetotal = subResult![index]
-                                                                              .lableValue
-                                                                              .toString();
-                                                                        }
-                                                                        try {
-                                                                          totalSchemes =
-                                                                              int.parse(pwstotalscheme) + int.parse(awsschoolschemetotal);
-                                                                        } catch (e) {
-                                                                          debugPrintStack();
-                                                                        }
-                                                                        return Container(
-                                                                          margin: const EdgeInsets
-                                                                              .all(
-                                                                              2),
-                                                                          child:
-                                                                              Material(
-                                                                            elevation:
-                                                                                2.0,
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(10.0),
-                                                                            child:
-                                                                                InkWell(
-                                                                              splashColor: Appcolor.splashcolor,
-                                                                              customBorder: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(10.0),
-                                                                              ),
-                                                                              onTap: () {},
-                                                                              child: Container(
-                                                                                margin: const EdgeInsets.all(5),
-                                                                                child: Row(children: [
-                                                                                  subResult![index].lableMenuId == "21"
-                                                                                      ? const SizedBox()
-                                                                                      : const Icon(
-                                                                                          Icons.radio_button_checked,
-                                                                                          size: 20,
-                                                                                          color: Colors.orange,
-                                                                                        ),
-                                                                                  const SizedBox(
-                                                                                    width: 10,
-                                                                                  ),
-                                                                                  Padding(
-                                                                                    padding: const EdgeInsets.all(2.0),
-                                                                                    child: Row(
-                                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                      children: [
-                                                                                        subResult![index].lableMenuId.toString() == "35"
-                                                                                            ? Row(
-                                                                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                                                                children: [
-                                                                                                  Text("${subResult![index].lableText}  : ${subResult![index].lableValue} ", style: const TextStyle(color: Appcolor.black, fontSize: 17, fontWeight: FontWeight.w500)),
-                                                                                                  const SizedBox(
-                                                                                                    width: 10,
-                                                                                                  ),
-                                                                                                  GestureDetector(
-                                                                                                    onTap: () {
-                                                                                                      if (assignedvillage == "0") {
-                                                                                                        Stylefile.showmessageapierrors(context, "There is no assigned villages to you please contact to division officer.");
-                                                                                                      } else {
-                                                                                                        Get.to(Villagelistzero(assignedvillage: assignedvillage));
-                                                                                                      }
-                                                                                                    },
-                                                                                                    child: const Padding(
-                                                                                                      padding: EdgeInsets.all(0.0),
-                                                                                                      child: Icon(
-                                                                                                        Icons.edit_note_outlined,
-                                                                                                        color: Appcolor.btncolor,
-                                                                                                        size: 30,
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                  )
-                                                                                                ],
-                                                                                              )
-                                                                                            : Text(
-                                                                                                "${subResult![index].lableText} : ${subResult![index].lableValue} ",
-                                                                                                style: const TextStyle(color: Appcolor.black, fontSize: 17, fontWeight: FontWeight.w500),
-                                                                                              )
-                                                                                      ],
-                                                                                    ),
-                                                                                  )
-                                                                                ]),
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        );
-                                                                      }),
-                                                            )),
-                                                        const SizedBox(
-                                                          height: 5,
-                                                        ),
-                                                      ],
-                                                    )
-                                            ],
+                                          label: const Text(
+                                            'Upload to server',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: Appcolor.white),
                                           ),
-                                        )),
+                                          onPressed: () async {
+                                            try {
+                                              final result =
+                                              await InternetAddress
+                                                  .lookup(
+                                                  'example.com');
+                                              if (result.isNotEmpty &&
+                                                  result[0]
+                                                      .rawAddress
+                                                      .isNotEmpty) {
+                                                if (box
+                                                    .read(
+                                                    "UserToken")
+                                                    .toString() ==
+                                                    "null") {
+                                                  box.remove(
+                                                      "UserToken");
+                                                  box.remove(
+                                                      'loginBool');
+                                                  cleartable_localmasterschemelisttable();
+                                                  Get.off(
+                                                      LoginScreen());
+                                                  Stylefile
+                                                      .showmessageforvalidationfalse(context, "Please login your token has been expired!");
+                                                } else {
+                                                  setState(() {
+                                                    Totaluploadofflineserver();
+                                                  });
+                                                }
+                                              }
+                                            } on SocketException catch (_) {
+                                              Stylefile
+                                                  .showmessageforvalidationfalse(
+                                                  context,
+                                                  "Unable to Connect to the Internet. Please check your network settings.");
+                                            }
+                                            setState(() {
+                                              getallpwssaveoffline();
+                                              getallsibsaveoffline();
+                                              getallotherassetssaveoffline();
+                                            });
+                                          },
+                                          icon: const Icon(
+                                            Icons.upload,
+                                            color: Colors.white,
+                                            size: 30.0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                 /* Container(
-                                    margin: const EdgeInsets.only(
+                                ),
+                                Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
                                         left: 10,
                                         right: 10,
                                         top: 5,
-                                        bottom: 10),
-                                    child: Material(
-                                      elevation: 6.0,
-                                      color: const Color(0xFF0D3A98),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      child: InkWell(
-                                        splashColor: Appcolor.splashcolor,
-                                        customBorder: RoundedRectangleBorder(
-                                          borderRadius:
-                                          BorderRadius.circular(10.0),
+                                        bottom: 8),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: Border.all(
+                                          color: Appcolor.grey,
+                                          width: 1.0,
                                         ),
-                                        onTap: () {
-                                          Get.to(FHTCAssignedVillage(
-
-                                              userid: widget.userid,
-                                              usertoken: widget.usertoken,
-                                              stateid: widget.stateid));
-                                          // Get.to(Village_details(villageid:Villa));
-                                          //   Get.to(FHTCAssignedVillage());
-                                        },
+                                        borderRadius:
+                                        BorderRadius.circular(10.0),
+                                      ),
+                                      child: const Text(
+                                        textAlign: TextAlign.left,
+                                        "Note : All the geo tagging entries are to be synced once the internet is available.",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.red),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.only(
+                                    left: 10,
+                                    right: 10,
+                                  ),
+                                  child: Container(
+                                    child: Column(children: [
+                                      const SizedBox(
+                                        height: 8,
+                                      ),
+                                      mainHeadingmenugeotagging == ""
+                                          ? const SizedBox()
+                                          : Container(
+                                        margin: const EdgeInsets.all(5),
+                                        height: 45,
+                                        width: double.infinity,
+                                        padding:
+                                        const EdgeInsets.all(5.0),
+                                        decoration: BoxDecoration(
+                                            color:
+                                            const Color(0xFF0B2E7C),
+                                            borderRadius:
+                                            BorderRadius.circular(
+                                                8)),
                                         child: Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 10, right: 0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                            children: [
-                                              const Text(
-                                                'Add FHTC',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors.white,
-                                                  fontSize: 18.0,
+                                          padding:
+                                          const EdgeInsets.all(5.0),
+                                          child: Align(
+                                              alignment:
+                                              Alignment.centerLeft,
+                                              child: Text(
+                                                mainHeadingmenugeotagging
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                    fontWeight:
+                                                    FontWeight.w500,
+                                                    fontSize: 18,
+                                                    color:
+                                                    Colors.white),
+                                              )),
+                                        ),
+                                      ),
+                                      pwsSubHeading == null
+                                          ? const SizedBox()
+                                          : Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10,
+                                            right: 10,
+                                            top: 10),
+                                        child: Align(
+                                            alignment:
+                                            Alignment.centerLeft,
+                                            child: Text(
+                                              pwsSubHeading,
+                                              style: const TextStyle(
+                                                  fontWeight:
+                                                  FontWeight.w500,
+                                                  color: Colors.blue,
+                                                  fontSize: 18),
+                                            )),
+                                      ),
+                                      subResulgeotaggingassignvillagelist!
+                                          .length ==
+                                          0
+                                          ? const SizedBox()
+                                          : Padding(
+                                        padding:
+                                        const EdgeInsets.all(5),
+                                        child: GridView.builder(
+                                          physics:
+                                          const NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            mainAxisSpacing: 4.0,
+                                            crossAxisSpacing: 4.0,
+                                            childAspectRatio:
+                                            (370.0 / 260.0),
+                                          ),
+                                          itemCount:
+                                          subResulgeotaggingassignvillagelist!
+                                              .length,
+                                          itemBuilder:
+                                              (context, index) {
+                                            return Container(
+                                              margin:
+                                              const EdgeInsets.all(
+                                                  0),
+                                              decoration: BoxDecoration(
+                                                color: Appcolor.white,
+                                                border: Border.all(
+                                                  color: Appcolor.white,
+                                                  width: 1,
+                                                ),
+                                                borderRadius:
+                                                const BorderRadius
+                                                    .all(
+                                                  Radius.circular(
+                                                    10.0,
+                                                  ),
                                                 ),
                                               ),
-                                              Container(
-                                                margin: const EdgeInsets.all(5),
-                                                *//**//*
-                                                child: CircleAvatar(
-                                                  minRadius: 20,
-                                                  maxRadius: 20,
-                                                  backgroundColor:
-                                                  const Color(0xffffffff),
+                                              child: Material(
+                                                elevation: 2.0,
+                                                borderRadius:
+                                                BorderRadius
+                                                    .circular(10.0),
+                                                child: InkWell(
+                                                  splashColor: Appcolor
+                                                      .splashcolor,
+                                                  customBorder:
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius
+                                                        .circular(
+                                                        10.0),
+                                                  ),
+                                                  onTap: () {},
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment
+                                                        .start,
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+
+                                                    children: [
+                                                      Column(
+                                                        crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                        mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .start,
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                            const EdgeInsets
+                                                                .all(
+                                                                8.0),
+                                                            child: Text(
+                                                              subResulgeotaggingassignvillagelist![
+                                                              index]
+                                                                  .lableValue
+                                                                  .toString(),
+                                                              style: const TextStyle(
+                                                                  fontWeight: FontWeight
+                                                                      .w500,
+                                                                  fontSize:
+                                                                  20),
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 125,
+                                                            child:
+                                                            Padding(
+                                                              padding: const EdgeInsets
+                                                                  .all(
+                                                                  5.0),
+                                                              child:
+                                                              Text(
+                                                                maxLines:
+                                                                4,
+                                                                overflow:
+                                                                TextOverflow.ellipsis,
+                                                                softWrap:
+                                                                true,
+                                                                subResulgeotaggingassignvillagelist![index]
+                                                                    .lableText
+                                                                    .toString(),
+                                                                style: const TextStyle(
+                                                                    fontSize:
+                                                                    14,
+                                                                    fontWeight:
+                                                                    FontWeight.w500),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        width: 35,
+                                                        height: 80,
+                                                        child: Center(
+                                                          child: CachedNetworkImage(
+                                                              cacheManager:
+                                                              customCacheManager,
+                                                              key:
+                                                              UniqueKey(),
+                                                              imageUrl: subResulgeotaggingassignvillagelist![
+                                                              index]
+                                                                  .icon
+                                                                  .toString(),
+                                                              fit: BoxFit
+                                                                  .fill,
+                                                              progressIndicatorBuilder: (context, url, downloadProgress) => Transform.scale(
+                                                                  scale:
+                                                                  .4,
+                                                                  child: CircularProgressIndicator(
+                                                                      value: downloadProgress
+                                                                          .progress)),
+                                                              errorWidget: (context,
+                                                                  url,
+                                                                  error) =>
+                                                              const Icon(
+                                                                  Icons.image)),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      schemeinfosubheading == null
+                                          ? const SizedBox()
+                                          : Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10, right: 10),
+                                        child: Align(
+                                          alignment:
+                                          Alignment.centerLeft,
+                                          child: Text(
+                                            schemeinfosubheading,
+                                            style: const TextStyle(
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                color: Colors.blue,
+                                                fontSize: 20),
+                                          ),
+                                        ),
+                                      ),
+                                      subResulgeotaggingassignvillageschemelist!
+                                          .length ==
+                                          0
+                                          ? const SizedBox()
+                                          : Padding(
+                                        padding:
+                                        const EdgeInsets.all(5),
+                                        child: GridView.builder(
+                                          physics:
+                                          const NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            childAspectRatio:
+                                            (340.0 / 230.0),
+                                            mainAxisSpacing: 4.0,
+                                            crossAxisSpacing: 4.0,
+                                          ),
+                                          itemCount:
+                                          subResulgeotaggingassignvillageschemelist!
+                                              .length,
+                                          itemBuilder:
+                                              (context, index) {
+                                            return Container(
+                                              margin:
+                                              const EdgeInsets.all(
+                                                  0),
+                                              decoration: BoxDecoration(
+                                                color: Appcolor.white,
+                                                border: Border.all(
+                                                  color: Appcolor.white,
+                                                  width: 1,
+                                                ),
+                                                borderRadius:
+                                                const BorderRadius
+                                                    .all(
+                                                  Radius.circular(
+                                                    10.0,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Material(
+                                                elevation: 2.0,
+                                                borderRadius:
+                                                BorderRadius
+                                                    .circular(10.0),
+                                                child: InkWell(
+                                                  splashColor: Appcolor
+                                                      .splashcolor,
+                                                  customBorder:
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius
+                                                        .circular(
+                                                        10.0),
+                                                  ),
+                                                  onTap: () {},
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment
+                                                        .start,
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      Column(
+                                                        crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                        mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .start,
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                            const EdgeInsets
+                                                                .all(
+                                                                4.0),
+                                                            child: Text(
+                                                              subResulgeotaggingassignvillageschemelist![
+                                                              index]
+                                                                  .lableValue
+                                                                  .toString(),
+                                                              style: const TextStyle(
+                                                                  fontWeight: FontWeight
+                                                                      .w500,
+                                                                  fontSize:
+                                                                  20),
+                                                            ),
+                                                          ),
+                                                          Padding(
+                                                            padding:
+                                                            const EdgeInsets
+                                                                .all(
+                                                                5.0),
+                                                            child:
+                                                            SizedBox(
+                                                              width: 90,
+                                                              child:
+                                                              Text(
+                                                                maxLines:
+                                                                3,
+                                                                overflow:
+                                                                TextOverflow.ellipsis,
+                                                                softWrap:
+                                                                true,
+                                                                subResulgeotaggingassignvillageschemelist![index]
+                                                                    .lableText
+                                                                    .toString(),
+                                                                style: const TextStyle(
+                                                                    fontSize:
+                                                                    15,
+                                                                    fontWeight:
+                                                                    FontWeight.w500),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 80,
+                                                        width: 40,
+                                                        child: Center(
+                                                          child: CachedNetworkImage(
+                                                              cacheManager:
+                                                              customCacheManager,
+                                                              key:
+                                                              UniqueKey(),
+                                                              imageUrl: subResulgeotaggingassignvillageschemelist![
+                                                              index]
+                                                                  .icon
+                                                                  .toString(),
+                                                              fit: BoxFit
+                                                                  .fill,
+                                                              progressIndicatorBuilder: (context, url, downloadProgress) => Transform.scale(
+                                                                  scale:
+                                                                  .4,
+                                                                  child: CircularProgressIndicator(
+                                                                      value: downloadProgress
+                                                                          .progress)),
+                                                              errorWidget: (context,
+                                                                  url,
+                                                                  error) =>
+                                                              const Icon(
+                                                                  Icons.image)),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      subheadingotherscemeasset == null
+                                          ? const SizedBox()
+                                          : Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10, right: 10),
+                                        child: Align(
+                                          alignment:
+                                          Alignment.centerLeft,
+                                          child: Text(
+                                            subheadingotherscemeasset,
+                                            style: const TextStyle(
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                color: Colors.blue,
+                                                fontSize: 20),
+                                          ),
+                                        ),
+                                      ),
+                                      subResult_utherassetslist!.length ==
+                                          null
+                                          ? const SizedBox()
+                                          : Padding(
+                                        padding:
+                                        const EdgeInsets.all(5),
+                                        child: GridView.builder(
+                                          physics:
+                                          const NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            childAspectRatio:
+                                            (320.0 / 220.0),
+                                            mainAxisSpacing: 3.0,
+                                            crossAxisSpacing: 3.0,
+                                          ),
+                                          itemCount:
+                                          subResult_utherassetslist!
+                                              .length,
+                                          itemBuilder:
+                                              (context, index) {
+                                            return Container(
+                                              margin:
+                                              const EdgeInsets.all(
+                                                  0),
+                                              decoration: BoxDecoration(
+                                                color: Appcolor.white,
+                                                border: Border.all(
+                                                  color: Appcolor.white,
+                                                  width: 1,
+                                                ),
+                                                borderRadius:
+                                                const BorderRadius
+                                                    .all(
+                                                  Radius.circular(
+                                                    10.0,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Material(
+                                                elevation: 2.0,
+                                                borderRadius:
+                                                BorderRadius
+                                                    .circular(10.0),
+                                                child: InkWell(
+                                                  splashColor: Appcolor
+                                                      .splashcolor,
+                                                  customBorder:
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius
+                                                        .circular(
+                                                        10.0),
+                                                  ),
+                                                  onTap: () {},
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment
+                                                        .start,
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .start,
+                                                    children: [
+                                                      Column(
+                                                        crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                        mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .start,
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                            const EdgeInsets
+                                                                .all(
+                                                                8.0),
+                                                            child: Text(
+                                                              subResult_utherassetslist![
+                                                              index]
+                                                                  .lableValue
+                                                                  .toString(),
+                                                              style: const TextStyle(
+                                                                  fontWeight: FontWeight
+                                                                      .w500,
+                                                                  fontSize:
+                                                                  20),
+                                                            ),
+                                                          ),
+                                                          Padding(
+                                                            padding:
+                                                            const EdgeInsets
+                                                                .all(
+                                                                2.0),
+                                                            child:
+                                                            SizedBox(
+                                                              width:
+                                                              110,
+                                                              child:
+                                                              Text(
+                                                                maxLines:
+                                                                3,
+                                                                overflow:
+                                                                TextOverflow.ellipsis,
+                                                                softWrap:
+                                                                true,
+                                                                subResult_utherassetslist![index]
+                                                                    .lableText
+                                                                    .toString(),
+                                                                style: const TextStyle(
+                                                                    fontSize:
+                                                                    15,
+                                                                    fontWeight:
+                                                                    FontWeight.w500),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        width: 45,
+                                                        height: 80,
+                                                        child: Center(
+                                                          child: CachedNetworkImage(
+                                                              cacheManager:
+                                                              customCacheManager,
+                                                              key:
+                                                              UniqueKey(),
+                                                              imageUrl: subResult_utherassetslist![
+                                                              index]
+                                                                  .icon
+                                                                  .toString(),
+                                                              fit: BoxFit
+                                                                  .fill,
+                                                              progressIndicatorBuilder: (context, url, downloadProgress) => Transform.scale(
+                                                                  scale:
+                                                                  .4,
+                                                                  child: CircularProgressIndicator(
+                                                                      value: downloadProgress
+                                                                          .progress)),
+                                                              errorWidget: (context,
+                                                                  url,
+                                                                  error) =>
+                                                              const Icon(
+                                                                  Icons.image)),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      const SizedBox(
+                                        height: 12,
+                                      ),
+                                      villagenotcertified == null
+                                          ? const SizedBox()
+                                          : Container(
+                                        margin: const EdgeInsets.all(5),
+                                        height: 45,
+                                        width: double.infinity,
+                                        padding:
+                                        const EdgeInsets.all(5.0),
+                                        decoration: BoxDecoration(
+                                            color:
+                                            const Color(0xFF0B2E7C),
+                                            borderRadius:
+                                            BorderRadius.circular(
+                                                8)),
+                                        child: Padding(
+                                          padding:
+                                          const EdgeInsets.all(8.0),
+                                          child: Align(
+                                              alignment:
+                                              Alignment.centerLeft,
+                                              child: Text(
+                                                villagenotcertified,
+                                                style: const TextStyle(
+                                                    fontWeight:
+                                                    FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color:
+                                                    Colors.white),
+                                              )),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      downloadsampleone == null
+                                          ? const SizedBox()
+                                          : Container(
+                                        margin: const EdgeInsets.all(5),
+                                        height: 55,
+                                        width: double.infinity,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                            BorderRadius.circular(
+                                                10)),
+                                        child: TextButton(
+                                          onPressed: () {},
+                                          child: Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .center,
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 20,
+                                                child: IconButton(
+                                                  color: Colors.orange,
+                                                  onPressed: () {},
+                                                  icon: const Icon(
+                                                    Icons
+                                                        .download_rounded,
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                width: 5,
+                                              ),
+                                              downloadsampleone == null
+                                                  ? const SizedBox()
+                                                  : SizedBox(
+                                                width: 200,
+                                                child: Text(
+                                                  downloadsampleone
+                                                      .toString(),
+                                                  maxLines: 3,
+                                                  style:
+                                                  const TextStyle(
+                                                    fontWeight:
+                                                    FontWeight
+                                                        .w500,
+                                                    color: Colors
+                                                        .black,
+                                                    fontSize:
+                                                    14.0,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      downloadsmapletwo == null
+                                          ? const SizedBox()
+                                          : GestureDetector(
+                                        onTap: () {},
+                                        child: Container(
+                                          margin: const EdgeInsets.only(
+                                              left: 5,
+                                              top: 5,
+                                              bottom: 5,
+                                              right: 5),
+                                          height: 55,
+                                          width: double.infinity,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                              BorderRadius.circular(
+                                                  10)),
+                                          child: TextButton(
+                                            onPressed: () {},
+                                            child: Row(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment
+                                                  .start,
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment
+                                                  .center,
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 20,
                                                   child: IconButton(
                                                     color:
-                                                    const Color(0xFF0D3A98),
+                                                    Colors.orange,
                                                     onPressed: () {},
                                                     icon: const Icon(
-                                                      Icons.add,
-                                                      size: 25,
+                                                      Icons
+                                                          .download_rounded,
+                                                      size: 20,
                                                     ),
                                                   ),
                                                 ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),*/
-                                  Container(
-                                    margin: const EdgeInsets.only(
-                                        left: 10,
-                                        right: 10,
-                                        top: 1,
-                                        bottom: 10),
-                                    child: Material(
-                                      elevation: 6.0,
-                                      color: const Color(0xFF0D3A98),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      child: InkWell(
-                                        splashColor: Appcolor.splashcolor,
-                                        customBorder: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                        ),
-                                        onTap: () {
-                                          if (assignedvillage == "0") {
-                                            Stylefile.showmessageapierrors(
-                                                context,
-                                                "There is no village assigned to you. Please contact to division officer.");
-                                          } else if (workingvillage == "0") {
-                                            if (workingvillage == "0") {
-                                              Stylefile
-                                                  .showmessageforvalidationtrue(
-                                                      context,
-                                                      "There is no villages assigned to you. Please select villages first.");
-                                              Get.to(Villagelistzero(
-                                                  assignedvillage:
-                                                      assignedvillage));
-                                            }
-                                          } else {
-                                            Get.to(Selectedvillaglist(
-                                              stateId: stateId,
-                                              userId: userid,
-                                              usertoken: usertoken!,
-                                            ));
-                                          }
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 10, right: 0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              const Text(
-                                                'Add/Geo-tag PWS assets ',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors.white,
-                                                  fontSize: 18.0,
+                                                const SizedBox(
+                                                  width: 5,
                                                 ),
-                                              ),
-                                              Container(
-                                                margin: const EdgeInsets.all(5),
-                                                child: CircleAvatar(
-                                                  minRadius: 20,
-                                                  maxRadius: 20,
-                                                  backgroundColor:
-                                                      const Color(0xffffffff),
-                                                  child: IconButton(
-                                                    color:
-                                                        const Color(0xFF0D3A98),
-                                                    onPressed: () {
-                                                      if (assignedvillage ==
-                                                          "0") {
-                                                        Stylefile
-                                                            .showmessageapierrors(
-                                                                context,
-                                                                "There is no assigned villages to you please contact to division officer.");
-                                                      } else if (workingvillage ==
-                                                          "0") {
-                                                        Stylefile
-                                                            .showmessageapierrors(
-                                                                context,
-                                                                "There is no village assigned to you for geotagging assets. Please select villages first.");
-                                                      } else {
-                                                        Get.to(
-                                                            Selectedvillaglist(
-                                                          stateId: stateId,
-                                                          userId: userid,
-                                                          usertoken: usertoken!,
-                                                        ));
-                                                      }
-                                                    },
-                                                    icon: const Icon(
-                                                      Icons.add,
-                                                      weight: 100,
-                                                      size: 25,
-                                                    ),
-                                                  ),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  totalpwssource == "0"
-                                      ? const SizedBox()
-                                      : Container(
-                                          margin: const EdgeInsets.only(
-                                              left: 10, right: 10),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Appcolor.btncolor,
-                                              width: 1.0,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          height: 50,
-                                          child: Material(
-                                            elevation: 6.0,
-                                            color: Appcolor.white,
-                                            borderRadius: BorderRadius.circular(
-                                              10.0,
-                                            ),
-                                            child: InkWell(
-                                              customBorder:
-                                                  RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10.0)),
-                                              onTap: () async {
-                                                await Get.to(
-                                                    Commonallofflineentries(
-                                                        clickforallscreen:
-                                                            "0"));
-                                                setState(() {});
-                                              },
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 10, right: 0),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  children: [
-                                                    const Text(
-                                                      'Tagged PWS Sources (Offline)',
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 18.0,
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              10.0),
-                                                      child: Text(
-                                                        totalpwssource,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: Colors.black,
-                                                          fontSize: 20.0,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
-                                  totalsibboard == "0"
-                                      ? const SizedBox()
-                                      : Container(
-                                          margin: const EdgeInsets.only(
-                                              left: 10, right: 10),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Appcolor.btncolor,
-                                              width: 1.0,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          height: 50,
-                                          child: Material(
-                                            elevation: 6.0,
-                                            color: Appcolor.white,
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                            child: InkWell(
-                                              splashColor: Appcolor.splashcolor,
-                                              customBorder:
-                                                  RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                              ),
-                                              onTap: () async {
-                                                await Get.to(
-                                                    Commonallofflineentries(
-                                                        clickforallscreen:
-                                                            "1"));
-                                                setState(() {});
-                                              },
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 10, right: 0),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  children: [
-                                                    const Text(
-                                                      'Information boards (Offline)',
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 18.0,
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              10.0),
-                                                      child: Text(
-                                                        totalsibboard,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: Colors.black,
-                                                          fontSize: 20.0,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
-                                  totalotherassetsofflineentreies == "0"
-                                      ? const SizedBox()
-                                      : Container(
-                                          margin: const EdgeInsets.only(
-                                              left: 10, right: 10),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Appcolor.btncolor,
-                                              width: 1.0,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          height: 50,
-                                          child: Material(
-                                            elevation: 6.0,
-                                            color: Appcolor.white,
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                            child: InkWell(
-                                              splashColor: Appcolor.splashcolor,
-                                              customBorder:
-                                                  RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                              ),
-                                              onTap: () async {
-                                                await Get.to(
-                                                    Commonallofflineentries(
-                                                        clickforallscreen:
-                                                            "2"));
-                                                setState(() {});
-                                              },
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 10, right: 0),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  children: [
-                                                    const Text(
-                                                      'Other assets (Offline)',
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 18.0,
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              10.0),
-                                                      child: Text(
-                                                        totalotherassetsofflineentreies,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: Colors.black,
-                                                          fontSize: 20.0,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                  totalstoragestructureofflineentreies == "0"
-                                      ? const SizedBox()
-                                      : Container(
-                                          margin: const EdgeInsets.only(
-                                              left: 10, top: 10, right: 10),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Appcolor.btncolor,
-                                              width: 1.0,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          height: 50,
-                                          child: Material(
-                                            elevation: 6.0,
-                                            color: Appcolor.white,
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                            child: InkWell(
-                                              splashColor: Appcolor.splashcolor,
-                                              customBorder:
-                                                  RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                              ),
-                                              onTap: () async {
-                                                await Get.to(
-                                                    Commonallofflineentries(
-                                                        clickforallscreen:
-                                                            "3"));
-                                                setState(() {});
-                                              },
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 10, right: 0),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  children: [
-                                                    const Text(
-                                                      'Storage structure (Offline)',
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 18.0,
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              10.0),
-                                                      child: Text(
-                                                        totalstoragestructureofflineentreies,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: Colors.black,
-                                                          fontSize: 20.0,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-
-                                  const SizedBox(
-                                    height: 10,
-                                  ), totalpwssource=="0" && totalstoragestructureofflineentreies=="0" && totalsibboard=="0" &&  totalotherassetsofflineentreies=="0" ?
-                                       const SizedBox()
-                                      : Center(
-                                          child: Container(
-                                            width: MediaQuery.of(context)
-                                                .size
-                                                .width,
-                                            margin: const EdgeInsets.only(
-                                                left: 10,
-                                                right: 10,
-                                                bottom: 10),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFFFFFFF)
-                                                  .withOpacity(0.3),
-                                              borderRadius:
-                                                  const BorderRadius.all(
-                                                Radius.circular(10.0),
-                                              ),
-                                            ),
-                                            child: SizedBox(
-                                              height: 40,
-                                              child: Directionality(
-                                                textDirection:
-                                                    TextDirection.rtl,
-                                                child: ElevatedButton.icon(
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    elevation: 6, backgroundColor: Appcolor.orange,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10.0),
-                                                    ),
-                                                  ),
-                                                  label: const Text(
-                                                    'Upload to server',
-                                                    style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Appcolor.white),
-                                                  ),
-                                                  onPressed: () async {
-                                                    try {
-                                                      final result =
-                                                          await InternetAddress
-                                                              .lookup(
-                                                                  'example.com');
-                                                      if (result.isNotEmpty &&
-                                                          result[0]
-                                                              .rawAddress
-                                                              .isNotEmpty) {
-                                                        if (box
-                                                                .read(
-                                                                    "UserToken")
-                                                                .toString() ==
-                                                            "null") {
-                                                          box.remove(
-                                                              "UserToken");
-                                                          box.remove(
-                                                              'loginBool');
-                                                          cleartable_localmasterschemelisttable();
-                                                          Get.off(
-                                                              LoginScreen());
-                                                          Stylefile
-                                                              .showmessageforvalidationfalse(context, "Please login your token has been expired!");
-                                                        } else {
-                                                          setState(() {
-                                                            Totaluploadofflineserver();
-                                                          });
-                                                        }
-                                                      }
-                                                    } on SocketException catch (_) {
-                                                      Stylefile
-                                                          .showmessageforvalidationfalse(
-                                                              context,
-                                                              "Unable to Connect to the Internet. Please check your network settings.");
-                                                    }
-                                                    setState(() {
-                                                      getallpwssaveoffline();
-                                                      getallsibsaveoffline();
-                                                      getallotherassetssaveoffline();
-                                                    });
-                                                  },
-                                                  icon: const Icon(
-                                                    Icons.upload,
-                                                    color: Colors.white,
-                                                    size: 30.0,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                  Align(
-                                    alignment: Alignment.bottomCenter,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 10,
-                                          right: 10,
-                                          top: 5,
-                                          bottom: 8),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          border: Border.all(
-                                            color: Appcolor.grey,
-                                            width: 1.0,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                        ),
-                                        child: const Text(
-                                          textAlign: TextAlign.left,
-                                          "Note : All the geo tagging entries are to be synced once the internet is available.",
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w400,
-                                              color: Colors.red),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.only(
-                                      left: 10,
-                                      right: 10,
-                                    ),
-                                    child: Container(
-                                      child: Column(children: [
-                                        const SizedBox(
-                                          height: 8,
-                                        ),
-                                        mainHeadingmenugeotagging == ""
-                                            ? const SizedBox()
-                                            : Container(
-                                                margin: const EdgeInsets.all(5),
-                                                height: 45,
-                                                width: double.infinity,
-                                                padding:
-                                                    const EdgeInsets.all(5.0),
-                                                decoration: BoxDecoration(
-                                                    color:
-                                                        const Color(0xFF0B2E7C),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8)),
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(5.0),
-                                                  child: Align(
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      child: Text(
-                                                        mainHeadingmenugeotagging
-                                                            .toString(),
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            fontSize: 18,
-                                                            color:
-                                                                Colors.white),
-                                                      )),
-                                                ),
-                                              ),
-                                        pwsSubHeading == null
-                                            ? const SizedBox()
-                                            : Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 10,
-                                                    right: 10,
-                                                    top: 10),
-                                                child: Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: Text(
-                                                      pwsSubHeading,
-                                                      style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: Colors.blue,
-                                                          fontSize: 18),
-                                                    )),
-                                              ),
-                                        subResulgeotaggingassignvillagelist!
-                                                    .length ==
-                                                0
-                                            ? const SizedBox()
-                                            : Padding(
-                                                padding:
-                                                    const EdgeInsets.all(5),
-                                                child: GridView.builder(
-                                                  physics:
-                                                      const NeverScrollableScrollPhysics(),
-                                                  shrinkWrap: true,
-                                                  gridDelegate:
-                                                      const SliverGridDelegateWithFixedCrossAxisCount(
-                                                    crossAxisCount: 2,
-                                                    mainAxisSpacing: 4.0,
-                                                    crossAxisSpacing: 4.0,
-                                                    childAspectRatio:
-                                                        (370.0 / 260.0),
-                                                  ),
-                                                  itemCount:
-                                                      subResulgeotaggingassignvillagelist!
-                                                          .length,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    return Container(
-                                                      margin:
-                                                          const EdgeInsets.all(
-                                                              0),
-                                                      decoration: BoxDecoration(
-                                                        color: Appcolor.white,
-                                                        border: Border.all(
-                                                          color: Appcolor.white,
-                                                          width: 1,
-                                                        ),
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .all(
-                                                          Radius.circular(
-                                                            10.0,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      child: Material(
-                                                        elevation: 2.0,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10.0),
-                                                        child: InkWell(
-                                                          splashColor: Appcolor
-                                                              .splashcolor,
-                                                          customBorder:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        10.0),
-                                                          ),
-                                                          onTap: () {},
-                                                          child: Row(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .spaceBetween,
-                                                            children: [
-                                                              Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .start,
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .start,
-                                                                children: [
-                                                                  Padding(
-                                                                    padding:
-                                                                        const EdgeInsets
-                                                                            .all(
-                                                                            8.0),
-                                                                    child: Text(
-                                                                      subResulgeotaggingassignvillagelist![
-                                                                              index]
-                                                                          .lableValue
-                                                                          .toString(),
-                                                                      style: const TextStyle(
-                                                                          fontWeight: FontWeight
-                                                                              .w500,
-                                                                          fontSize:
-                                                                              20),
-                                                                    ),
-                                                                  ),
-                                                                  SizedBox(
-                                                                    width: 125,
-                                                                    child:
-                                                                        Padding(
-                                                                      padding: const EdgeInsets
-                                                                          .all(
-                                                                          5.0),
-                                                                      child:
-                                                                          Text(
-                                                                        maxLines:
-                                                                            4,
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        softWrap:
-                                                                            true,
-                                                                        subResulgeotaggingassignvillagelist![index]
-                                                                            .lableText
-                                                                            .toString(),
-                                                                        style: const TextStyle(
-                                                                            fontSize:
-                                                                                14,
-                                                                            fontWeight:
-                                                                                FontWeight.w500),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              SizedBox(
-                                                                width: 35,
-                                                                height: 80,
-                                                                child: Center(
-                                                                  child: CachedNetworkImage(
-                                                                      cacheManager:
-                                                                          customCacheManager,
-                                                                      key:
-                                                                          UniqueKey(),
-                                                                      imageUrl: subResulgeotaggingassignvillagelist![
-                                                                              index]
-                                                                          .icon
-                                                                          .toString(),
-                                                                      fit: BoxFit
-                                                                          .fill,
-                                                                      progressIndicatorBuilder: (context, url, downloadProgress) => Transform.scale(
-                                                                          scale:
-                                                                              .4,
-                                                                          child: CircularProgressIndicator(
-                                                                              value: downloadProgress
-                                                                                  .progress)),
-                                                                      errorWidget: (context,
-                                                                              url,
-                                                                              error) =>
-                                                                          const Icon(
-                                                                              Icons.image)),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        schemeinfosubheading == null
-                                            ? const SizedBox()
-                                            : Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 10, right: 10),
-                                                child: Align(
-                                                  alignment:
-                                                      Alignment.centerLeft,
+                                                SizedBox(
+                                                  width: 200,
                                                   child: Text(
-                                                    schemeinfosubheading,
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Colors.blue,
-                                                        fontSize: 20),
+                                                    downloadsmapletwo
+                                                        .toString(),
+                                                    maxLines: 3,
+                                                    style:
+                                                    const TextStyle(
+                                                      fontWeight:
+                                                      FontWeight
+                                                          .w500,
+                                                      color:
+                                                      Colors.black,
+                                                      fontSize: 14.0,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                        subResulgeotaggingassignvillageschemelist!
-                                                    .length ==
-                                                0
-                                            ? const SizedBox()
-                                            : Padding(
-                                                padding:
-                                                    const EdgeInsets.all(5),
-                                                child: GridView.builder(
-                                                  physics:
-                                                      const NeverScrollableScrollPhysics(),
-                                                  shrinkWrap: true,
-                                                  gridDelegate:
-                                                      const SliverGridDelegateWithFixedCrossAxisCount(
-                                                    crossAxisCount: 2,
-                                                    childAspectRatio:
-                                                        (340.0 / 230.0),
-                                                    mainAxisSpacing: 4.0,
-                                                    crossAxisSpacing: 4.0,
-                                                  ),
-                                                  itemCount:
-                                                      subResulgeotaggingassignvillageschemelist!
-                                                          .length,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    return Container(
-                                                      margin:
-                                                          const EdgeInsets.all(
-                                                              0),
-                                                      decoration: BoxDecoration(
-                                                        color: Appcolor.white,
-                                                        border: Border.all(
-                                                          color: Appcolor.white,
-                                                          width: 1,
-                                                        ),
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .all(
-                                                          Radius.circular(
-                                                            10.0,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      child: Material(
-                                                        elevation: 2.0,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10.0),
-                                                        child: InkWell(
-                                                          splashColor: Appcolor
-                                                              .splashcolor,
-                                                          customBorder:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        10.0),
-                                                          ),
-                                                          onTap: () {},
-                                                          child: Row(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .spaceBetween,
-                                                            children: [
-                                                              Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .start,
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .start,
-                                                                children: [
-                                                                  Padding(
-                                                                    padding:
-                                                                        const EdgeInsets
-                                                                            .all(
-                                                                            4.0),
-                                                                    child: Text(
-                                                                      subResulgeotaggingassignvillageschemelist![
-                                                                              index]
-                                                                          .lableValue
-                                                                          .toString(),
-                                                                      style: const TextStyle(
-                                                                          fontWeight: FontWeight
-                                                                              .w500,
-                                                                          fontSize:
-                                                                              20),
-                                                                    ),
-                                                                  ),
-                                                                  Padding(
-                                                                    padding:
-                                                                        const EdgeInsets
-                                                                            .all(
-                                                                            5.0),
-                                                                    child:
-                                                                        SizedBox(
-                                                                      width: 90,
-                                                                      child:
-                                                                          Text(
-                                                                        maxLines:
-                                                                            3,
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        softWrap:
-                                                                            true,
-                                                                        subResulgeotaggingassignvillageschemelist![index]
-                                                                            .lableText
-                                                                            .toString(),
-                                                                        style: const TextStyle(
-                                                                            fontSize:
-                                                                                15,
-                                                                            fontWeight:
-                                                                                FontWeight.w500),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              SizedBox(
-                                                                height: 80,
-                                                                width: 40,
-                                                                child: Center(
-                                                                  child: CachedNetworkImage(
-                                                                      cacheManager:
-                                                                          customCacheManager,
-                                                                      key:
-                                                                          UniqueKey(),
-                                                                      imageUrl: subResulgeotaggingassignvillageschemelist![
-                                                                              index]
-                                                                          .icon
-                                                                          .toString(),
-                                                                      fit: BoxFit
-                                                                          .fill,
-                                                                      progressIndicatorBuilder: (context, url, downloadProgress) => Transform.scale(
-                                                                          scale:
-                                                                              .4,
-                                                                          child: CircularProgressIndicator(
-                                                                              value: downloadProgress
-                                                                                  .progress)),
-                                                                      errorWidget: (context,
-                                                                              url,
-                                                                              error) =>
-                                                                          const Icon(
-                                                                              Icons.image)),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                        const SizedBox(
-                                          height: 10,
+                                              ],
+                                            ),
+                                          ),
                                         ),
-                                        subheadingotherscemeasset == null
-                                            ? const SizedBox()
-                                            : Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 10, right: 10),
-                                                child: Align(
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                  child: Text(
-                                                    subheadingotherscemeasset,
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Colors.blue,
-                                                        fontSize: 20),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      subheadingvillage == null
+                                          ? const SizedBox()
+                                          : Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10, right: 10),
+                                        child: Align(
+                                          alignment:
+                                          Alignment.centerLeft,
+                                          child: Text(
+                                            subheadingvillage
+                                                .toString(),
+                                            style: const TextStyle(
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                color: Colors.blue,
+                                                fontSize: 16),
+                                          ),
+                                        ),
+                                      ),
+                                      villagenotcertifiedlist!.length == 0
+                                          ? const SizedBox()
+                                          : Padding(
+                                        padding:
+                                        const EdgeInsets.all(5),
+                                        child: GridView.builder(
+                                          physics:
+                                          const NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            mainAxisSpacing: 5.0,
+                                            crossAxisSpacing: 5.0,
+                                            childAspectRatio:
+                                            (340.0 / 220.0),
+                                          ),
+                                          itemCount:
+                                          villagenotcertifiedlist!
+                                              .length,
+                                          itemBuilder:
+                                              (context, index) {
+                                            return Container(
+                                              margin:
+                                              const EdgeInsets.all(
+                                                  0),
+                                              decoration: BoxDecoration(
+                                                color: Appcolor.white,
+                                                border: Border.all(
+                                                  color: Appcolor.white,
+                                                  width: 1,
+                                                ),
+                                                borderRadius:
+                                                const BorderRadius
+                                                    .all(
+                                                  Radius.circular(
+                                                    10.0,
                                                   ),
                                                 ),
                                               ),
-                                        subResult_utherassetslist!.length ==
-                                                null
-                                            ? const SizedBox()
-                                            : Padding(
-                                                padding:
-                                                    const EdgeInsets.all(5),
-                                                child: GridView.builder(
-                                                  physics:
-                                                      const NeverScrollableScrollPhysics(),
-                                                  shrinkWrap: true,
-                                                  gridDelegate:
-                                                      const SliverGridDelegateWithFixedCrossAxisCount(
-                                                    crossAxisCount: 2,
-                                                    childAspectRatio:
-                                                        (320.0 / 220.0),
-                                                    mainAxisSpacing: 3.0,
-                                                    crossAxisSpacing: 3.0,
-                                                  ),
-                                                  itemCount:
-                                                      subResult_utherassetslist!
-                                                          .length,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    return Container(
-                                                      margin:
-                                                          const EdgeInsets.all(
-                                                              0),
-                                                      decoration: BoxDecoration(
-                                                        color: Appcolor.white,
-                                                        border: Border.all(
-                                                          color: Appcolor.white,
-                                                          width: 1,
-                                                        ),
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .all(
-                                                          Radius.circular(
-                                                            10.0,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      child: Material(
-                                                        elevation: 2.0,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10.0),
-                                                        child: InkWell(
-                                                          splashColor: Appcolor
-                                                              .splashcolor,
-                                                          customBorder:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        10.0),
-                                                          ),
-                                                          onTap: () {},
-                                                          child: Row(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .start,
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .start,
-                                                                children: [
-                                                                  Padding(
-                                                                    padding:
-                                                                        const EdgeInsets
-                                                                            .all(
-                                                                            8.0),
-                                                                    child: Text(
-                                                                      subResult_utherassetslist![
-                                                                              index]
-                                                                          .lableValue
-                                                                          .toString(),
-                                                                      style: const TextStyle(
-                                                                          fontWeight: FontWeight
-                                                                              .w500,
-                                                                          fontSize:
-                                                                              20),
-                                                                    ),
-                                                                  ),
-                                                                  Padding(
-                                                                    padding:
-                                                                        const EdgeInsets
-                                                                            .all(
-                                                                            2.0),
-                                                                    child:
-                                                                        SizedBox(
-                                                                      width:
-                                                                          110,
-                                                                      child:
-                                                                          Text(
-                                                                        maxLines:
-                                                                            3,
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        softWrap:
-                                                                            true,
-                                                                        subResult_utherassetslist![index]
-                                                                            .lableText
-                                                                            .toString(),
-                                                                        style: const TextStyle(
-                                                                            fontSize:
-                                                                                15,
-                                                                            fontWeight:
-                                                                                FontWeight.w500),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              SizedBox(
-                                                                width: 45,
-                                                                height: 80,
-                                                                child: Center(
-                                                                  child: CachedNetworkImage(
-                                                                      cacheManager:
-                                                                          customCacheManager,
-                                                                      key:
-                                                                          UniqueKey(),
-                                                                      imageUrl: subResult_utherassetslist![
-                                                                              index]
-                                                                          .icon
-                                                                          .toString(),
-                                                                      fit: BoxFit
-                                                                          .fill,
-                                                                      progressIndicatorBuilder: (context, url, downloadProgress) => Transform.scale(
-                                                                          scale:
-                                                                              .4,
-                                                                          child: CircularProgressIndicator(
-                                                                              value: downloadProgress
-                                                                                  .progress)),
-                                                                      errorWidget: (context,
-                                                                              url,
-                                                                              error) =>
-                                                                          const Icon(
-                                                                              Icons.image)),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                        const SizedBox(
-                                          height: 5,
-                                        ),
-                                        const SizedBox(
-                                          height: 12,
-                                        ),
-                                        villagenotcertified == null
-                                            ? const SizedBox()
-                                            : Container(
-                                                margin: const EdgeInsets.all(5),
-                                                height: 45,
-                                                width: double.infinity,
-                                                padding:
-                                                    const EdgeInsets.all(5.0),
-                                                decoration: BoxDecoration(
-                                                    color:
-                                                        const Color(0xFF0B2E7C),
+                                              child: Material(
+                                                elevation: 2.0,
+                                                borderRadius:
+                                                BorderRadius
+                                                    .circular(10.0),
+                                                child: InkWell(
+                                                  splashColor: Appcolor
+                                                      .splashcolor,
+                                                  customBorder:
+                                                  RoundedRectangleBorder(
                                                     borderRadius:
-                                                        BorderRadius.circular(
-                                                            8)),
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Align(
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      child: Text(
-                                                        villagenotcertified,
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            fontSize: 16,
-                                                            color:
-                                                                Colors.white),
-                                                      )),
+                                                    BorderRadius
+                                                        .circular(
+                                                        10.0),
+                                                  ),
+                                                  onTap: () {},
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment
+                                                        .start,
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      Column(
+                                                        crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                        mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .start,
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                            const EdgeInsets
+                                                                .all(
+                                                                8.0),
+                                                            child: Text(
+                                                              villagenotcertifiedlist![
+                                                              index]
+                                                                  .lableValue
+                                                                  .toString(),
+                                                              style: const TextStyle(
+                                                                  fontWeight: FontWeight
+                                                                      .w500,
+                                                                  fontSize:
+                                                                  16),
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 92,
+                                                            child:
+                                                            Padding(
+                                                              padding: const EdgeInsets
+                                                                  .all(
+                                                                  8.0),
+                                                              child:
+                                                              Text(
+                                                                villagenotcertifiedlist![index]
+                                                                    .lableText
+                                                                    .toString(),
+                                                                maxLines:
+                                                                4,
+                                                                overflow:
+                                                                TextOverflow.ellipsis,
+                                                                softWrap:
+                                                                true,
+                                                                style: const TextStyle(
+                                                                    fontSize:
+                                                                    10,
+                                                                    fontWeight:
+                                                                    FontWeight.w500),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        width: 50,
+                                                        height: 90,
+                                                        child: Center(
+                                                          child: villagenotcertifiedlist![index]
+                                                              .icon
+                                                              .toString() ==
+                                                              null
+                                                              ? const SizedBox()
+                                                              : CachedNetworkImage(
+                                                              cacheManager:
+                                                              customCacheManager,
+                                                              key:
+                                                              UniqueKey(),
+                                                              imageUrl: villagenotcertifiedlist![index]
+                                                                  .icon
+                                                                  .toString(),
+                                                              fit: BoxFit
+                                                                  .fill,
+                                                              progressIndicatorBuilder: (context, url, downloadProgress) => Transform.scale(
+                                                                  scale: .4,
+                                                                  child: CircularProgressIndicator(value: downloadProgress.progress)),
+                                                              errorWidget: (context, url, error) => const Icon(Icons.image)),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
-                                        const SizedBox(
-                                          height: 10,
+                                            );
+                                          },
                                         ),
-                                        downloadsampleone == null
-                                            ? const SizedBox()
-                                            : Container(
-                                                margin: const EdgeInsets.all(5),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      subHeading_desingtion == null
+                                          ? const SizedBox()
+                                          : Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 10, right: 10),
+                                        child: Align(
+                                          alignment:
+                                          Alignment.centerLeft,
+                                          child: Text(
+                                            subHeading_desingtion
+                                                .toString(),
+                                            style: const TextStyle(
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                color: Colors.blue,
+                                                fontSize: 16),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      ListView.builder(
+                                          itemCount:
+                                          subresultdesinationlist!.length,
+                                          shrinkWrap: true,
+                                          physics:
+                                          const NeverScrollableScrollPhysics(),
+                                          itemBuilder: (context, int index) {
+                                            return GestureDetector(
+                                              onTap: () {},
+                                              child: Container(
+                                                margin: const EdgeInsets.only(
+                                                    bottom: 10,
+                                                    left: 5,
+                                                    right: 5),
                                                 height: 55,
                                                 width: double.infinity,
                                                 alignment: Alignment.center,
                                                 decoration: BoxDecoration(
                                                     color: Colors.white,
                                                     borderRadius:
-                                                        BorderRadius.circular(
-                                                            10)),
+                                                    BorderRadius.circular(
+                                                        10)),
                                                 child: TextButton(
                                                   onPressed: () {},
                                                   child: Row(
                                                     mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
+                                                    MainAxisAlignment
+                                                        .start,
                                                     children: [
                                                       CircleAvatar(
-                                                        radius: 20,
+                                                        backgroundColor:
+                                                        const Color(
+                                                            0xFF0D3A98),
+                                                        minRadius: 20,
+                                                        maxRadius: 20,
                                                         child: IconButton(
-                                                          color: Colors.orange,
+                                                          color: Colors.white,
                                                           onPressed: () {},
                                                           icon: const Icon(
-                                                            Icons
-                                                                .download_rounded,
+                                                            Icons.add,
                                                             size: 20,
                                                           ),
                                                         ),
                                                       ),
                                                       const SizedBox(
-                                                        width: 5,
+                                                        width: 10,
                                                       ),
-                                                      downloadsampleone == null
-                                                          ? const SizedBox()
-                                                          : SizedBox(
-                                                              width: 200,
-                                                              child: Text(
-                                                                downloadsampleone
-                                                                    .toString(),
-                                                                maxLines: 3,
-                                                                style:
-                                                                    const TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                  color: Colors
-                                                                      .black,
-                                                                  fontSize:
-                                                                      14.0,
-                                                                ),
-                                                              ),
-                                                            ),
+                                                      Text(
+                                                        subresultdesinationlist![
+                                                        index]
+                                                            .lableText
+                                                            .toString(),
+                                                        style:
+                                                        const TextStyle(
+                                                          fontWeight:
+                                                          FontWeight.w500,
+                                                          color: Colors.black,
+                                                          fontSize: 15.0,
+                                                        ),
+                                                      ),
                                                     ],
                                                   ),
                                                 ),
                                               ),
-                                        const SizedBox(
-                                          height: 5,
-                                        ),
-                                        downloadsmapletwo == null
-                                            ? const SizedBox()
-                                            : GestureDetector(
-                                                onTap: () {},
-                                                child: Container(
-                                                  margin: const EdgeInsets.only(
-                                                      left: 5,
-                                                      top: 5,
-                                                      bottom: 5,
-                                                      right: 5),
-                                                  height: 55,
-                                                  width: double.infinity,
-                                                  alignment: Alignment.center,
-                                                  decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10)),
-                                                  child: TextButton(
-                                                    onPressed: () {},
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .start,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        CircleAvatar(
-                                                          radius: 20,
-                                                          child: IconButton(
-                                                            color:
-                                                                Colors.orange,
-                                                            onPressed: () {},
-                                                            icon: const Icon(
-                                                              Icons
-                                                                  .download_rounded,
-                                                              size: 20,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 5,
-                                                        ),
-                                                        SizedBox(
-                                                          width: 200,
-                                                          child: Text(
-                                                            downloadsmapletwo
-                                                                .toString(),
-                                                            maxLines: 3,
-                                                            style:
-                                                                const TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                              color:
-                                                                  Colors.black,
-                                                              fontSize: 14.0,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        subheadingvillage == null
-                                            ? const SizedBox()
-                                            : Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 10, right: 10),
-                                                child: Align(
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                  child: Text(
-                                                    subheadingvillage
-                                                        .toString(),
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Colors.blue,
-                                                        fontSize: 16),
-                                                  ),
-                                                ),
-                                              ),
-                                        villagenotcertifiedlist!.length == 0
-                                            ? const SizedBox()
-                                            : Padding(
-                                                padding:
-                                                    const EdgeInsets.all(5),
-                                                child: GridView.builder(
-                                                  physics:
-                                                      const NeverScrollableScrollPhysics(),
-                                                  shrinkWrap: true,
-                                                  gridDelegate:
-                                                      const SliverGridDelegateWithFixedCrossAxisCount(
-                                                    crossAxisCount: 2,
-                                                    mainAxisSpacing: 5.0,
-                                                    crossAxisSpacing: 5.0,
-                                                    childAspectRatio:
-                                                        (340.0 / 220.0),
-                                                  ),
-                                                  itemCount:
-                                                      villagenotcertifiedlist!
-                                                          .length,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    return Container(
-                                                      margin:
-                                                          const EdgeInsets.all(
-                                                              0),
-                                                      decoration: BoxDecoration(
-                                                        color: Appcolor.white,
-                                                        border: Border.all(
-                                                          color: Appcolor.white,
-                                                          width: 1,
-                                                        ),
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .all(
-                                                          Radius.circular(
-                                                            10.0,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      child: Material(
-                                                        elevation: 2.0,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10.0),
-                                                        child: InkWell(
-                                                          splashColor: Appcolor
-                                                              .splashcolor,
-                                                          customBorder:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        10.0),
-                                                          ),
-                                                          onTap: () {},
-                                                          child: Row(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .spaceBetween,
-                                                            children: [
-                                                              Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .start,
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .start,
-                                                                children: [
-                                                                  Padding(
-                                                                    padding:
-                                                                        const EdgeInsets
-                                                                            .all(
-                                                                            8.0),
-                                                                    child: Text(
-                                                                      villagenotcertifiedlist![
-                                                                              index]
-                                                                          .lableValue
-                                                                          .toString(),
-                                                                      style: const TextStyle(
-                                                                          fontWeight: FontWeight
-                                                                              .w500,
-                                                                          fontSize:
-                                                                              16),
-                                                                    ),
-                                                                  ),
-                                                                  SizedBox(
-                                                                    width: 92,
-                                                                    child:
-                                                                        Padding(
-                                                                      padding: const EdgeInsets
-                                                                          .all(
-                                                                          8.0),
-                                                                      child:
-                                                                          Text(
-                                                                        villagenotcertifiedlist![index]
-                                                                            .lableText
-                                                                            .toString(),
-                                                                        maxLines:
-                                                                            4,
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        softWrap:
-                                                                            true,
-                                                                        style: const TextStyle(
-                                                                            fontSize:
-                                                                                10,
-                                                                            fontWeight:
-                                                                                FontWeight.w500),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              SizedBox(
-                                                                width: 50,
-                                                                height: 90,
-                                                                child: Center(
-                                                                  child: villagenotcertifiedlist![index]
-                                                                              .icon
-                                                                              .toString() ==
-                                                                          null
-                                                                      ? const SizedBox()
-                                                                      : CachedNetworkImage(
-                                                                          cacheManager:
-                                                                              customCacheManager,
-                                                                          key:
-                                                                              UniqueKey(),
-                                                                          imageUrl: villagenotcertifiedlist![index]
-                                                                              .icon
-                                                                              .toString(),
-                                                                          fit: BoxFit
-                                                                              .fill,
-                                                                          progressIndicatorBuilder: (context, url, downloadProgress) => Transform.scale(
-                                                                              scale: .4,
-                                                                              child: CircularProgressIndicator(value: downloadProgress.progress)),
-                                                                          errorWidget: (context, url, error) => const Icon(Icons.image)),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        subHeading_desingtion == null
-                                            ? const SizedBox()
-                                            : Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 10, right: 10),
-                                                child: Align(
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                  child: Text(
-                                                    subHeading_desingtion
-                                                        .toString(),
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Colors.blue,
-                                                        fontSize: 16),
-                                                  ),
-                                                ),
-                                              ),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        ListView.builder(
-                                            itemCount:
-                                                subresultdesinationlist!.length,
-                                            shrinkWrap: true,
-                                            physics:
-                                                const NeverScrollableScrollPhysics(),
-                                            itemBuilder: (context, int index) {
-                                              return GestureDetector(
-                                                onTap: () {},
-                                                child: Container(
-                                                  margin: const EdgeInsets.only(
-                                                      bottom: 10,
-                                                      left: 5,
-                                                      right: 5),
-                                                  height: 55,
-                                                  width: double.infinity,
-                                                  alignment: Alignment.center,
-                                                  decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10)),
-                                                  child: TextButton(
-                                                    onPressed: () {},
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        CircleAvatar(
-                                                          backgroundColor:
-                                                              const Color(
-                                                                  0xFF0D3A98),
-                                                          minRadius: 20,
-                                                          maxRadius: 20,
-                                                          child: IconButton(
-                                                            color: Colors.white,
-                                                            onPressed: () {},
-                                                            icon: const Icon(
-                                                              Icons.add,
-                                                              size: 20,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 10,
-                                                        ),
-                                                        Text(
-                                                          subresultdesinationlist![
-                                                                  index]
-                                                              .lableText
-                                                              .toString(),
-                                                          style:
-                                                              const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            color: Colors.black,
-                                                            fontSize: 15.0,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            })
-                                      ]),
-                                    ),
+                                            );
+                                          })
+                                    ]),
                                   ),
+                                ),
 
 
 
 
-                                ]),
-                          ],
-                        )),
+                              ]),
+                        ],
+                      )),
                 ),
 
                 Positioned(
@@ -3980,9 +3901,9 @@ setState(()  {
                           backgroundColor: Appcolor.btncolor,
                           child: floatingloader == true
                               ? SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: Image.asset("images/loading.gif"))
+                              height: 20,
+                              width: 20,
+                              child: Image.asset("images/loading.gif"))
                               : const Icon(Icons.refresh, color: Colors.white),
                           onPressed: () async {
                             if (!_isButtonDisabled) {
@@ -3998,7 +3919,7 @@ setState(()  {
                               });
                               try {
                                 final result =
-                                    await InternetAddress.lookup('example.com');
+                                await InternetAddress.lookup('example.com');
                                 if (result.isNotEmpty &&
                                     result[0].rawAddress.isNotEmpty) {
                                   cleartable_localmastertables();
@@ -4010,16 +3931,16 @@ setState(()  {
                                       .then((value) {
                                     databaseHelperJalJeevan!
                                         .insertMasterapidatetime(
-                                            Localmasterdatetime(
-                                                UserId: box
-                                                    .read("userid")
-                                                    .toString(),
-                                                API_DateTime: value.API_DateTime
-                                                    .toString()));
+                                        Localmasterdatetime(
+                                            UserId: box
+                                                .read("userid")
+                                                .toString(),
+                                            API_DateTime: value.API_DateTime
+                                                .toString()));
 
                                     for (int i = 0;
-                                        i < value.villagelist!.length;
-                                        i++) {
+                                    i < value.villagelist!.length;
+                                    i++) {
                                       var userid = value.villagelist![i]!.userId;
 
                                       var villageId =
@@ -4031,21 +3952,21 @@ setState(()  {
 
                                       databaseHelperJalJeevan
                                           ?.insertMastervillagelistdata(
-                                              Localmasterdatanodal(
-                                                  UserId: userid.toString(),
-                                                  villageId:
-                                                      villageId.toString(),
-                                                  StateId: stateId.toString(),
-                                                  villageName:
-                                                      villageName.toString()))
+                                          Localmasterdatanodal(
+                                              UserId: userid.toString(),
+                                              villageId:
+                                              villageId.toString(),
+                                              StateId: stateId.toString(),
+                                              villageName:
+                                              villageName.toString()))
                                           .then((value) {});
                                     }
                                     databaseHelperJalJeevan!
                                         .removeDuplicateEntries();
 
                                     for (int i = 0;
-                                        i < value.villageDetails!.length;
-                                        i++) {
+                                    i < value.villageDetails!.length;
+                                    i++) {
                                       var stateName = "Assam";
 
                                       var districtName =
@@ -4101,55 +4022,55 @@ setState(()  {
 
                                       databaseHelperJalJeevan
                                           ?.insertMastervillagedetails(
-                                              Localmasterdatamodal_VillageDetails(
-                                        status: "0",
-                                        stateName: stateName,
-                                        districtName: districtName,
-                                        blockName: blockName,
-                                        panchayatName: panchayatName,
-                                        stateId: stateidnew.toString(),
-                                        userId: userId.toString(),
-                                        villageId: villageIddetails.toString(),
-                                        villageName: villageName,
-                                        totalNoOfScheme:
+                                          Localmasterdatamodal_VillageDetails(
+                                            status: "0",
+                                            stateName: stateName,
+                                            districtName: districtName,
+                                            blockName: blockName,
+                                            panchayatName: panchayatName,
+                                            stateId: stateidnew.toString(),
+                                            userId: userId.toString(),
+                                            villageId: villageIddetails.toString(),
+                                            villageName: villageName,
+                                            totalNoOfScheme:
                                             totalNoOfScheme.toString(),
-                                        totalNoOfWaterSource:
+                                            totalNoOfWaterSource:
                                             totalNoOfWaterSource.toString(),
-                                        totalWsGeoTagged:
+                                            totalWsGeoTagged:
                                             totalWsGeoTagged.toString(),
-                                        pendingWsTotal:
+                                            pendingWsTotal:
                                             pendingWsTotal.toString(),
-                                        balanceWsTotal:
+                                            balanceWsTotal:
                                             balanceWsTotal.toString(),
-                                        totalSsGeoTagged:
+                                            totalSsGeoTagged:
                                             totalSsGeoTagged.toString(),
-                                        pendingApprovalSsTotal:
+                                            pendingApprovalSsTotal:
                                             pendingApprovalSsTotal.toString(),
-                                        totalIbRequiredGeoTagged:
+                                            totalIbRequiredGeoTagged:
                                             totalIbRequiredGeoTagged.toString(),
-                                        totalIbGeoTagged:
+                                            totalIbGeoTagged:
                                             totalIbGeoTagged.toString(),
-                                        pendingIbTotal:
+                                            pendingIbTotal:
                                             pendingIbTotal.toString(),
-                                        balanceIbTotal:
+                                            balanceIbTotal:
                                             balanceIbTotal.toString(),
-                                        totalOaGeoTagged:
+                                            totalOaGeoTagged:
                                             totalOaGeoTagged.toString(),
-                                        balanceOaTotal:
+                                            balanceOaTotal:
                                             balanceOaTotal.toString(),
-                                        totalNoOfSchoolScheme:
+                                            totalNoOfSchoolScheme:
                                             totalNoOfSchoolScheme.toString(),
-                                        totalNoOfPwsScheme:
+                                            totalNoOfPwsScheme:
                                             totalNoOfPwsScheme.toString(),
-                                      ));
+                                          ));
                                     }
 
                                     for (int i = 0;
-                                        i < value.schmelist!.length;
-                                        i++) {
+                                    i < value.schmelist!.length;
+                                    i++) {
                                       var source_type =
                                           value.schmelist![i]!.source_type;
-                                    var schemeidnew =
+                                      var schemeidnew =
                                           value.schmelist![i]!.schemeid;
                                       var villageid =
                                           value.schmelist![i]!.villageId;
@@ -4161,84 +4082,59 @@ setState(()  {
                                       var source_typeCategory = value.schmelist![i]!.source_typeCategory;
                                       databaseHelperJalJeevan
                                           ?.insertMasterSchmelist(
-                                              Localmasterdatamoda_Scheme(
-                                                source_type: source_type.toString(),
-                                        schemeid: schemeidnew.toString(),
-                                        villageId: villageid.toString(),
-                                        schemename: schemenamenew.toString(),
-                                         category: schemenacategorynew.toString(),
-                                                SourceTypeCategoryId: SourceTypeCategoryId.toString(),
-                                                source_typeCategory: source_typeCategory.toString(),
+                                          Localmasterdatamoda_Scheme(
+                                            source_type: source_type.toString(),
+                                            schemeid: schemeidnew.toString(),
+                                            villageId: villageid.toString(),
+                                            schemename: schemenamenew.toString(),
+                                            category: schemenacategorynew.toString(),
+                                            SourceTypeCategoryId: SourceTypeCategoryId.toString(),
+                                            source_typeCategory: source_typeCategory.toString(),
 
 
 
-                                      ));
+                                          ));
                                     }
 
-                                    for (int i = 0;
-                                        i < value.sourcelist!.length;
-                                        i++) {
-                                      var sourceId =
-                                          value.sourcelist![i]!.sourceId;
-                                      var SchemeId =
-                                          value.sourcelist![i]!.schemeId;
+                                    for (int i = 0; i < value.sourcelist!.length; i++) {
+                                      var sourceId = value.sourcelist![i]!.sourceId;
+                                      var SchemeId = value.sourcelist![i]!.schemeId;
                                       var stateid = value.sourcelist![i]!.stateid;
-                                      var Schemename =
-                                          value.sourcelist![i]!.schemeName;
-                                      var villageid =
-                                          value.sourcelist![i]!.villageId;
-                                      var sourceTypeId =
-                                          value.sourcelist![i]!.sourceTypeId;
-                                      var statename =
-                                          value.sourcelist![i]!.stateName;
-                                      var sourceTypeCategoryId = value
-                                          .sourcelist![i]!.sourceTypeCategoryId;
-                                      var habitationId =
-                                          value.sourcelist![i]!.habitationId;
-                                      var villageName =
-                                          value.sourcelist![i]!.villageName;
-                                      var existTagWaterSourceId = value
-                                          .sourcelist![i]!.existTagWaterSourceId;
-                                      var isApprovedState =
-                                          value.sourcelist![i]!.isApprovedState;
-                                      var landmark =
-                                          value.sourcelist![i]!.landmark;
-                                      var latitude =
-                                          value.sourcelist![i]!.latitude;
-                                      var longitude =
-                                          value.sourcelist![i]!.longitude;
-                                      var habitationName =
-                                          value.sourcelist![i]!.habitationName;
-                                      var location =
-                                          value.sourcelist![i]!.location;
-                                      var sourceTypeCategory = value
-                                          .sourcelist![i]!.sourceTypeCategory;
-                                      var sourceType =
-                                          value.sourcelist![i]!.sourceType;
-                                      var districtName =
-                                          value.sourcelist![i]!.districtName;
-                                      var districtId =
-                                          value.sourcelist![i]!.districtId;
-                                      var panchayatNamenew =
-                                          value.sourcelist![i]!.panchayatName;
-                                      var blocknamenew =
-                                          value.sourcelist![i]!.blockName;
+                                      var Schemename = value.sourcelist![i]!.schemeName;
+                                      var villageid = value.sourcelist![i]!.villageId;
+                                      var sourceTypeId = value.sourcelist![i]!.sourceTypeId;
+                                      var statename = value.sourcelist![i]!.stateName;
+                                      var sourceTypeCategoryId =
+                                          value.sourcelist![i]!.sourceTypeCategoryId;
+                                      var habitationId = value.sourcelist![i]!.habitationId;
+                                      var villageName = value.sourcelist![i]!.villageName;
+                                      var existTagWaterSourceId =
+                                          value.sourcelist![i]!.existTagWaterSourceId;
+                                      var isApprovedState = value.sourcelist![i]!.isApprovedState;
+                                      var landmark = value.sourcelist![i]!.landmark;
+                                      var latitude = value.sourcelist![i]!.latitude;
+                                      var longitude = value.sourcelist![i]!.longitude;
+                                      var habitationName = value.sourcelist![i]!.habitationName;
+                                      var location = value.sourcelist![i]!.location;
+                                      var sourceTypeCategory =
+                                          value.sourcelist![i]!.sourceTypeCategory;
+                                      var sourceType = value.sourcelist![i]!.sourceType;
+                                      var districtName = value.sourcelist![i]!.districtName;
+                                      var districtId = value.sourcelist![i]!.districtId;
+                                      var panchayatNamenew = value.sourcelist![i]!.panchayatName;
+                                      var blocknamenew = value.sourcelist![i]!.blockName;
+                                      var IsWTP = value.sourcelist![i]!.IsWTP;
 
-                                      databaseHelperJalJeevan
-                                          ?.insertMasterSourcedetails(
-                                              LocalSourcelistdetailsModal(
+                                      databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
                                         schemeId: SchemeId.toString(),
                                         sourceId: sourceId.toString(),
                                         villageId: villageid.toString(),
                                         schemeName: Schemename,
                                         sourceTypeId: sourceTypeId.toString(),
-                                        sourceTypeCategoryId:
-                                            sourceTypeCategoryId.toString(),
+                                        sourceTypeCategoryId: sourceTypeCategoryId.toString(),
                                         habitationId: habitationId.toString(),
-                                        existTagWaterSourceId:
-                                            existTagWaterSourceId.toString(),
-                                        isApprovedState:
-                                            isApprovedState.toString(),
+                                        existTagWaterSourceId: existTagWaterSourceId.toString(),
+                                        isApprovedState: isApprovedState.toString(),
                                         landmark: landmark,
                                         latitude: latitude.toString(),
                                         longitude: longitude.toString(),
@@ -4253,12 +4149,14 @@ setState(()  {
                                         districtId: districtId.toString(),
                                         villageName: villageName,
                                         stateId: stateid.toString(),
+                                        IsWTP: IsWTP.toString(),
+
                                       ));
                                     }
 
                                     for (int i = 0;
-                                        i < value.habitationlist!.length;
-                                        i++) {
+                                    i < value.habitationlist!.length;
+                                    i++) {
                                       var villafgeid =
                                           value.habitationlist![i]!.villageId;
                                       var habitationId =
@@ -4268,17 +4166,17 @@ setState(()  {
 
                                       databaseHelperJalJeevan
                                           ?.insertMasterhabitaionlist(
-                                              LocalHabitaionlistModal(
-                                                  villageId:
-                                                      villafgeid.toString(),
-                                                  HabitationId:
-                                                      habitationId.toString(),
-                                                  HabitationName: habitationName
-                                                      .toString()));
+                                          LocalHabitaionlistModal(
+                                              villageId:
+                                              villafgeid.toString(),
+                                              HabitationId:
+                                              habitationId.toString(),
+                                              HabitationName: habitationName
+                                                  .toString()));
                                     }
                                     for (int i = 0;
-                                        i < value.informationBoardList!.length;
-                                        i++) {
+                                    i < value.informationBoardList!.length;
+                                    i++) {
                                       databaseHelperJalJeevan?.insertmastersibdetails(LocalmasterInformationBoardItemModal(
                                           userId: value.informationBoardList![i]!.userId
                                               .toString(),
@@ -4336,9 +4234,9 @@ setState(()  {
 
   Future<bool> showExitPopup() async {
     return await showDialog(
-          context: context,
-          builder: (context) => Container(
-              child: AlertDialog(
+      context: context,
+      builder: (context) => Container(
+          child: AlertDialog(
             backgroundColor: Appcolor.white,
             titlePadding: const EdgeInsets.only(top: 0, left: 0, right: 00),
             buttonPadding: const EdgeInsets.all(10),
@@ -4432,7 +4330,7 @@ setState(()  {
               ),
             ],
           )),
-        ) ??
+    ) ??
         false;
   }
 
@@ -4564,25 +4462,28 @@ setState(()  {
         var villageid = value.sourcelist![i]!.villageId;
         var sourceTypeId = value.sourcelist![i]!.sourceTypeId;
         var statename = value.sourcelist![i]!.stateName;
-        var sourceTypeCategoryId = value.sourcelist![i]!.sourceTypeCategoryId;
+        var sourceTypeCategoryId =
+            value.sourcelist![i]!.sourceTypeCategoryId;
         var habitationId = value.sourcelist![i]!.habitationId;
         var villageName = value.sourcelist![i]!.villageName;
-        var existTagWaterSourceId = value.sourcelist![i]!.existTagWaterSourceId;
+        var existTagWaterSourceId =
+            value.sourcelist![i]!.existTagWaterSourceId;
         var isApprovedState = value.sourcelist![i]!.isApprovedState;
         var landmark = value.sourcelist![i]!.landmark;
         var latitude = value.sourcelist![i]!.latitude;
         var longitude = value.sourcelist![i]!.longitude;
         var habitationName = value.sourcelist![i]!.habitationName;
         var location = value.sourcelist![i]!.location;
-        var sourceTypeCategory = value.sourcelist![i]!.sourceTypeCategory;
+        var sourceTypeCategory =
+            value.sourcelist![i]!.sourceTypeCategory;
         var sourceType = value.sourcelist![i]!.sourceType;
         var districtName = value.sourcelist![i]!.districtName;
         var districtId = value.sourcelist![i]!.districtId;
         var panchayatNamenew = value.sourcelist![i]!.panchayatName;
         var blocknamenew = value.sourcelist![i]!.blockName;
+        var IsWTP = value.sourcelist![i]!.IsWTP;
 
-        databaseHelperJalJeevan
-            ?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
+        databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
           schemeId: SchemeId.toString(),
           sourceId: sourceId.toString(),
           villageId: villageid.toString(),
@@ -4606,6 +4507,8 @@ setState(()  {
           districtId: districtId.toString(),
           villageName: villageName,
           stateId: stateid.toString(),
+          IsWTP: IsWTP.toString(),
+
         ));
       }
 
@@ -4648,7 +4551,7 @@ setState(()  {
     successfulUploadCountSIB = 0;
     try {
       final List<LocalSIBsavemodal>? localDataList =
-          await databaseHelperJalJeevan?.getallofflineentriessib();
+      await databaseHelperJalJeevan?.getallofflineentriessib();
       if (localDataList!.isEmpty) {
         return;
       }
@@ -4715,7 +4618,7 @@ setState(()  {
     uploadFunctionCalled = true;
     try {
       final List<LocalStoragestructureofflinesavemodal>? localDataList =
-          await databaseHelperJalJeevan?.getallofflineentriesstoragestructure();
+      await databaseHelperJalJeevan?.getallofflineentriesstoragestructure();
       if (localDataList!.isEmpty) {
         return;
       }
@@ -4772,7 +4675,7 @@ setState(()  {
         setState(() {
           totalstoragestructureofflineentreies =
               (int.parse(totalstoragestructureofflineentreies) -
-                      successfulUploadCountSS)
+                  successfulUploadCountSS)
                   .toString();
         });
       }
@@ -4787,7 +4690,7 @@ setState(()  {
     successfulUploadCountOT = 0;
     try {
       final List<LocalOtherassetsofflinesavemodal>? localDataList =
-          await databaseHelperJalJeevan?.getallofflineentriesotherassets();
+      await databaseHelperJalJeevan?.getallofflineentriesotherassets();
       if (localDataList!.isEmpty) {
         return;
       }
@@ -4808,8 +4711,12 @@ setState(()  {
             localData.longitude,
             localData.accuracy,
             localData.photo,
-            localData.Selectassetsothercategory);
-            //localData.capturePointTypeId);
+            localData.Selectassetsothercategory,
+            localData.WTP_capacity,
+            localData.WTP_selectedSourceIds,
+            localData.WTPTypeId
+        );
+        //localData.capturePointTypeId);
 
         if (response["Status"].toString() == "true") {
           setState(() {
@@ -4841,7 +4748,7 @@ setState(()  {
         setState(() {
           totalotherassetsofflineentreies =
               (int.parse(totalotherassetsofflineentreies) -
-                      successfulUploadCountOT)
+                  successfulUploadCountOT)
                   .toString();
         });
       }
@@ -4856,7 +4763,7 @@ setState(()  {
     try {
 
       final List<LocalPWSSavedData>? localDataList =
-          await databaseHelperJalJeevan?.getAllLocalPWSSavedData();
+      await databaseHelperJalJeevan?.getAllLocalPWSSavedData();
       if (localDataList!.isEmpty) {
         return;
       }

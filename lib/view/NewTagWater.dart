@@ -4344,6 +4344,9 @@ class _NewTagWaterState extends State<NewTagWater> {
                                               Stylefile.showmessageforvalidationfalse(context, "Capacity must be greater than zero");
                                             } else if (Othersmain == "3" && !isAnyCheckboxChecked())  {
                                               Stylefile.showmessageforvalidationfalse(context, "Please select atleast one source");
+                                            }if (Othersmain == "3" && (WTPTypeId == null || WTPTypeId.isEmpty)) {
+                                              Stylefile.showmessageforvalidationfalse(context, "Please select WTP type");
+                                              return;
                                             }
 
 
@@ -4650,6 +4653,9 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                               }
                                                               else if (Othersmain == "3" && !isAnyCheckboxChecked())  {
                                                                 Stylefile.showmessageforvalidationfalse(context, "Please select atleast one source");
+                                                              }if (Othersmain == "3" && (WTPTypeId == null || WTPTypeId.isEmpty)) {
+                                                                Stylefile.showmessageforvalidationfalse(context, "Please select WTP type");
+                                                                return;
                                                               }
 
 

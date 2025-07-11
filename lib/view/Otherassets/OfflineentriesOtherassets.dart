@@ -66,7 +66,7 @@ class _PWSPendingapprovalState extends State<OfflineentriesOtherassets> {
   bool _loading = false;
   bool offflinevisibility = false;
   bool onlinevisibility = true;
-
+  bool _isUploading = false;
   List<LocalOtherassetsofflinesavemodal> localotherassetsofflinelist = [];
 
   late LocalOtherassetsofflinesavemodal localOtherassetsofflinesavemodal;
@@ -232,25 +232,21 @@ class _PWSPendingapprovalState extends State<OfflineentriesOtherassets> {
                                                           color:
                                                               Appcolor.white),
                                                     ),
-                                                    onPressed: () async {
+                                                    onPressed: _isUploading
+                                                        ? null
+                                                        : () async {
+                                                      setState(() => _isUploading = true); // disable the button
                                                       try {
-                                                        final result =
-                                                            await InternetAddress
-                                                                .lookup(
-                                                                    'example.com');
-                                                        if (result.isNotEmpty &&
-                                                            result[0]
-                                                                .rawAddress
-                                                                .isNotEmpty) {
-                                                          uploadLocalDataAndClear_forotherassets(
-                                                              context,
-                                                              widget.villageid);
+                                                        final result = await InternetAddress.lookup('example.com');
+                                                        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+                                                          await uploadLocalDataAndClear_forotherassets(context, widget.villageid);
                                                         }
-                                                      } on SocketException catch (_) {
-                                                        Stylefile
-                                                            .showmessageforvalidationfalse(
-                                                                context,
-                                                                "Unable to Connect to the Internet. Please check your network settings.");
+                                                      } on SocketException {
+                                                        Stylefile.showmessageforvalidationfalse(
+                                                            context,
+                                                            "Unable to Connect to the Internet. Please check your network settings.");
+                                                      } finally {
+                                                        setState(() => _isUploading = false); // re-enable the button
                                                       }
                                                     },
                                                     icon: const Icon(
@@ -868,52 +864,47 @@ class _PWSPendingapprovalState extends State<OfflineentriesOtherassets> {
     );
   }
 
+  bool _isUploadingData = false;
+
   Future<void> uploadLocalDataAndClear_forotherassets(
       BuildContext context, String villageid) async {
+    if (_isUploadingData) return; // Prevent parallel upload
+    _isUploadingData = true;
+
     try {
-      final List<LocalOtherassetsofflinesavemodal>? localDataList =
-          await databaseHelperJalJeevan
-              ?.getallotherassetssave_villagewise(villageid);
-      if (localDataList!.isEmpty) {
-        return;
-      }
+      final localDataList = await databaseHelperJalJeevan
+          ?.getallotherassetssave_villagewise(villageid);
+      if (localDataList == null || localDataList.isEmpty) return;
 
       for (final localData in localDataList) {
         final response = await Apiservice.OtherassetSavetaggingapi(
-                context,
-                box.read("UserToken").toString(),
-                box.read("userid").toString(),
-                localData.villageId,
-                localData.stateId,
-                localData.schemeId,
-                localData.sourceId,
-                box.read("DivisionId").toString(),
-                localData.habitationId,
-                localData.landmark,
-                localData.latitude,
-                localData.longitude,
-                localData.accuracy,
-                localData.photo,
-               // localData.capturePointTypeId)
-                localData.Selectassetsothercategory,
-              localData.WTP_capacity,
-              localData.WTP_selectedSourceIds,
-          localData.WTPTypeId
-
-
-        )
-            .timeout(const Duration(seconds: 30));
-
-        print("responseother$response");
+          context,
+          box.read("UserToken").toString(),
+          box.read("userid").toString(),
+          localData.villageId,
+          localData.stateId,
+          localData.schemeId,
+          localData.sourceId,
+          box.read("DivisionId").toString(),
+          localData.habitationId,
+          localData.landmark,
+          localData.latitude,
+          localData.longitude,
+          localData.accuracy,
+          localData.photo,
+          localData.Selectassetsothercategory,
+          localData.WTP_capacity,
+          localData.WTP_selectedSourceIds,
+          localData.WTPTypeId,
+        ).timeout(const Duration(seconds: 30));
 
         if (response["Status"].toString() == "true") {
           successfulUploadCount++;
-          await databaseHelperJalJeevan?.truncateTableByVillageId_Ot(localData.schemeId);
+          await databaseHelperJalJeevan
+              ?.truncateTableByVillageId_Ot(localData.schemeId);
         } else {
           await databaseHelperJalJeevan?.updateStatusInpendinglistot(
-              localData.villageId,
-              localData.schemeId,
-              'This asset is already tagged');
+              localData.villageId, localData.schemeId, 'This asset is already tagged');
 
           Stylefile.showmessageforvalidationfalse(
               context, "This asset is already tagged");
@@ -921,17 +912,19 @@ class _PWSPendingapprovalState extends State<OfflineentriesOtherassets> {
       }
 
       if (successfulUploadCount > 0) {
-        Stylefile.showmessageforvalidationtrue(context,
-            "$successfulUploadCount record(s) has been uploaded successfully.");
+        Stylefile.showmessageforvalidationtrue(
+            context, "$successfulUploadCount record(s) uploaded.");
       }
-      cleartable_localmasterschemelisttable();
-    } catch (e) {
-      if (e is TimeoutException) {
-        Stylefile.showmessageforvalidationfalse(context,
-            "Connection timed out. Please check your internet connection.");
-      }
+
+      await cleartable_localmasterschemelisttable();
+    } on TimeoutException {
+      Stylefile.showmessageforvalidationfalse(
+          context, "Connection timed out. Please check your internet connection.");
+    } finally {
+      _isUploadingData = false;
     }
   }
+
 
   Future<void> cleartable_localmasterschemelisttable() async {
     await databaseHelperJalJeevan!.cleardb_localmasterschemelist();
@@ -942,7 +935,7 @@ class _PWSPendingapprovalState extends State<OfflineentriesOtherassets> {
     await databaseHelperJalJeevan!.truncatetable_sibmasterdeatils();
 
     // Fetch new data from API and update local database
-    await Apiservice.Getmasterapi(context).then((value) async {
+    Apiservice.Getmasterapi(context).then((value) async {
       // Update Village List
       for (int i = 0; i < value.villagelist!.length; i++) {
         var villageData = value.villagelist![i]!;

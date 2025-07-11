@@ -9,6 +9,7 @@ import '../database/DataBaseHelperJalJeevan.dart';
 import '../model/GetSourceCategoryModal.dart';
 import '../model/Getmasterdatamodal.dart';
 import '../model/Villagelistmodal.dart';
+import '../utility/ApiExceptionHandler.dart';
 import '../view/LoginScreen.dart';
 
 class Apiservice {
@@ -168,28 +169,36 @@ class Apiservice {
         print("📡 [RESPONSE] Status Code: ${response.statusCode}");
         print("📥 [RESPONSE] Body: ${response.body}");
 
-        if (response.statusCode == 200) {
-          Map<String, dynamic> mResposne = jsonDecode(response.body);
+        // Use centralized handler
+        final responseData = ApiExceptionHandler.handleResponse(context: context, response: response);
 
-          var appvaersion = mResposne["APKVersion"];
-          var appDownloadSize = mResposne["DownloadSize"];
-          var appAPKVersionMessage = mResposne["APKVersionMessage"];
-          var appAPKURL = mResposne["APKURL"];
+// If 200, parse and store data
+        if (response.statusCode == 200) {
+          var appvaersion = responseData["APKVersion"];
+          var appDownloadSize = responseData["DownloadSize"];
+          var appAPKVersionMessage = responseData["APKVersionMessage"];
+          var appAPKURL = responseData["APKURL"];
+
+          if (appvaersion == null || appvaersion.toString() == "0") {
+            // Prevent further processing if version is invalid (already handled in ApiExceptionHandler)
+            return Future.error("Invalid APKVersion");
+          }
 
           box.write("appvaersion", appvaersion);
           box.write("appDownloadSize", appDownloadSize);
           box.write("appAPKVersionMessage", appAPKVersionMessage);
           box.write("appAPKURL", appAPKURL);
 
-          return Getmasterdatamodal.fromJson(mResposne);
+          return Getmasterdatamodal.fromJson(responseData);
         } else {
-          throw Exception("Failed to fetch data: ${response.statusCode}");
+          throw Exception("Status Code: ${response.statusCode}");
         }
       } catch (e) {
         print("❌ [ERROR] $e");
         throw Exception("Error occurred: $e");
       }
     }
+
     static Future SIBSavetaggingapi(
         BuildContext context,
         String token,

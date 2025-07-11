@@ -942,7 +942,7 @@ class _PWSPendingapprovalState extends State<OfflineentriesOtherassets> {
     await databaseHelperJalJeevan!.truncatetable_sibmasterdeatils();
 
     // Fetch new data from API and update local database
-    Apiservice.Getmasterapi(context).then((value) async {
+    await Apiservice.Getmasterapi(context).then((value) async {
       // Update Village List
       for (int i = 0; i < value.villagelist!.length; i++) {
         var villageData = value.villagelist![i]!;

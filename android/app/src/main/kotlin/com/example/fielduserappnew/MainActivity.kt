@@ -1,4 +1,4 @@
-package com.example.fielduserappnew
+package com.jaljeevanmission.jaljeevanmissiondynamic
 
 import io.flutter.embedding.android.FlutterActivity
 

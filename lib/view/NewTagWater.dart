@@ -6,15 +6,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:focus_detector/focus_detector.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image/image.dart' as img;
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
+import '../CommanScreen.dart';
+import '../Selectedvillagelist.dart';
+import '../addfhtc/jjm_facerd_appcolor.dart';
 import '../apiservice/Apiservice.dart';
 import '../database/DataBaseHelperJalJeevan.dart';
 import '../localdatamodel/LocalSIBsavemodal.dart';
@@ -25,8 +28,6 @@ import '../model/LocalOtherassetsofflinesavemodal.dart';
 import '../model/LocalStoragestructureofflinesavemodal.dart';
 import '../model/Savesourcetypemodal.dart';
 import '../model/Schememodal.dart';
-import '../utility/Appcolor.dart';
-import '../utility/CommanScreen.dart';
 import '../utility/Drawlatlong.dart';
 import '../utility/Stylefile.dart';
 import '../utility/Textfile.dart';
@@ -35,7 +36,6 @@ import 'Dashboard.dart';
 import 'LoginScreen.dart';
 import 'NewTagScreen.dart';
 import 'SS/ZoomImage.dart';
-import 'Selectedvillagelist.dart';
 import 'VillageDetails.dart';
 import 'firstnumerical.dart';
 
@@ -175,9 +175,12 @@ class _NewTagWaterState extends State<NewTagWater> {
   bool Selectstoragetype_GSR = false;
   bool Getgeolocation_SIB = false;
   bool Takephotoforotherassets = false;
+  bool Other_Habitation = false;
 
   bool othercategory = false;
+  bool WTP_Source = false;
   bool ESR_capacity = false;
+  bool WTP_capacity = false;
 
   bool SelectalreadytaggedsourceESR = false;
   bool isMBRVisible = false;
@@ -200,6 +203,7 @@ class _NewTagWaterState extends State<NewTagWater> {
   String? ESRstoragestructuretype;
 
   var Othersmain;
+  var WTPTypeId;
   String? Capturepointotherscategory;
   String? Capturepointotherscategorypumphouse;
   String? Capturepointotherscategorywatertreatment;
@@ -224,11 +228,23 @@ class _NewTagWaterState extends State<NewTagWater> {
   String newCategory = "";
 
   File? _image;
-
+  String isWTP = "";
   List<dynamic> ListResponse = [];
   List<dynamic> Listofsourcetype = [];
 
   GetStorage box = GetStorage();
+  var distinctlist = [];
+  List<dynamic> SourceTypeCategoryList = [];
+  List<dynamic> SourceTypeCategoryList_id = [];
+  List<dynamic> sourcetypelistone_id = [];
+  List<dynamic> sourcetypeidlistone = [];
+  List<dynamic> sourcetypeidlist = [];
+  List<dynamic> sourcetypeidlistbulk = [];
+  List<dynamic> minisource2 = [];
+  List<dynamic> minisourcebulk = [];
+  List<dynamic> minisource = [];
+  List<dynamic> mainListsourcecategory = [];
+  List<dynamic> savesourcecategorylist = [];
 
   void showWidget() {
     setState(() {
@@ -278,6 +294,10 @@ class _NewTagWaterState extends State<NewTagWater> {
 
   var Existingsource_SchemeId;
 
+
+
+
+
   String selectschamename = "";
   String selectcategoryname = "";
   String _mySchemeid = "-- Select Scheme --";
@@ -316,6 +336,7 @@ class _NewTagWaterState extends State<NewTagWater> {
   var latitute_addnewsourcebtn;
   var Sourceid_new = "";
   var Sourceid_type = "";
+  var Sourcetypeid_ = "";
   var SourceTypeCategoryId = "";
   var source_typeCategory = "";
   var longitute_addnewsourcebtn;
@@ -371,6 +392,12 @@ class _NewTagWaterState extends State<NewTagWater> {
   Future<void> cleartable_villllagedetails() async {
     await databaseHelperJalJeevan!.cleartable_villagedetails();
   }
+  bool isAnyCheckboxChecked() {
+    // If LandmarkSourceList is empty, don't check the checkboxes but bypass validation
+
+    // Otherwise, check if any checkboxes are selected
+    return checkedValues.values.any((isChecked) => isChecked);
+  }
 
   Future<void> updateDetails() async {
     Map<String, dynamic> updatedDetails = {
@@ -380,7 +407,10 @@ class _NewTagWaterState extends State<NewTagWater> {
     int? rowsUpdated =
         await databaseHelperJalJeevan?.updateVillageDetails(updatedDetails);
   }
-
+  String getLocationForSourceId(int sourceId) {
+    var source = LandmarkSourceList.firstWhere((item) => int.parse(item['SourceId']!) == sourceId);
+    return source['location'] ?? ''; // Return the location for the given sourceId
+  }
   void resetDropdownState() {
     setState(() {
       schemelist.clear();
@@ -758,7 +788,7 @@ class _NewTagWaterState extends State<NewTagWater> {
 
     totalsibrecord = await databaseHelperJalJeevan?.countRows_forsib();
   }
-
+  var resultslocal;
   void fetchRecordsByschemeid(schemeid) async {
     setState(() {});
     await databaseHelperJalJeevan!.getallrecordsib_masterdata(schemeid, widget.villageid).then((value) {
@@ -775,6 +805,72 @@ class _NewTagWaterState extends State<NewTagWater> {
       }
     });
   }
+  Map<String, bool> checkedValues = {}; // Track the checkbox values
+  List<Map<String, String>> LandmarkSourceList = [];
+  List<String> selectedSourceIds = [];
+  // List of maps to store landmark and SourceId
+  void fetchSourceTypeCategoryExample(String? villageId, String? schemeId) async {
+    // Check for null values and provide defaults if necessary
+    String safeVillageId = villageId ?? '';
+    String safeSchemeId = schemeId ?? '';
+
+    print("VillageId: $safeVillageId, SchemeId: $safeSchemeId");
+
+    var results = await databaseHelperJalJeevan!.findSourceTypeCategory(safeSchemeId);
+    print("results123: $results");
+
+    if (results != null && results.isNotEmpty) {
+      setState(() {
+        // Map both location and SourceId
+        LandmarkSourceList = results.map((row) {
+          return {
+            'location': row['location']?.toString() ?? '', // Handle null value of 'location'
+            'SourceId': row['SourceId']?.toString() ?? '',
+            'habitationName': row['habitationName']?.toString() ?? '',
+            'IsWTP': row['IsWTP']?.toString() ?? ''  // Handle null value of 'IsWTP'
+          };
+        }).toList();
+
+        // Initialize checkbox states for all locations, ensuring 'location' is non-null
+        for (var item in LandmarkSourceList) {
+          String location = item['location'] ?? ''; // Use an empty string if 'location' is null
+          if (location.isNotEmpty) {
+            checkedValues[location] = false; // Initialize each checkbox to unchecked
+          }
+        }
+
+        // Check if all sources in the scheme have IsWTP == "1"
+        if (Othersmain == "3" && LandmarkSourceList.every((item) => item['IsWTP'] == "1")) {
+          Getgeolocation_SIB = false;
+          WTP_capacity = false;
+          isGetGeoLocatonlatlong = false;
+          Takephotoforotherassets = false;
+        }
+        // Check for the condition Othersmain == "3" and any IsWTP == "1" in the list
+
+      });
+    } else {
+      // Condition for empty result list and Othersmain == "3"
+      if (Othersmain == "3" && LandmarkSourceList.isEmpty) {
+        setState(() {
+          Getgeolocation_SIB = false;
+          WTP_capacity = false;
+          isGetGeoLocatonlatlong = false;
+          Takephotoforotherassets = false;
+        });
+      } else {
+        print("No SourceTypeCategory or SourceId found for the given villageId, habitationId, and schemeId.");
+      }
+    }
+  }
+
+
+
+
+
+
+
+
 
   @override
   void initState() {
@@ -833,14 +929,14 @@ class _NewTagWaterState extends State<NewTagWater> {
         Storagestructuretype = false;
       } else if (getclickedstatus == "4") {
         assettypeindexvalue = getclickedstatus;
-        viewVisible = true;
+
         Storagestructuretype = false;
         Schemeinformationboard = false;
+        viewVisible = true;
       }
     });
 
-    habitaionlistmodal = Habitaionlistmodal(
-        "-- Select Habitation --", "-- Select Habitation --");
+    habitaionlistmodal = Habitaionlistmodal("-- Select Habitation --", "-- Select Habitation --");
 
     savesourcetypemodal = Savesourcetypemodal();
     setState(() {
@@ -1287,8 +1383,8 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                                 false;
                                                                             Selectstoragetype_GSR =
                                                                                 false;
-                                                                            Getgeolocation_SIB =
-                                                                                false;
+                                                                            Getgeolocation_SIB = false;
+                                                                            Other_Habitation = false;
                                                                             othercategory =
                                                                                 false;
                                                                             isGetGeoLocatonlatlong =
@@ -1302,6 +1398,11 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                                 false;
                                                                             PumphouseOthercategory =
                                                                                 false;
+                                                                            WTP_Source = false;
+                                                                            WTP_capacity = false;
+                                                                            if (!WTP_capacity) {
+                                                                              capacitycontroller.clear();
+                                                                            }
                                                                             Clorinatorcategory =
                                                                                 false;
                                                                             Othercategorymbr =
@@ -1361,6 +1462,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                                 false;
                                                                             Getgeolocation_SIB =
                                                                                 false;
+                                                                            Other_Habitation = false;
                                                                             othercategory =
                                                                                 false;
                                                                             isGetGeoLocatonlatlong =
@@ -1373,6 +1475,11 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                                 false;
                                                                             PumphouseOthercategory =
                                                                                 false;
+                                                                            WTP_Source = false;
+                                                                            WTP_capacity = false;
+                                                                            if (!WTP_capacity) {
+                                                                              capacitycontroller.clear();
+                                                                            }
                                                                             Clorinatorcategory =
                                                                                 false;
                                                                             Othercategorymbr =
@@ -1434,6 +1541,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                                 false;
                                                                             Getgeolocation_SIB =
                                                                                 false;
+                                                                            Other_Habitation = false;
                                                                             othercategory =
                                                                                 false;
                                                                             isGetGeoLocatonlatlong =
@@ -1446,6 +1554,11 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                                 false;
                                                                             PumphouseOthercategory =
                                                                                 false;
+                                                                            WTP_Source = false;
+                                                                            WTP_capacity = false;
+                                                                            if (!WTP_capacity) {
+                                                                              capacitycontroller.clear();
+                                                                            }
                                                                             Clorinatorcategory =
                                                                                 false;
                                                                             Othercategorymbr =
@@ -1506,6 +1619,107 @@ class _NewTagWaterState extends State<NewTagWater> {
                               const SizedBox(
                                 height: 5,
                               ),
+                         /*     Visibility(
+                                visible: Other_Habitation,
+                                child: Container(
+                                  width: double.infinity,
+                                  margin: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: Appcolor.white,
+                                    border: Border.all(
+                                      color: Appcolor.lightgrey,
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(
+                                        10.0,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            '  Habitation',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Container(
+                                            height: 55,
+                                            margin: const EdgeInsets.only(
+                                                bottom: 5.0, right: 5, left: 5),
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.only(
+                                                left: 5.0, right: 5.0),
+                                            decoration: BoxDecoration(
+                                                shape: BoxShape.rectangle,
+                                                border: Border.all(
+                                                    color: Appcolor.lightgrey,
+                                                    width: .5),
+                                                borderRadius:
+                                                BorderRadius.circular(6)),
+                                            child: DropdownButton<
+                                                Habitaionlistmodal>(
+                                                itemHeight: 60,
+                                                elevation: 10,
+                                                dropdownColor: Appcolor.light,
+                                                underline: const SizedBox(),
+                                                isExpanded: true,
+                                                hint: const Text(
+                                                  "-- Select Habitation --",
+                                                ),
+                                                value: habitaionlistmodal,
+                                                items: habitationlist
+                                                    .map((habitations) {
+                                                  return DropdownMenuItem<
+                                                      Habitaionlistmodal>(
+                                                    value: habitations,
+                                                    child: Text(
+                                                      habitations
+                                                          .HabitationName,
+                                                      overflow:
+                                                      TextOverflow.ellipsis,
+                                                      maxLines: 4,
+                                                      style: const TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                          FontWeight.w400,
+                                                          color:
+                                                          Appcolor.black),
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                                onChanged: (Habitaionlistmodal?
+                                                newValue) {
+                                                  setState(() {
+                                                    habitaionlistmodal = newValue!;
+                                                    selecthabitaionid = habitaionlistmodal!.HabitationId;
+                                                    selecthabitaionname = habitaionlistmodal.HabitationName;
+
+
+                                                  });
+                                                }),
+                                          ),
+
+
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),*/
                               Visibility(
                                 visible: viewVisible,
                                 child: Container(
@@ -1644,100 +1858,77 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                             );
                                                           }).toList(),
                                                           onChanged:
-                                                              (Schememodal?
-                                                                  newValue) {
+                                                              (Schememodal?newValue) {
                                                             setState(() {
                                                               imgFile = null;
-                                                              habitaionlistmodal =
-                                                                  habitationlist
-                                                                      .first;
-                                                              locationlandmarkcontroller
-                                                                  .text = '';
+                                                              habitaionlistmodal = habitationlist.first;
+                                                              locationlandmarkcontroller.text = '';
 
-                                                              if (newValue
-                                                                      ?.Schemename ==
-                                                                  "-- Select Scheme --") {
+                                                              if (newValue?.Schemename == "-- Select Scheme --") {
                                                                 setState(() {
-                                                                  sibonlinemastermodallistvisible =
-                                                                      false;
-                                                                  messagenowatersourcecontactofc =
-                                                                      false;
-                                                                  Schemeinformationboard =
-                                                                      false;
-                                                                  selectschemesourcemessage_mvc =
-                                                                      false;
-                                                                  offlinesiblistvosibleornot =
-                                                                      false;
-                                                                  othercategory =
-                                                                      false;
+                                                                  sibonlinemastermodallistvisible = false;
+                                                                  messagenowatersourcecontactofc = false;
+                                                                  Schemeinformationboard = false;
+                                                                  selectschemesourcemessage_mvc = false;
+                                                                  offlinesiblistvosibleornot = false;
+                                                                  othercategory = false;
+                                                                  Clorinatorcategory = false;
+                                                                  WTP_Source = false;
+                                                                  WTP_capacity = false;
+                                                                  if (!WTP_capacity) {
+                                                                    capacitycontroller.clear();
+                                                                  }
+                                                                  PumphouseOthercategory = false;
+                                                                  WTP_Source = false;
+                                                                  WTP_capacity = false;
+                                                                  if (!WTP_capacity) {
+                                                                    capacitycontroller.clear();
+                                                                  }
+                                                                  PumphouseOthercategorywatertreatment = false;
+                                                                  Othercategorymbr = false;
+                                                                  Othercategorygrooundrechargewater = false;
+                                                                  geotaggedonlydropdown = false;
 
-                                                                  Clorinatorcategory =
-                                                                      false;
-                                                                  PumphouseOthercategory =
-                                                                      false;
-                                                                  PumphouseOthercategorywatertreatment =
-                                                                      false;
-                                                                  Othercategorymbr =
-                                                                      false;
-                                                                  Othercategorygrooundrechargewater =
-                                                                      false;
-                                                                  geotaggedonlydropdown =
-                                                                      false;
+                                                                  Storagestructuretype = false;
+                                                                  ESR_capacity = false;
 
-                                                                  Storagestructuretype =
-                                                                      false;
-                                                                  ESR_capacity =
-                                                                      false;
-
-                                                                  ESRstoragestructuretype =
-                                                                      "";
+                                                                  ESRstoragestructuretype = "";
                                                                 });
                                                               }
                                                               if (getclickedstatus == "1" ||
-                                                                  getclickedstatus ==
-                                                                      "2" ||
-                                                                  getclickedstatus ==
-                                                                      "3" ||
-                                                                  getclickedstatus ==
-                                                                      "4") {
-                                                                schememodal =
-                                                                    newValue ??
-                                                                        schememodal;
-
-                                                                ESRstoragestructuretype =
-                                                                    "";
+                                                                  getclickedstatus == "2" ||
+                                                                  getclickedstatus == "3" ||
+                                                                  getclickedstatus == "4") {
+                                                                schememodal = newValue ?? schememodal;
+                                                                ESRstoragestructuretype = "";
                                                               }
 
-                                                              schememodal =
-                                                                  newValue!;
-                                                              _mySchemeid = newValue
-                                                                      .Schemeid
-                                                                  .toString();
-                                                              selectschamename =
-                                                                  newValue
-                                                                      .Schemename;
-                                                              selectcategoryname =
-                                                                  newValue.Category
-                                                                      .toString();
+
+
+                                                              schememodal = newValue!;
+                                                              _mySchemeid = newValue.Schemeid.toString();
+                                                              selectschamename = newValue.Schemename;
+                                                              selectcategoryname = newValue.Category.toString();
 
                                                               setState(() {
-                                                                fetchRecordsByVillageId(
-                                                                    _mySchemeid
-                                                                        .toString());
+                                                                fetchRecordsByVillageId(_mySchemeid.toString());
 
-                                                                SIBfetchRecordsByVillageId(
-                                                                    _mySchemeid
-                                                                        .toString());
+                                                                SIBfetchRecordsByVillageId(_mySchemeid.toString());
                                                               });
 
-                                                              if (newValue
-                                                                      .Schemename ==
-                                                                  "-- Select Scheme --") {
+                                                              if (newValue.Schemename == "-- Select Scheme --") {
                                                                 setState(() {
                                                                   Getgeolocation_SIB = false;
+                                                                  Other_Habitation = false;
                                                                   isGetGeoLocatonlatlong = false;
                                                                   SelectalreadytaggedsourceSIB = false;
                                                                   Takephotoforotherassets = false;
+                                                                  WTP_Source = false;
+                                                                  WTP_capacity = false;
+                                                                  if (!WTP_capacity) {
+                                                                    capacitycontroller.clear();
+                                                                  }
+
                                                                 });
                                                               } else {
                                                                 fetchsourceid(_mySchemeid);
@@ -1758,8 +1949,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                           .isNotEmpty) {
                                                                         setState(
                                                                             () {
-                                                                          Listdetaillistofscheme =
-                                                                              value.toList();
+                                                                          Listdetaillistofscheme = value.toList();
                                                                           sibonlinemastermodallistvisible =
                                                                               false;
 
@@ -1860,6 +2050,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                         false;
                                                                     Getgeolocation_SIB =
                                                                         false;
+                                                                    Other_Habitation = false;
                                                                   });
                                                                   fetchRecordsByschemeid(
                                                                       _mySchemeid
@@ -1878,14 +2069,18 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                         true;
                                                                     Takephotoforotherassets =
                                                                         true;
+
                                                                   });
                                                                 } else if (getclickedstatus ==
                                                                     "4") {
                                                                   setState(() {
-                                                                    othercategory =
-                                                                        true;
-                                                                    Schemeinformationboard =
-                                                                        false;
+                                                                    WTP_Source = false;
+                                                                    WTP_capacity = false;
+                                                                    if (!WTP_capacity) {
+                                                                      capacitycontroller.clear();
+                                                                    }
+                                                                    othercategory = true;
+                                                                    Schemeinformationboard = false;
                                                                     sibonlinemastermodallistvisible =
                                                                         false;
                                                                     Getgeolocation_SIB =
@@ -2722,25 +2917,19 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                   groupValue: Othersmain,
                                                   onChanged: (value) {
                                                     setState(() {
-                                                      Othersmain =
-                                                          value.toString();
+                                                      Othersmain = value.toString();
 
                                                       Clorinatorcategory = true;
-                                                      PumphouseOthercategory =
-                                                          false;
-                                                      PumphouseOthercategorywatertreatment =
-                                                          false;
+                                                      PumphouseOthercategory = false;
+                                                      PumphouseOthercategorywatertreatment = false;
                                                       Othercategorymbr = false;
                                                       Othercategorygrooundrechargewater =
                                                           false;
                                                       messagevisibility = false;
-                                                      ESR_Selectalreadytaggedsource =
-                                                          false;
-                                                      SelectalreadytaggedsourceSIB =
-                                                          false;
+                                                      ESR_Selectalreadytaggedsource = false;
+                                                      SelectalreadytaggedsourceSIB = false;
 
-                                                      selectschemesource =
-                                                          false;
+                                                      selectschemesource = false;
                                                       selectschemesourcemessage_mvc =
                                                           false;
                                                       offlinesiblistvosibleornot =
@@ -2750,14 +2939,158 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                       PumphouseOthercategory =
                                                           false;
                                                       Othercategorymbr = false;
-                                                      PumphouseOthercategorywatertreatment =
-                                                          false;
-                                                      Takephotoforotherassets =
-                                                          true;
-
-                                                      isGetGeoLocatonlatlong =
-                                                          true;
+                                                      PumphouseOthercategorywatertreatment = false;
+                                                      Takephotoforotherassets = true;
+                                                      isGetGeoLocatonlatlong = true;
                                                       Getgeolocation_SIB = true;
+                                                      WTP_Source = false;
+                                                      WTP_capacity = false;
+                                                      if (!WTP_capacity) {
+                                                        capacitycontroller.clear();
+                                                      }
+
+                                                    });
+                                                  },
+                                                ),
+
+                                                RadioListTile(
+                                                  visualDensity:
+                                                  const VisualDensity(
+                                                      horizontal:
+                                                      VisualDensity
+                                                          .minimumDensity,
+                                                      vertical: VisualDensity
+                                                          .minimumDensity),
+                                                  contentPadding:
+                                                  EdgeInsets.zero,
+                                                  title:
+                                                  const Text("Silver ion disinfection"),
+                                                  value: "6",
+                                                  groupValue: Othersmain,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      WTP_Source = false;
+                                                      WTP_capacity = false;
+
+                                                      WTP_capacity = false;
+                                                      if (!WTP_capacity) {
+                                                        capacitycontroller.clear();
+                                                      }
+                                                      Othersmain = value.toString();
+                                                      PumphouseOthercategory = true;
+                                                      Clorinatorcategory = false;
+                                                      PumphouseOthercategorywatertreatment = false;
+                                                      Othercategorygrooundrechargewater = false;
+                                                      ESR_Selectalreadytaggedsource = false;
+                                                      isSameasSource = false;
+                                                      Othercategorygrooundrechargewater = false;
+                                                      selectschemesource = false;
+                                                      selectschemesourcemessage_mvc = false;
+                                                      selectschemesib = false;
+                                                      offlinesiblistvosibleornot = false;
+                                                      viewVisible = true;
+                                                      Clorinatorcategory = false;
+                                                      PumphouseOthercategory = true;
+                                                      PumphouseOthercategorywatertreatment = false;
+                                                      Othercategorymbr = false;
+                                                      Othercategorygrooundrechargewater = false;
+                                                      Takephotoforotherassets = true;
+                                                      Getgeolocation_SIB = true;
+                                                      isGetGeoLocatonlatlong = true;
+                                                    });
+                                                  },
+                                                ),
+                                                RadioListTile(
+                                                  visualDensity:
+                                                  const VisualDensity(
+                                                      horizontal:
+                                                      VisualDensity
+                                                          .minimumDensity,
+                                                      vertical: VisualDensity
+                                                          .minimumDensity),
+                                                  contentPadding:
+                                                  EdgeInsets.zero,
+                                                  title:
+                                                  const Text("Ozonisation"),
+                                                  value: "7",
+                                                  groupValue: Othersmain,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      WTP_Source = false;
+                                                      WTP_capacity = false;
+
+                                                      WTP_capacity = false;
+                                                      if (!WTP_capacity) {
+                                                        capacitycontroller.clear();
+                                                      }
+                                                      Othersmain = value.toString();
+                                                      PumphouseOthercategory = true;
+                                                      Clorinatorcategory = false;
+                                                      PumphouseOthercategorywatertreatment = false;
+                                                      Othercategorygrooundrechargewater = false;
+                                                      ESR_Selectalreadytaggedsource = false;
+                                                      isSameasSource = false;
+                                                      Othercategorygrooundrechargewater = false;
+                                                      selectschemesource = false;
+                                                      selectschemesourcemessage_mvc = false;
+                                                      selectschemesib = false;
+                                                      offlinesiblistvosibleornot = false;
+                                                      viewVisible = true;
+                                                      Clorinatorcategory = false;
+                                                      PumphouseOthercategory = true;
+                                                      PumphouseOthercategorywatertreatment = false;
+                                                      Othercategorymbr = false;
+                                                      Othercategorygrooundrechargewater = false;
+                                                      Takephotoforotherassets = true;
+                                                      Getgeolocation_SIB = true;
+                                                      isGetGeoLocatonlatlong = true;
+                                                    });
+                                                  },
+                                                ),
+                                                RadioListTile(
+                                                  visualDensity:
+                                                  const VisualDensity(
+                                                      horizontal:
+                                                      VisualDensity
+                                                          .minimumDensity,
+                                                      vertical: VisualDensity
+                                                          .minimumDensity),
+                                                  contentPadding:
+                                                  EdgeInsets.zero,
+                                                  title:
+                                                  const Text("U. V. disinfection"),
+                                                  value: "8",
+                                                  groupValue: Othersmain,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      WTP_Source = false;
+                                                      WTP_capacity = false;
+
+                                                      WTP_capacity = false;
+                                                      if (!WTP_capacity) {
+                                                        capacitycontroller.clear();
+                                                      }
+                                                      Othersmain = value.toString();
+                                                      PumphouseOthercategory = false;
+                                                      Clorinatorcategory = false;
+                                                      PumphouseOthercategorywatertreatment = false;
+                                                      Othercategorygrooundrechargewater = false;
+                                                      ESR_Selectalreadytaggedsource = false;
+                                                      isSameasSource = false;
+                                                      Othercategorygrooundrechargewater = false;
+                                                      selectschemesource = false;
+                                                      selectschemesourcemessage_mvc = false;
+                                                      selectschemesib = false;
+                                                      offlinesiblistvosibleornot = false;
+                                                      viewVisible = true;
+                                                      Clorinatorcategory = false;
+                                                      PumphouseOthercategory = true;
+                                                      PumphouseOthercategorywatertreatment = false;
+                                                      Othercategorymbr = false;
+                                                      Othercategorygrooundrechargewater = false;
+                                                      Takephotoforotherassets = true;
+                                                      Getgeolocation_SIB = true;
+                                                      isGetGeoLocatonlatlong = true;
                                                     });
                                                   },
                                                 ),
@@ -2779,7 +3112,13 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                     setState(() {
                                                       Othersmain =
                                                           value.toString();
+                                                      WTP_Source = false;
+                                                      WTP_capacity = false;
 
+                                                      WTP_capacity = false;
+                                                      if (!WTP_capacity) {
+                                                        capacitycontroller.clear();
+                                                      }
                                                       PumphouseOthercategory =
                                                           true;
 
@@ -2840,16 +3179,20 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                   groupValue: Othersmain,
                                                   onChanged: (value) {
                                                     setState(() {
-                                                      Othersmain =
-                                                          value.toString();
+                                                      print("_mySchemeid$_mySchemeid");
+                                                      print("selecthabitaionid$selecthabitaionid");
+                                                      print("widget.villageid${widget.villageid}");
+                                                      fetchSourceTypeCategoryExample(widget.villageid,_mySchemeid);
+                                                      Othersmain = value.toString();
 
-                                                      PumphouseOthercategory =
-                                                          false;
-                                                      Clorinatorcategory =
-                                                          false;
+                                                      PumphouseOthercategory = false;
+                                                      Clorinatorcategory = false;
 
                                                       ESR_Selectalreadytaggedsource =
                                                           false;
+                                                      WTP_Source = true;
+
+                                                      WTP_capacity = true;
 
                                                       messagevisibility = false;
                                                       selectschemesource =
@@ -2897,7 +3240,11 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                     setState(() {
                                                       Othersmain =
                                                           value.toString();
-
+                                                      WTP_Source = false;
+                                                      WTP_capacity = false;
+                                                      if (!WTP_capacity) {
+                                                        capacitycontroller.clear();
+                                                      }
                                                       PumphouseOthercategory =
                                                           false;
                                                       Clorinatorcategory =
@@ -2952,7 +3299,11 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                     setState(() {
                                                       Othersmain =
                                                           value.toString();
-
+                                                      WTP_Source = false;
+                                                      WTP_capacity = false;
+                                                      if (!WTP_capacity) {
+                                                        capacitycontroller.clear();
+                                                      }
                                                       PumphouseOthercategory =
                                                           false;
                                                       Clorinatorcategory =
@@ -3000,7 +3351,9 @@ class _NewTagWaterState extends State<NewTagWater> {
                               ),
 
 
-                              Visibility(
+
+
+                            Visibility(
                                 visible: Storagestructuretype,
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -3140,6 +3493,111 @@ class _NewTagWaterState extends State<NewTagWater> {
                               const SizedBox(
                                 height: 5,
                               ),
+
+
+
+                              Visibility(
+                                visible: WTP_capacity,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      margin: const EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: Appcolor.white,
+                                        border: Border.all(
+                                          color: Appcolor.lightgrey,
+                                          width: 1,
+                                        ),
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(
+                                            10.0,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(10.0),
+                                            child: Text(
+                                              'Select WTP Type',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16),
+                                            ),
+                                          ),
+                                          const Divider(
+                                            height: 10,
+                                            color: Appcolor.lightgrey,
+                                            thickness: 1,
+                                          ),
+                                          Container(
+                                            margin: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                              BorderRadius.circular(8),
+                                              border: Border.all(
+                                                  color: Appcolor.lightgrey),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                              children: [
+                                                RadioListTile(
+                                                  visualDensity:
+                                                  const VisualDensity(
+                                                      horizontal:
+                                                      VisualDensity
+                                                          .minimumDensity,
+                                                      vertical: VisualDensity
+                                                          .minimumDensity),
+                                                  contentPadding:
+                                                  EdgeInsets.zero,
+                                                  title: const Text("Traditional water treatment plants"),
+                                                  value: "1",
+                                                  groupValue: WTPTypeId,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      WTPTypeId = value.toString();
+                                                    });
+                                                  },
+                                                ),
+                                                RadioListTile(
+                                                  visualDensity:
+                                                  const VisualDensity(
+                                                      horizontal: VisualDensity.minimumDensity,
+                                                      vertical: VisualDensity.minimumDensity),
+                                                  contentPadding:
+                                                  EdgeInsets.zero,
+                                                  title: const Text("Point treatment units such as IRP/AIRP/FRP etc."),
+                                                  value: "2",
+                                                  groupValue: WTPTypeId,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      WTPTypeId = value.toString();
+                                                    });
+                                                  },
+                                                ),
+
+
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+
+
                               Visibility(
                                 visible: Getgeolocation_SIB,
                                 child: Container(
@@ -3154,21 +3612,21 @@ class _NewTagWaterState extends State<NewTagWater> {
                                     borderRadius: const BorderRadius.all(
                                       Radius.circular(
                                         10.0,
-                                      ),
+                                      ), //                 <--- border radius here
                                     ),
                                   ),
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       const SizedBox(
                                         height: 10,
                                       ),
                                       Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                         mainAxisAlignment:
-                                            MainAxisAlignment.start,
+                                        MainAxisAlignment.start,
                                         children: [
                                           const Text(
                                             '  Habitation',
@@ -3190,9 +3648,9 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                     color: Appcolor.lightgrey,
                                                     width: .5),
                                                 borderRadius:
-                                                    BorderRadius.circular(6)),
+                                                BorderRadius.circular(6)),
                                             child: DropdownButton<
-                                                    Habitaionlistmodal>(
+                                                Habitaionlistmodal>(
                                                 itemHeight: 60,
                                                 elevation: 10,
                                                 dropdownColor: Appcolor.light,
@@ -3208,31 +3666,26 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                       Habitaionlistmodal>(
                                                     value: habitations,
                                                     child: Text(
-                                                      habitations
-                                                          .HabitationName,
+                                                      habitations.HabitationName,
                                                       overflow:
-                                                          TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                       maxLines: 4,
                                                       style: const TextStyle(
                                                           fontSize: 14,
                                                           fontWeight:
-                                                              FontWeight.w400,
+                                                          FontWeight.w400,
                                                           color:
-                                                              Appcolor.black),
+                                                          Appcolor.black),
                                                     ),
                                                   );
                                                 }).toList(),
                                                 onChanged: (Habitaionlistmodal?
-                                                    newValue) {
+                                                newValue) {
                                                   setState(() {
-                                                    habitaionlistmodal =
-                                                        newValue!;
-                                                    selecthabitaionid =
-                                                        habitaionlistmodal!
-                                                            .HabitationId;
-                                                    selecthabitaionname =
-                                                        habitaionlistmodal
-                                                            .HabitationName;
+                                                    habitaionlistmodal = newValue!;
+                                                    selecthabitaionid = habitaionlistmodal!.HabitationId;
+                                                    selecthabitaionname = habitaionlistmodal.HabitationName;
+                                                    print("selecthabitaionname" + selecthabitaionname);
                                                   });
                                                 }),
                                           ),
@@ -3243,82 +3696,40 @@ class _NewTagWaterState extends State<NewTagWater> {
                                             padding: const EdgeInsets.all(5),
                                             decoration: BoxDecoration(
                                               borderRadius:
-                                                  BorderRadius.circular(8),
+                                              BorderRadius.circular(8),
                                             ),
                                             child: Column(
                                               children: [
                                                 Align(
-                                                  alignment:
-                                                      Alignment.centerLeft,
+                                                  alignment: Alignment.centerLeft,
                                                   child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            left: 10,
-                                                            right: 10,
-                                                            bottom: 10,
-                                                            top: 5),
-                                                    child: getclickedstatus ==
-                                                            "3"
-                                                        ? const Text(
-                                                            "Storage structure location",
-                                                            maxLines: 4,
-                                                            style: TextStyle(
-                                                                color: Appcolor
-                                                                    .black,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 16),
-                                                          )
-                                                        : const Text(
-                                                            "Asset location/landmark",
-                                                            maxLines: 4,
-                                                            style: TextStyle(
-                                                                color: Appcolor
-                                                                    .black,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 16),
-                                                          ),
+                                                    padding: EdgeInsets.only(left: 10, right: 10, bottom: 10, top: 5),
+                                                    child: Text(
+                                                      "Asset location/landmark",
+                                                      maxLines: 4,
+                                                      style: TextStyle(color: Appcolor.black, fontWeight: FontWeight.bold, fontSize: 16),
+                                                    ),
                                                   ),
                                                 ),
                                                 Container(
-                                                  margin: const EdgeInsets.only(
-                                                      left: 5,
-                                                      bottom: 10,
-                                                      right: 5),
+                                                  margin: EdgeInsets.only(left: 5, bottom: 10, right: 5),
                                                   width: double.infinity,
                                                   height: 45,
                                                   child: TextFormField(
                                                     inputFormatters: <TextInputFormatter>[
-                                                      FirstNonNumericalFormatter(),
+                                                      FirstNonNumericalFormatter(), // Use custom formatter
                                                     ],
-                                                    controller:
-                                                        locationlandmarkcontroller,
+                                                    controller: locationlandmarkcontroller,
                                                     decoration: InputDecoration(
-                                                      fillColor:
-                                                          Colors.grey.shade100,
-                                                      border:
-                                                          OutlineInputBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
+                                                      fillColor: Colors.grey.shade100,
+                                                      border: OutlineInputBorder(
+                                                        borderRadius: BorderRadius.circular(10),
                                                       ),
-                                                      hintText:
-                                                          "Enter location/landmark",
-                                                      hintStyle:
-                                                          const TextStyle(
-                                                              color:
-                                                                  Appcolor.grey,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400),
+                                                      hintText: "Enter landmark/location",
+                                                      hintStyle: TextStyle(color: Appcolor.grey, fontWeight: FontWeight.w400),
                                                     ),
-                                                    keyboardType: TextInputType
-                                                        .visiblePassword,
-                                                    textInputAction:
-                                                        TextInputAction.done,
+                                                    keyboardType: TextInputType.visiblePassword,
+                                                    textInputAction: TextInputAction.done,
                                                   ),
                                                 ),
                                               ],
@@ -3330,6 +3741,226 @@ class _NewTagWaterState extends State<NewTagWater> {
                                   ),
                                 ),
                               ),
+                              Visibility(
+                                visible: WTP_capacity,
+                                child: Container(
+                                  width: double.infinity,
+                                  margin: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: Appcolor.white,
+                                    border: Border.all(
+                                      color: Appcolor.lightgrey,
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.all(7.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 100,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(5),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                'Capacity (In MLD)',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16),
+                                              ),
+                                              const SizedBox(
+                                                height: 15,
+                                              ),
+                                              SizedBox(
+                                                height: 45,
+                                                child: TextFormField(
+                                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                  inputFormatters: <TextInputFormatter>[
+                                                    // Allow only digits and one decimal point
+                                                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                                                  ],
+                                                  controller: capacitycontroller,
+                                                  decoration: InputDecoration(
+                                                    border: OutlineInputBorder(
+                                                      borderRadius: BorderRadius.circular(10.0),
+                                                      borderSide: BorderSide(color: Appcolor.lightgrey),
+                                                    ),
+                                                    hintText: "0.000",
+                                                  ),
+                                                  validator: (value) {
+                                                    if (value!.isEmpty) {
+                                                      return 'Please enter a value';
+                                                    }
+                                                    // Regex to check for valid decimal number
+                                                    if (!RegExp(r'^\d*\.?\d*$').hasMatch(value)) {
+                                                      return 'Please enter a valid decimal number';
+                                                    }
+                                                    return null; // Valid input
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+
+                              Visibility(
+                                visible: WTP_Source,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Appcolor.lightgrey,
+                                    border: Border.all(
+                                      color: Appcolor.lightgrey,
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      onTap: () {},
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(10.0),
+                                            child: Text(
+                                              "Select source:",
+                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                          const Divider(
+                                            height: 10,
+                                            color: Appcolor.lightgrey,
+                                            thickness: 1,
+                                          ),
+                                          SizedBox(height: 2),
+
+                                          // Condition 1: If the source list is empty
+                                          if (LandmarkSourceList.isEmpty)
+                                            ...[
+                                              Padding(
+                                                padding: EdgeInsets.all(10.0),
+                                                child: Text(
+                                                  "There is no source available in this scheme",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.redAccent,
+                                                  ),
+                                                ),
+                                              ),
+                                            ]
+                                          else
+                                            ...LandmarkSourceList.map((item) {
+                                              String location = item['location'] ?? '';
+                                              String sourceId = item['SourceId'] ?? '';
+                                              String habitationName = item['habitationName'] ?? '';
+                                              String isWTP = item['IsWTP'] ?? '';
+
+                                              return Container(
+                                                margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+                                                padding: EdgeInsets.all(10.0),
+                                                decoration: BoxDecoration(
+                                                  color: Appcolor.white,
+                                                  border: Border.all(
+                                                    color: Appcolor.lightgrey,
+                                                    width: 1,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(10.0),
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            "Location: $location",
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        if (isWTP != "1")
+                                                          Checkbox(
+                                                            value: checkedValues[sourceId] ?? false,
+                                                            onChanged: (bool? value) async {
+                                                              setState(() {
+                                                                checkedValues[sourceId] = value ?? false;
+                                                                if (value == true) {
+                                                                  selectedSourceIds.add(sourceId);
+                                                                } else {
+                                                                  selectedSourceIds.remove(sourceId);
+                                                                }
+                                                              });
+                                                            },
+                                                          ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 4),
+                                                    Text(
+                                                      "Source ID: $sourceId",
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.grey[700],
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 4),
+                                                    Text(
+                                                      "Habitation Name: $habitationName",
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.grey[700],
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 8),
+                                                    if (isWTP == "1")
+                                                      Text(
+                                                        "This source is already tagged with WTP",
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                          color: Colors.redAccent,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              );
+                                            }).toList(),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+
+
+
+
+                              SizedBox(height: 10,),
+
+
+
+
+
                               Visibility(
                                 visible: ESR_capacity,
                                 child: Container(
@@ -3668,7 +4299,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                     }
                                                   },
                                                   child: const Text(
-                                                    'Capture photo',
+                                                    'Capture photo ',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w500,
@@ -3688,127 +4319,167 @@ class _NewTagWaterState extends State<NewTagWater> {
                                     ),
                                     getclickedstatus == "4"
                                         ? Center(
-                                            child: Container(
-                                              height: 40,
-                                              width: 200,
-                                              alignment: Alignment.center,
-                                              decoration: BoxDecoration(
-                                                  color:
-                                                      const Color(0xFF0D3A98),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8)),
-                                              child: TextButton(
-                                                onPressed: () async {
-                                                  if (Othersmain == "") {
-                                                    Stylefile
-                                                        .showmessageforvalidationfalse(
-                                                            context,
-                                                            "Please select category");
-                                                  } else if (selecthabitaionname ==
-                                                      "-- Select Habitation --") {
-                                                    Stylefile
-                                                        .showmessageforvalidationfalse(
-                                                            context,
-                                                            "Please select habitaion");
-                                                  } else if (locationlandmarkcontroller
-                                                      .text
-                                                      .trim()
-                                                      .toString()
-                                                      .isEmpty) {
-                                                    Stylefile
-                                                        .showmessageforvalidationfalse(
-                                                            context,
-                                                            "Please enter location/landmark");
-                                                  } else if (imgFile == null) {
-                                                    Stylefile
-                                                        .showmessageforvalidationfalse(
-                                                            context,
-                                                            "Please select image");
-                                                  } else {
-                                                    bool isRecordPresent =
-                                                        await databaseHelperJalJeevan!
-                                                            .isRecordExists_indbforotsave(
-                                                                _mySchemeid,
-                                                                selecthabitaionid
-                                                                    .toString(),
-                                                                _currentPosition!
-                                                                    .latitude
-                                                                    .toString(),
-                                                                _currentPosition!
-                                                                    .longitude
-                                                                    .toString(),
-                                                                Othersmain);
+                                      child: Container(
+                                        height: 40,
+                                        width: 200,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF0D3A98),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: TextButton(
+                                          onPressed: () async {
+                                            if (Othersmain == "") {
+                                              Stylefile.showmessageforvalidationfalse(
+                                                  context, "Please select category");
+                                            } else if (selecthabitaionname ==
+                                                "-- Select Habitation --") {
+                                              Stylefile.showmessageforvalidationfalse(
+                                                  context, "Please select habitation");
+                                            }  else if (locationlandmarkcontroller.text.trim().toString().isEmpty) {
+                                              Stylefile.showmessageforvalidationfalse(context, "Please enter location/landmark");
+                                            }else if (Othersmain == "3" && capacitycontroller.text.trim().isEmpty) {
+                                              Stylefile.showmessageforvalidationfalse(context, "Please enter Capacity");
+                                            } else if (Othersmain == "3" && (double.tryParse(capacitycontroller.text.trim()) ?? 0) <= 0) {
+                                              Stylefile.showmessageforvalidationfalse(context, "Capacity must be greater than zero");
+                                            } else if (Othersmain == "3" && !isAnyCheckboxChecked())  {
+                                              Stylefile.showmessageforvalidationfalse(context, "Please select atleast one source");
+                                            }if (Othersmain == "3" && (WTPTypeId == null || WTPTypeId.isEmpty)) {
+                                              Stylefile.showmessageforvalidationfalse(context, "Please select WTP type");
+                                              return;
+                                            }
 
-                                                    if (isRecordPresent) {
-                                                      Stylefile
-                                                          .showmessageforvalidationfalse(
-                                                              context,
-                                                              "The record has been already saved successfully.");
-                                                    } else {
-                                                      databaseHelperJalJeevan!.insertotherassetsofflinesaveindb(LocalOtherassetsofflinesavemodal(
-                                                          userId: box
-                                                              .read("userid")
-                                                              .toString(),
-                                                          villageId:
-                                                              widget.villageid,
-                                                          capturePointTypeId:
-                                                              "4",
-                                                          stateId: box
-                                                              .read("stateid"),
-                                                          schemeId: _mySchemeid,
-                                                          SchemeName:
-                                                              selectschamename,
-                                                          sourceId: "0",
-                                                          sourcename: sourcetypelocal
-                                                              .toString(),
-                                                          SourceTypeId:
-                                                              getclickedstatus
-                                                                  .toString(),
-                                                          divisionId: box.read(
-                                                              "DivisionId"),
-                                                          habitationId:
-                                                              selecthabitaionid,
-                                                          HabitationName:
-                                                              selecthabitaionname,
-                                                          landmark:
-                                                              locationlandmarkcontroller
-                                                                  .text
-                                                                  .toString(),
-                                                          latitude:
-                                                              _currentPosition!
-                                                                  .latitude
-                                                                  .toString(),
-                                                          longitude:
-                                                              _currentPosition!
-                                                                  .longitude
-                                                                  .toString(),
-                                                          accuracy:
-                                                              accuracyofgetlocation
-                                                                  .toString(),
-                                                          photo: base64Image,
-                                                          VillageName: getvillagename,
-                                                          DistrictName: districtname,
-                                                          BlockName: blockname,
-                                                          PanchayatName: panchayatname,
-                                                          Status: "Pending",
-                                                          Selectassetsothercategory: Othersmain.toString(),
-                                                          Capturepointlocationot: ""));
 
-                                                      showAlertDialog(context);
-                                                    }
-                                                  }
-                                                },
-                                                child: const Text(
-                                                  'Save',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w500,
-                                                    color: Colors.white,
-                                                    fontSize: 18.0,
+                                            else if (imgFile == null) {
+                                              Stylefile.showmessageforvalidationfalse(
+                                                  context, "Please select image");
+                                            } else {
+                                              // Check if the record already exists
+                                              bool isRecordPresent = await databaseHelperJalJeevan!
+                                                  .isRecordExists_indbforotsave(
+                                                  _mySchemeid,
+                                                  selecthabitaionid.toString(),
+                                                  _currentPosition!.latitude.toString(),
+                                                  _currentPosition!.longitude.toString(),
+                                                  Othersmain);
+
+                                              if (isRecordPresent) {
+                                                Stylefile.showmessageforvalidationfalse(
+                                                    context, "The record has been already saved successfully.");
+                                              }
+
+                                              else if (Othersmain == "3") {
+                                                // Convert the selectedSourceIds list to a list of integers
+                                                List<int> selectedSourceIdsString = selectedSourceIds.map(int.parse).toList();
+
+                                                // Insert data into the database
+                                                await databaseHelperJalJeevan!.insertotherassetsofflinesaveindb(
+                                                  LocalOtherassetsofflinesavemodal(
+                                                    userId: box.read("userid").toString(),
+                                                    villageId: widget.villageid,
+                                                    capturePointTypeId: "4",
+                                                    stateId: box.read("stateid"),
+                                                    schemeId: _mySchemeid,
+                                                    SchemeName: selectschamename,
+                                                    sourceId: "0",
+                                                    sourcename: sourcetypelocal.toString(),
+                                                    SourceTypeId: getclickedstatus.toString(),
+                                                    divisionId: box.read("DivisionId"),
+                                                    habitationId: selecthabitaionid,
+                                                    HabitationName: selecthabitaionname,
+                                                    landmark: locationlandmarkcontroller.text.toString(),
+                                                    latitude: _currentPosition!.latitude.toString(),
+                                                    longitude: _currentPosition!.longitude.toString(),
+                                                    accuracy: accuracyofgetlocation.toString(),
+                                                    photo: base64Image,
+                                                    VillageName: getvillagename,
+                                                    DistrictName: districtname,
+                                                    BlockName: blockname,
+                                                    PanchayatName: panchayatname,
+                                                    Status: "Pending",
+                                                    Selectassetsothercategory: Othersmain,
+                                                    Capturepointlocationot: "",
+                                                    WTP_selectedSourceIds: selectedSourceIdsString, // You may need to adjust this based on your database schema
+                                                    WTP_capacity: capacitycontroller.text,
+                                                    WTPTypeId: WTPTypeId,
                                                   ),
-                                                ),
-                                              ),
+                                                );
+
+                                                // Create a list of maps for updating IsWTP in the local database
+                                                List<Map<String, String>> sourcesToUpdate = selectedSourceIdsString.map((sourceId) {
+                                                  // Logic to retrieve the location for each sourceId
+                                                  String location = getLocationForSourceId(sourceId); // Define this logic based on your data
+
+                                                  return {
+                                                    'sourceId': sourceId.toString(), // Convert to string if necessary
+                                                    'location': location,            // Corresponding location for each sourceId
+                                                  };
+                                                }).toList();
+
+                                                // Now call the updateIsWTP function with the list of sources
+                                                await databaseHelperJalJeevan!.updateIsWTP(sourcesToUpdate, '1');
+
+                                                // Show confirmation dialog after saving data
+                                                showAlertDialog(context);
+                                              }
+                                              else {
+                                                // Convert the selectedSourceIds list to a list of integers
+                                                List<int> selectedSourceIdsString = selectedSourceIds.map(int.parse).toList();
+
+                                                // Insert data into the database
+                                                await databaseHelperJalJeevan!.insertotherassetsofflinesaveindb(
+                                                  LocalOtherassetsofflinesavemodal(
+                                                    userId: box.read("userid").toString(),
+                                                    villageId: widget.villageid,
+                                                    capturePointTypeId: "4",
+                                                    stateId: box.read("stateid"),
+                                                    schemeId: _mySchemeid,
+                                                    SchemeName: selectschamename,
+                                                    sourceId: "0",
+                                                    sourcename: sourcetypelocal.toString(),
+                                                    SourceTypeId: getclickedstatus.toString(),
+                                                    divisionId: box.read("DivisionId"),
+                                                    habitationId: selecthabitaionid,
+                                                    HabitationName: selecthabitaionname,
+                                                    landmark: locationlandmarkcontroller.text.toString(),
+                                                    latitude: _currentPosition!.latitude.toString(),
+                                                    longitude: _currentPosition!.longitude.toString(),
+                                                    accuracy: accuracyofgetlocation.toString(),
+                                                    photo: base64Image,
+                                                    VillageName: getvillagename,
+                                                    DistrictName: districtname,
+                                                    BlockName: blockname,
+                                                    PanchayatName: panchayatname,
+                                                    Status: "Pending",
+                                                    Selectassetsothercategory: Othersmain.toString(),
+                                                    Capturepointlocationot: "",
+                                                    WTP_selectedSourceIds: [0], // You may need to adjust this based on your database schema
+                                                    WTP_capacity: "0",
+                                                    WTPTypeId: "0",
+                                                  ),
+                                                );
+
+                                                // Create a list of maps for updating IsWTP in the local database
+
+
+                                                // Show confirmation dialog after saving data
+                                                showAlertDialog(context);
+                                              }
+
+                                            }
+                                          },
+                                          //otherassest4
+                                          child: const Text(
+                                            'Save',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white,
+                                              fontSize: 18.0,
                                             ),
-                                          )
+                                          ),
+                                        ),
+                                      ),
+                                    )
                                         : Center(
                                             child: Container(
                                               height: 40,
@@ -3821,12 +4492,8 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                       BorderRadius.circular(8)),
                                               child: TextButton(
                                                 onPressed: () async {
-                                                  if (ESRstoragestructuretype ==
-                                                      "") {
-                                                    Stylefile
-                                                        .showmessageforvalidationfalse(
-                                                            context,
-                                                            "Please select storage structure type");
+                                                  if (ESRstoragestructuretype == "") {
+                                                    Stylefile.showmessageforvalidationfalse(context, "Please select storage structure type");
                                                   } else if (selecthabitaionname ==
                                                       "-- Select Habitation --") {
                                                     Stylefile
@@ -3857,20 +4524,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                             context,
                                                             "Please select image");
                                                   } else {
-                                                    bool isRecordPresent =
-                                                        await databaseHelperJalJeevan!
-                                                            .isRecordExists_indbforsssave(
-                                                                _mySchemeid,
-                                                                selecthabitaionid
-                                                                    .toString(),
-                                                                _currentPosition!
-                                                                    .latitude
-                                                                    .toString(),
-                                                                _currentPosition!
-                                                                    .longitude
-                                                                    .toString(),
-                                                                ESRstoragestructuretype
-                                                                    .toString());
+                                                    bool isRecordPresent = await databaseHelperJalJeevan!.isRecordExists_indbforsssave(_mySchemeid,selecthabitaionid.toString(), _currentPosition!.latitude.toString(), _currentPosition!.longitude.toString(), ESRstoragestructuretype.toString());
 
                                                     if (isRecordPresent) {
                                                       Stylefile
@@ -3879,43 +4533,21 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                               "The record has been already saved successfully.");
                                                     } else {
                                                       databaseHelperJalJeevan!.insertstoragestructureofflinesaveindb(LocalStoragestructureofflinesavemodal(
-                                                          userId: box
-                                                              .read("userid")
-                                                              .toString(),
-                                                          villageId:
-                                                              widget.villageid,
-                                                          stateId: box
-                                                              .read("stateid"),
+                                                          userId: box.read("userid").toString(),
+                                                          villageId: widget.villageid,
+                                                          stateId: box.read("stateid"),
                                                           schemeId: _mySchemeid,
-                                                          SchemeName:
-                                                              selectschamename,
+                                                          SchemeName: selectschamename,
                                                           sourceId: "0",
-                                                          sourcename: sourcetypelocal
-                                                              .toString(),
-                                                          SourceTypeId:
-                                                              getclickedstatus
-                                                                  .toString(),
-                                                          divisionId: box.read(
-                                                              "DivisionId"),
-                                                          habitationId:
-                                                              selecthabitaionid,
-                                                          HabitationName:
-                                                              selecthabitaionname,
-                                                          landmark:
-                                                              locationlandmarkcontroller
-                                                                  .text
-                                                                  .toString(),
-                                                          latitude:
-                                                              _currentPosition!
-                                                                  .latitude
-                                                                  .toString(),
-                                                          longitude:
-                                                              _currentPosition!
-                                                                  .longitude
-                                                                  .toString(),
-                                                          accuracy:
-                                                              accuracyofgetlocation
-                                                                  .toString(),
+                                                          sourcename: sourcetypelocal.toString(),
+                                                          SourceTypeId: getclickedstatus.toString(),
+                                                          divisionId: box.read("DivisionId"),
+                                                          habitationId: selecthabitaionid,
+                                                          HabitationName: selecthabitaionname,
+                                                          landmark: locationlandmarkcontroller.text.toString(),
+                                                          latitude: _currentPosition!.latitude.toString(),
+                                                          longitude: _currentPosition!.longitude.toString(),
+                                                          accuracy: accuracyofgetlocation.toString(),
                                                           photo: base64Image,
                                                           VillageName: getvillagename,
                                                           DistrictName: districtname,
@@ -4013,26 +4645,31 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                     .showmessageforvalidationfalse(
                                                                         context,
                                                                         "Please select habitaion");
-                                                              } else if (locationlandmarkcontroller
-                                                                  .text
-                                                                  .trim()
-                                                                  .toString()
-                                                                  .isEmpty) {
-                                                                Stylefile
-                                                                    .showmessageforvalidationfalse(
-                                                                        context,
-                                                                        "Please enter location/landmark");
-                                                              } else if (imgFile ==
-                                                                  null) {
+                                                              } else if (locationlandmarkcontroller.text.trim().toString().isEmpty) {Stylefile.showmessageforvalidationfalse(context, "Please enter location/landmark");
+                                                              } else if (Othersmain == "3" && capacitycontroller.text.trim().isEmpty) {
+                                                                Stylefile.showmessageforvalidationfalse(context, "Please enter Capacity");
+                                                              } else if (Othersmain == "3" && (double.tryParse(capacitycontroller.text.trim()) ?? 0) <= 0) {
+                                                                Stylefile.showmessageforvalidationfalse(context, "Capacity must be greater than zero");
+                                                              }
+                                                              else if (Othersmain == "3" && !isAnyCheckboxChecked())  {
+                                                                Stylefile.showmessageforvalidationfalse(context, "Please select atleast one source");
+                                                              }if (Othersmain == "3" && (WTPTypeId == null || WTPTypeId.isEmpty)) {
+                                                                Stylefile.showmessageforvalidationfalse(context, "Please select WTP type");
+                                                                return;
+                                                              }
+
+
+
+                                                              else if (imgFile == null) {
                                                                 Stylefile
                                                                     .showmessageforvalidationfalse(
                                                                         context,
                                                                         "Please select image");
-                                                              } else {
-                                                                Apiservice.OtherassetSavetaggingapi(
-                                                                        context,
-                                                                        box
-                                                                            .read(
+                                                              }
+                                                              else if (Othersmain == "3") {
+                                                                List<int> selectedSourceIdsString = selectedSourceIds.map(int.parse).toList();
+                                                                Apiservice.OtherassetSavetaggingapi(context,
+                                                                        box.read(
                                                                                 "UserToken")
                                                                             .toString(),
                                                                         box
@@ -4063,10 +4700,11 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                             .toString(),
                                                                         base64Image
                                                                             .toString(),
-                                                                        Othersmain)
-                                                                    .then(
-                                                                        (value) {
-                                                                  Get.back();
+                                                                        Othersmain,
+                                                                capacitycontroller.text,
+                                                                    selectedSourceIdsString,WTPTypeId
+                                                                ).then((value) {
+
                                                                   if (value["Status"]
                                                                           .toString() ==
                                                                       "false") {
@@ -4098,370 +4736,43 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                             .toString());
 
                                                                     cleartable_localmastertables();
-                                                                    Apiservice.Getmasterapi(
-                                                                            context)
-                                                                        .then(
-                                                                            (value) {
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.villagelist!.length;
-                                                                          i++) {
-                                                                        var userid = value
-                                                                            .villagelist![i]!
-                                                                            .userId;
 
-                                                                        var villageId = value
-                                                                            .villagelist![i]!
-                                                                            .villageId;
-                                                                        var stateId = value
-                                                                            .villagelist![i]!
-                                                                            .stateId;
-                                                                        var villageName = value
-                                                                            .villagelist![i]!
-                                                                            .VillageName;
+                                                                  }
+                                                                });
+                                                              }
+                                                              else {
+                                                                List<int> selectedSourceIdsString = selectedSourceIds.map(int.parse).toList();
+                                                                Apiservice.OtherassetSavetaggingapi(context,
+                                                                        box.read("UserToken").toString(),
+                                                                        box.read("userid").toString(),
+                                                                        widget.villageid,
+                                                                        box.read("stateid"),
+                                                                        _mySchemeid,
+                                                                        "4",
+                                                                        box.read("DivisionId").toString(),
+                                                                        selecthabitaionid,
+                                                                        locationlandmarkcontroller.text.toString(),
+                                                                        _currentPosition!.latitude.toString(),
+                                                                        _currentPosition!.longitude.toString(),
+                                                                        accuracyofgetlocation.toString(),
+                                                                        base64Image.toString(),
+                                                                        Othersmain, "0",
+                                                                        [0],"0"
+                                                                ).then((value) {
 
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMastervillagelistdata(Localmasterdatanodal(
-                                                                                UserId: userid.toString(),
-                                                                                villageId: villageId.toString(),
-                                                                                StateId: stateId.toString(),
-                                                                                villageName: villageName.toString()))
-                                                                            .then((value) {});
-                                                                      }
-                                                                      databaseHelperJalJeevan!
-                                                                          .removeDuplicateEntries();
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.villageDetails!.length;
-                                                                          i++) {
-                                                                        var stateName =
-                                                                            "Assam";
-
-                                                                        var districtName = value
-                                                                            .villageDetails![i]!
-                                                                            .districtName;
-                                                                        var stateid = value
-                                                                            .villageDetails![i]!
-                                                                            .stateId;
-                                                                        var blockName = value
-                                                                            .villageDetails![i]!
-                                                                            .blockName;
-                                                                        var panchayatName = value
-                                                                            .villageDetails![i]!
-                                                                            .panchayatName;
-                                                                        var stateidnew = value
-                                                                            .villageDetails![i]!
-                                                                            .stateId;
-                                                                        var userId = value
-                                                                            .villageDetails![i]!
-                                                                            .userId;
-                                                                        var villageIddetails = value
-                                                                            .villageDetails![i]!
-                                                                            .villageId;
-                                                                        var villageName = value
-                                                                            .villageDetails![i]!
-                                                                            .villageName;
-                                                                        var totalNoOfScheme = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfScheme;
-                                                                        var totalNoOfWaterSource = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfWaterSource;
-                                                                        var totalWsGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalWsGeoTagged;
-                                                                        var pendingWsTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .pendingWsTotal;
-                                                                        var balanceWsTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .balanceWsTotal;
-                                                                        var totalSsGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalSsGeoTagged;
-                                                                        var pendingApprovalSsTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .pendingApprovalSsTotal;
-                                                                        var totalIbRequiredGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalIbRequiredGeoTagged;
-                                                                        var totalIbGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalIbGeoTagged;
-                                                                        var pendingIbTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .pendingIbTotal;
-                                                                        var balanceIbTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .balanceIbTotal;
-                                                                        var totalOaGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalOaGeoTagged;
-                                                                        var balanceOaTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .balanceOaTotal;
-                                                                        var totalNoOfSchoolScheme = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfSchoolScheme;
-                                                                        var totalNoOfPwsScheme = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfPwsScheme;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMastervillagedetails(Localmasterdatamodal_VillageDetails(
-                                                                          status:
-                                                                              "0",
-                                                                          stateName:
-                                                                              stateName,
-                                                                          districtName:
-                                                                              districtName,
-                                                                          blockName:
-                                                                              blockName,
-                                                                          panchayatName:
-                                                                              panchayatName,
-                                                                          stateId:
-                                                                              stateidnew.toString(),
-                                                                          userId:
-                                                                              userId.toString(),
-                                                                          villageId:
-                                                                              villageIddetails.toString(),
-                                                                          villageName:
-                                                                              villageName,
-                                                                          totalNoOfScheme:
-                                                                              totalNoOfScheme.toString(),
-                                                                          totalNoOfWaterSource:
-                                                                              totalNoOfWaterSource.toString(),
-                                                                          totalWsGeoTagged:
-                                                                              totalWsGeoTagged.toString(),
-                                                                          pendingWsTotal:
-                                                                              pendingWsTotal.toString(),
-                                                                          balanceWsTotal:
-                                                                              balanceWsTotal.toString(),
-                                                                          totalSsGeoTagged:
-                                                                              totalSsGeoTagged.toString(),
-                                                                          pendingApprovalSsTotal:
-                                                                              pendingApprovalSsTotal.toString(),
-                                                                          totalIbRequiredGeoTagged:
-                                                                              totalIbRequiredGeoTagged.toString(),
-                                                                          totalIbGeoTagged:
-                                                                              totalIbGeoTagged.toString(),
-                                                                          pendingIbTotal:
-                                                                              pendingIbTotal.toString(),
-                                                                          balanceIbTotal:
-                                                                              balanceIbTotal.toString(),
-                                                                          totalOaGeoTagged:
-                                                                              totalOaGeoTagged.toString(),
-                                                                          balanceOaTotal:
-                                                                              balanceOaTotal.toString(),
-                                                                          totalNoOfSchoolScheme:
-                                                                              totalNoOfSchoolScheme.toString(),
-                                                                          totalNoOfPwsScheme:
-                                                                              totalNoOfPwsScheme.toString(),
-                                                                        ));
-                                                                      }
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.schmelist!.length;
-                                                                          i++) {
-                                                                        var schemeidnew = value
-                                                                            .schmelist![i]!
-                                                                            .schemeid;
-                                                                        var villageid = value
-                                                                            .schmelist![i]!
-                                                                            .villageId;
-                                                                        var schemenamenew = value
-                                                                            .schmelist![i]!
-                                                                            .schemename;
-                                                                        var schemenacategorynew = value
-                                                                            .schmelist![i]!
-                                                                            .category;
-                                                                        var SourceTypeCategoryId = value.schmelist![i]!.SourceTypeCategoryId;
-                                                                        var source_typeCategory = value.schmelist![i]!.source_typeCategory;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMasterSchmelist(Localmasterdatamoda_Scheme(
-                                                                          source_type: Sourceid_type.toString(),
-                                                                          schemeid: schemeidnew.toString(),
-                                                                          villageId:
-                                                                              villageid.toString(),
-                                                                          schemename:
-                                                                              schemenamenew.toString(),
-                                                                          category: schemenacategorynew.toString(),
-                                                                          SourceTypeCategoryId: SourceTypeCategoryId.toString(),
-                                                                          source_typeCategory: source_typeCategory.toString(),
-                                                                        ));
-                                                                      }
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.sourcelist!.length;
-                                                                          i++) {
-                                                                        var sourceId = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceId;
-                                                                        var SchemeId = value
-                                                                            .sourcelist![i]!
-                                                                            .schemeId;
-                                                                        var stateid = value
-                                                                            .sourcelist![i]!
-                                                                            .stateid;
-                                                                        var Schemename = value
-                                                                            .sourcelist![i]!
-                                                                            .schemeName;
-                                                                        var villageid = value
-                                                                            .sourcelist![i]!
-                                                                            .villageId;
-                                                                        var sourceTypeId = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceTypeId;
-                                                                        var statename = value
-                                                                            .sourcelist![i]!
-                                                                            .stateName;
-                                                                        var sourceTypeCategoryId = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceTypeCategoryId;
-                                                                        var habitationId = value
-                                                                            .sourcelist![i]!
-                                                                            .habitationId;
-                                                                        var villageName = value
-                                                                            .sourcelist![i]!
-                                                                            .villageName;
-                                                                        var existTagWaterSourceId = value
-                                                                            .sourcelist![i]!
-                                                                            .existTagWaterSourceId;
-                                                                        var isApprovedState = value
-                                                                            .sourcelist![i]!
-                                                                            .isApprovedState;
-                                                                        var landmark = value
-                                                                            .sourcelist![i]!
-                                                                            .landmark;
-                                                                        var latitude = value
-                                                                            .sourcelist![i]!
-                                                                            .latitude;
-                                                                        var longitude = value
-                                                                            .sourcelist![i]!
-                                                                            .longitude;
-                                                                        var habitationName = value
-                                                                            .sourcelist![i]!
-                                                                            .habitationName;
-                                                                        var location = value
-                                                                            .sourcelist![i]!
-                                                                            .location;
-                                                                        var sourceTypeCategory = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceTypeCategory;
-                                                                        var sourceType = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceType;
-                                                                        var districtName = value
-                                                                            .sourcelist![i]!
-                                                                            .districtName;
-                                                                        var districtId = value
-                                                                            .sourcelist![i]!
-                                                                            .districtId;
-                                                                        var panchayatNamenew = value
-                                                                            .sourcelist![i]!
-                                                                            .panchayatName;
-                                                                        var blocknamenew = value
-                                                                            .sourcelist![i]!
-                                                                            .blockName;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
-                                                                          schemeId:
-                                                                              SchemeId.toString(),
-                                                                          sourceId:
-                                                                              sourceId.toString(),
-                                                                          villageId:
-                                                                              villageid.toString(),
-                                                                          schemeName:
-                                                                              Schemename,
-                                                                          sourceTypeId:
-                                                                              sourceTypeId.toString(),
-                                                                          sourceTypeCategoryId:
-                                                                              sourceTypeCategoryId.toString(),
-                                                                          habitationId:
-                                                                              habitationId.toString(),
-                                                                          existTagWaterSourceId:
-                                                                              existTagWaterSourceId.toString(),
-                                                                          isApprovedState:
-                                                                              isApprovedState.toString(),
-                                                                          landmark:
-                                                                              landmark,
-                                                                          latitude:
-                                                                              latitude.toString(),
-                                                                          longitude:
-                                                                              longitude.toString(),
-                                                                          habitationName:
-                                                                              habitationName,
-                                                                          location:
-                                                                              location,
-                                                                          sourceTypeCategory:
-                                                                              sourceTypeCategory,
-                                                                          sourceType:
-                                                                              sourceType,
-                                                                          stateName:
-                                                                              statename,
-                                                                          districtName:
-                                                                              districtName,
-                                                                          blockName:
-                                                                              blocknamenew,
-                                                                          panchayatName:
-                                                                              panchayatNamenew,
-                                                                          districtId:
-                                                                              districtId.toString(),
-                                                                          villageName:
-                                                                              villageName,
-                                                                          stateId:
-                                                                              stateid.toString(),
-                                                                        ));
-                                                                      }
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.habitationlist!.length;
-                                                                          i++) {
-                                                                        var villafgeid = value
-                                                                            .habitationlist![i]!
-                                                                            .villageId;
-                                                                        var habitationId = value
-                                                                            .habitationlist![i]!
-                                                                            .habitationId;
-                                                                        var habitationName = value
-                                                                            .habitationlist![i]!
-                                                                            .habitationName;
-
-                                                                        databaseHelperJalJeevan?.insertMasterhabitaionlist(LocalHabitaionlistModal(
-                                                                            villageId:
-                                                                                villafgeid.toString(),
-                                                                            HabitationId: habitationId.toString(),
-                                                                            HabitationName: habitationName.toString()));
-                                                                      }
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.informationBoardList!.length;
-                                                                          i++) {
-                                                                        databaseHelperJalJeevan?.insertmastersibdetails(LocalmasterInformationBoardItemModal(
-                                                                            userId:
-                                                                                value.informationBoardList![i]!.userId.toString(),
-                                                                            villageId: value.informationBoardList![i]!.villageId.toString(),
-                                                                            stateId: value.informationBoardList![i]!.stateId.toString(),
-                                                                            schemeId: value.informationBoardList![i]!.schemeId.toString(),
-                                                                            districtName: value.informationBoardList![i]!.districtName,
-                                                                            blockName: value.informationBoardList![i]!.blockName,
-                                                                            panchayatName: value.informationBoardList![i]!.panchayatName,
-                                                                            villageName: value.informationBoardList![i]!.villageName,
-                                                                            habitationName: value.informationBoardList![i]!.habitationName,
-                                                                            latitude: value.informationBoardList![i]!.latitude.toString(),
-                                                                            longitude: value.informationBoardList![i]!.longitude.toString(),
-                                                                            sourceName: value.informationBoardList![i]!.sourceName,
-                                                                            schemeName: value.informationBoardList![i]!.schemeName,
-                                                                            message: value.informationBoardList![i]!.message,
-                                                                            status: value.informationBoardList![i]!.status.toString()));
-                                                                      }
-                                                                    });
+                                                                  if (value["Status"].toString() == "false") {
+                                                                    Stylefile.showmessageforvalidationfalse(context, value["msg"].toString());
+                                                                    if (value["msg"].toString() == "Token is wrong or expire") {
+                                                                      setState(()
+                                                                      {
+                                                                        Get.off(LoginScreen());
+                                                                        box.remove("UserToken").toString();
+                                                                        cleartable_localmastertables();
+                                                                      });
+                                                                    }
+                                                                  } else if (value["Status"].toString() == "true") {
+                                                                    Stylefile.showmessageforvalidationtrue(context, value["msg"].toString());
+                                                                    cleartable_localmastertables();
                                                                   }
                                                                 });
                                                               }
@@ -4605,7 +4916,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                             .toString())
                                                                     .then(
                                                                         (value) {
-                                                                  Get.back();
+
                                                                   if (value["Status"]
                                                                           .toString() ==
                                                                       "false") {
@@ -4637,371 +4948,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                             .toString());
 
                                                                     cleartable_localmastertables();
-                                                                    Apiservice.Getmasterapi(
-                                                                            context)
-                                                                        .then(
-                                                                            (value) {
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.villagelist!.length;
-                                                                          i++) {
-                                                                        var userid = value
-                                                                            .villagelist![i]!
-                                                                            .userId;
 
-                                                                        var villageId = value
-                                                                            .villagelist![i]!
-                                                                            .villageId;
-                                                                        var stateId = value
-                                                                            .villagelist![i]!
-                                                                            .stateId;
-                                                                        var villageName = value
-                                                                            .villagelist![i]!
-                                                                            .VillageName;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMastervillagelistdata(Localmasterdatanodal(
-                                                                                UserId: userid.toString(),
-                                                                                villageId: villageId.toString(),
-                                                                                StateId: stateId.toString(),
-                                                                                villageName: villageName.toString()))
-                                                                            .then((value) {});
-                                                                      }
-                                                                      databaseHelperJalJeevan!
-                                                                          .removeDuplicateEntries();
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.villageDetails!.length;
-                                                                          i++) {
-                                                                        var stateName =
-                                                                            "";
-
-                                                                        var districtName = value
-                                                                            .villageDetails![i]!
-                                                                            .districtName;
-                                                                        var stateid = value
-                                                                            .villageDetails![i]!
-                                                                            .stateId;
-                                                                        var blockName = value
-                                                                            .villageDetails![i]!
-                                                                            .blockName;
-                                                                        var panchayatName = value
-                                                                            .villageDetails![i]!
-                                                                            .panchayatName;
-                                                                        var stateidnew = value
-                                                                            .villageDetails![i]!
-                                                                            .stateId;
-                                                                        var userId = value
-                                                                            .villageDetails![i]!
-                                                                            .userId;
-                                                                        var villageIddetails = value
-                                                                            .villageDetails![i]!
-                                                                            .villageId;
-                                                                        var villageName = value
-                                                                            .villageDetails![i]!
-                                                                            .villageName;
-                                                                        var totalNoOfScheme = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfScheme;
-                                                                        var totalNoOfWaterSource = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfWaterSource;
-                                                                        var totalWsGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalWsGeoTagged;
-                                                                        var pendingWsTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .pendingWsTotal;
-                                                                        var balanceWsTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .balanceWsTotal;
-                                                                        var totalSsGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalSsGeoTagged;
-                                                                        var pendingApprovalSsTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .pendingApprovalSsTotal;
-                                                                        var totalIbRequiredGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalIbRequiredGeoTagged;
-                                                                        var totalIbGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalIbGeoTagged;
-                                                                        var pendingIbTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .pendingIbTotal;
-                                                                        var balanceIbTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .balanceIbTotal;
-                                                                        var totalOaGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalOaGeoTagged;
-                                                                        var balanceOaTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .balanceOaTotal;
-                                                                        var totalNoOfSchoolScheme = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfSchoolScheme;
-                                                                        var totalNoOfPwsScheme = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfPwsScheme;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMastervillagedetails(Localmasterdatamodal_VillageDetails(
-                                                                          status:
-                                                                              "0",
-                                                                          stateName:
-                                                                              stateName,
-                                                                          districtName:
-                                                                              districtName,
-                                                                          blockName:
-                                                                              blockName,
-                                                                          panchayatName:
-                                                                              panchayatName,
-                                                                          stateId:
-                                                                              stateidnew.toString(),
-                                                                          userId:
-                                                                              userId.toString(),
-                                                                          villageId:
-                                                                              villageIddetails.toString(),
-                                                                          villageName:
-                                                                              villageName,
-                                                                          totalNoOfScheme:
-                                                                              totalNoOfScheme.toString(),
-                                                                          totalNoOfWaterSource:
-                                                                              totalNoOfWaterSource.toString(),
-                                                                          totalWsGeoTagged:
-                                                                              totalWsGeoTagged.toString(),
-                                                                          pendingWsTotal:
-                                                                              pendingWsTotal.toString(),
-                                                                          balanceWsTotal:
-                                                                              balanceWsTotal.toString(),
-                                                                          totalSsGeoTagged:
-                                                                              totalSsGeoTagged.toString(),
-                                                                          pendingApprovalSsTotal:
-                                                                              pendingApprovalSsTotal.toString(),
-                                                                          totalIbRequiredGeoTagged:
-                                                                              totalIbRequiredGeoTagged.toString(),
-                                                                          totalIbGeoTagged:
-                                                                              totalIbGeoTagged.toString(),
-                                                                          pendingIbTotal:
-                                                                              pendingIbTotal.toString(),
-                                                                          balanceIbTotal:
-                                                                              balanceIbTotal.toString(),
-                                                                          totalOaGeoTagged:
-                                                                              totalOaGeoTagged.toString(),
-                                                                          balanceOaTotal:
-                                                                              balanceOaTotal.toString(),
-                                                                          totalNoOfSchoolScheme:
-                                                                              totalNoOfSchoolScheme.toString(),
-                                                                          totalNoOfPwsScheme:
-                                                                              totalNoOfPwsScheme.toString(),
-                                                                        ));
-                                                                      }
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.schmelist!.length;
-                                                                          i++) {
-                                                                        var schemeidnew = value
-                                                                            .schmelist![i]!
-                                                                            .schemeid;
-                                                                        var villageid = value
-                                                                            .schmelist![i]!
-                                                                            .villageId;
-                                                                        var schemenamenew = value
-                                                                            .schmelist![i]!
-                                                                            .schemename;
-                                                                        var schemenacategorynew = value
-                                                                            .schmelist![i]!
-                                                                            .category;
-                                                                        var SourceTypeCategoryId = value.schmelist![i]!.SourceTypeCategoryId;
-                                                                        var source_typeCategory = value.schmelist![i]!.source_typeCategory;
-
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMasterSchmelist(Localmasterdatamoda_Scheme(
-                                                                          source_type: Sourceid_type.toString(),
-                                                                          schemeid: schemeidnew.toString(),
-                                                                          villageId:
-                                                                              villageid.toString(),
-                                                                          schemename:
-                                                                              schemenamenew.toString(),
-                                                                          category: schemenacategorynew.toString(),
-                                                                          SourceTypeCategoryId: SourceTypeCategoryId.toString(),
-                                                                          source_typeCategory: source_typeCategory.toString(),
-                                                                        ));
-                                                                      }
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.sourcelist!.length;
-                                                                          i++) {
-                                                                        var sourceId = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceId;
-                                                                        var SchemeId = value
-                                                                            .sourcelist![i]!
-                                                                            .schemeId;
-                                                                        var stateid = value
-                                                                            .sourcelist![i]!
-                                                                            .stateid;
-                                                                        var Schemename = value
-                                                                            .sourcelist![i]!
-                                                                            .schemeName;
-                                                                        var villageid = value
-                                                                            .sourcelist![i]!
-                                                                            .villageId;
-                                                                        var sourceTypeId = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceTypeId;
-                                                                        var statename = value
-                                                                            .sourcelist![i]!
-                                                                            .stateName;
-                                                                        var sourceTypeCategoryId = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceTypeCategoryId;
-                                                                        var habitationId = value
-                                                                            .sourcelist![i]!
-                                                                            .habitationId;
-                                                                        var villageName = value
-                                                                            .sourcelist![i]!
-                                                                            .villageName;
-                                                                        var existTagWaterSourceId = value
-                                                                            .sourcelist![i]!
-                                                                            .existTagWaterSourceId;
-                                                                        var isApprovedState = value
-                                                                            .sourcelist![i]!
-                                                                            .isApprovedState;
-                                                                        var landmark = value
-                                                                            .sourcelist![i]!
-                                                                            .landmark;
-                                                                        var latitude = value
-                                                                            .sourcelist![i]!
-                                                                            .latitude;
-                                                                        var longitude = value
-                                                                            .sourcelist![i]!
-                                                                            .longitude;
-                                                                        var habitationName = value
-                                                                            .sourcelist![i]!
-                                                                            .habitationName;
-                                                                        var location = value
-                                                                            .sourcelist![i]!
-                                                                            .location;
-                                                                        var sourceTypeCategory = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceTypeCategory;
-                                                                        var sourceType = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceType;
-                                                                        var districtName = value
-                                                                            .sourcelist![i]!
-                                                                            .districtName;
-                                                                        var districtId = value
-                                                                            .sourcelist![i]!
-                                                                            .districtId;
-                                                                        var panchayatNamenew = value
-                                                                            .sourcelist![i]!
-                                                                            .panchayatName;
-                                                                        var blocknamenew = value
-                                                                            .sourcelist![i]!
-                                                                            .blockName;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
-                                                                          schemeId:
-                                                                              SchemeId.toString(),
-                                                                          sourceId:
-                                                                              sourceId.toString(),
-                                                                          villageId:
-                                                                              villageid.toString(),
-                                                                          schemeName:
-                                                                              Schemename,
-                                                                          sourceTypeId:
-                                                                              sourceTypeId.toString(),
-                                                                          sourceTypeCategoryId:
-                                                                              sourceTypeCategoryId.toString(),
-                                                                          habitationId:
-                                                                              habitationId.toString(),
-                                                                          existTagWaterSourceId:
-                                                                              existTagWaterSourceId.toString(),
-                                                                          isApprovedState:
-                                                                              isApprovedState.toString(),
-                                                                          landmark:
-                                                                              landmark,
-                                                                          latitude:
-                                                                              latitude.toString(),
-                                                                          longitude:
-                                                                              longitude.toString(),
-                                                                          habitationName:
-                                                                              habitationName,
-                                                                          location:
-                                                                              location,
-                                                                          sourceTypeCategory:
-                                                                              sourceTypeCategory,
-                                                                          sourceType:
-                                                                              sourceType,
-                                                                          stateName:
-                                                                              statename,
-                                                                          districtName:
-                                                                              districtName,
-                                                                          blockName:
-                                                                              blocknamenew,
-                                                                          panchayatName:
-                                                                              panchayatNamenew,
-                                                                          districtId:
-                                                                              districtId.toString(),
-                                                                          villageName:
-                                                                              villageName,
-                                                                          stateId:
-                                                                              stateid.toString(),
-                                                                        ));
-                                                                      }
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.habitationlist!.length;
-                                                                          i++) {
-                                                                        var villafgeid = value
-                                                                            .habitationlist![i]!
-                                                                            .villageId;
-                                                                        var habitationId = value
-                                                                            .habitationlist![i]!
-                                                                            .habitationId;
-                                                                        var habitationName = value
-                                                                            .habitationlist![i]!
-                                                                            .habitationName;
-
-                                                                        databaseHelperJalJeevan?.insertMasterhabitaionlist(LocalHabitaionlistModal(
-                                                                            villageId:
-                                                                                villafgeid.toString(),
-                                                                            HabitationId: habitationId.toString(),
-                                                                            HabitationName: habitationName.toString()));
-                                                                      }
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.informationBoardList!.length;
-                                                                          i++) {
-                                                                        databaseHelperJalJeevan?.insertmastersibdetails(LocalmasterInformationBoardItemModal(
-                                                                            userId:
-                                                                                value.informationBoardList![i]!.userId.toString(),
-                                                                            villageId: value.informationBoardList![i]!.villageId.toString(),
-                                                                            stateId: value.informationBoardList![i]!.stateId.toString(),
-                                                                            schemeId: value.informationBoardList![i]!.schemeId.toString(),
-                                                                            districtName: value.informationBoardList![i]!.districtName,
-                                                                            blockName: value.informationBoardList![i]!.blockName,
-                                                                            panchayatName: value.informationBoardList![i]!.panchayatName,
-                                                                            villageName: value.informationBoardList![i]!.villageName,
-                                                                            habitationName: value.informationBoardList![i]!.habitationName,
-                                                                            latitude: value.informationBoardList![i]!.latitude.toString(),
-                                                                            longitude: value.informationBoardList![i]!.longitude.toString(),
-                                                                            sourceName: value.informationBoardList![i]!.sourceName,
-                                                                            schemeName: value.informationBoardList![i]!.schemeName,
-                                                                            message: value.informationBoardList![i]!.message,
-                                                                            status: value.informationBoardList![i]!.status.toString()));
-                                                                      }
-                                                                    });
                                                                   }
                                                                 });
                                                               }
@@ -5595,14 +5542,8 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                             base64Image)
                                                         .then((value) {
                                                       Get.back();
-                                                      if (value["Status"]
-                                                              .toString() ==
-                                                          "false") {
-                                                        Stylefile
-                                                            .showmessageforvalidationfalse(
-                                                                context,
-                                                                value["msg"]
-                                                                    .toString());
+                                                      if (value["Status"].toString() == "false") {
+                                                        Stylefile.showmessageforvalidationfalse(context, value["msg"].toString());
 
                                                         if (value["msg"]
                                                                 .toString() ==
@@ -5626,501 +5567,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                 value["msg"]
                                                                     .toString());
                                                         cleartable_localmastertables();
-                                                        Apiservice.Getmasterapi(
-                                                                context)
-                                                            .then((value) {
-                                                          for (int i = 0;
-                                                              i <
-                                                                  value
-                                                                      .villagelist!
-                                                                      .length;
-                                                              i++) {
-                                                            var userid = value
-                                                                .villagelist![i]!
-                                                                .userId;
 
-                                                            var villageId = value
-                                                                .villagelist![i]!
-                                                                .villageId;
-                                                            var stateId = value
-                                                                .villagelist![i]!
-                                                                .stateId;
-                                                            var villageName =
-                                                                value
-                                                                    .villagelist![
-                                                                    i]!
-                                                                    .VillageName;
-
-                                                            databaseHelperJalJeevan
-                                                                ?.insertMastervillagelistdata(Localmasterdatanodal(
-                                                                    UserId: userid
-                                                                        .toString(),
-                                                                    villageId:
-                                                                        villageId
-                                                                            .toString(),
-                                                                    StateId: stateId
-                                                                        .toString(),
-                                                                    villageName:
-                                                                        villageName
-                                                                            .toString()))
-                                                                .then(
-                                                                    (value) {});
-                                                          }
-                                                          databaseHelperJalJeevan!
-                                                              .removeDuplicateEntries();
-
-                                                          for (int i = 0;
-                                                              i <
-                                                                  value
-                                                                      .villageDetails!
-                                                                      .length;
-                                                              i++) {
-                                                            var stateName =
-                                                                "Assam";
-
-                                                            var districtName = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .districtName;
-                                                            var stateid = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .stateId;
-                                                            var blockName = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .blockName;
-                                                            var panchayatName = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .panchayatName;
-                                                            var stateidnew = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .stateId;
-                                                            var userId = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .userId;
-                                                            var villageIddetails =
-                                                                value
-                                                                    .villageDetails![
-                                                                    i]!
-                                                                    .villageId;
-                                                            var villageName = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .villageName;
-                                                            var totalNoOfScheme = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .totalNoOfScheme;
-                                                            var totalNoOfWaterSource = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .totalNoOfWaterSource;
-                                                            var totalWsGeoTagged = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .totalWsGeoTagged;
-                                                            var pendingWsTotal = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .pendingWsTotal;
-                                                            var balanceWsTotal = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .balanceWsTotal;
-                                                            var totalSsGeoTagged = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .totalSsGeoTagged;
-                                                            var pendingApprovalSsTotal = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .pendingApprovalSsTotal;
-                                                            var totalIbRequiredGeoTagged = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .totalIbRequiredGeoTagged;
-                                                            var totalIbGeoTagged = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .totalIbGeoTagged;
-                                                            var pendingIbTotal = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .pendingIbTotal;
-                                                            var balanceIbTotal = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .balanceIbTotal;
-                                                            var totalOaGeoTagged = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .totalOaGeoTagged;
-                                                            var balanceOaTotal = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .balanceOaTotal;
-                                                            var totalNoOfSchoolScheme = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .totalNoOfSchoolScheme;
-                                                            var totalNoOfPwsScheme = value
-                                                                .villageDetails![
-                                                                    i]!
-                                                                .totalNoOfPwsScheme;
-
-                                                            databaseHelperJalJeevan
-                                                                ?.insertMastervillagedetails(
-                                                                    Localmasterdatamodal_VillageDetails(
-                                                              status: "0",
-                                                              stateName:
-                                                                  stateName,
-                                                              districtName:
-                                                                  districtName,
-                                                              blockName:
-                                                                  blockName,
-                                                              panchayatName:
-                                                                  panchayatName,
-                                                              stateId: stateidnew
-                                                                  .toString(),
-                                                              userId: userId
-                                                                  .toString(),
-                                                              villageId:
-                                                                  villageIddetails
-                                                                      .toString(),
-                                                              villageName:
-                                                                  villageName,
-                                                              totalNoOfScheme:
-                                                                  totalNoOfScheme
-                                                                      .toString(),
-                                                              totalNoOfWaterSource:
-                                                                  totalNoOfWaterSource
-                                                                      .toString(),
-                                                              totalWsGeoTagged:
-                                                                  totalWsGeoTagged
-                                                                      .toString(),
-                                                              pendingWsTotal:
-                                                                  pendingWsTotal
-                                                                      .toString(),
-                                                              balanceWsTotal:
-                                                                  balanceWsTotal
-                                                                      .toString(),
-                                                              totalSsGeoTagged:
-                                                                  totalSsGeoTagged
-                                                                      .toString(),
-                                                              pendingApprovalSsTotal:
-                                                                  pendingApprovalSsTotal
-                                                                      .toString(),
-                                                              totalIbRequiredGeoTagged:
-                                                                  totalIbRequiredGeoTagged
-                                                                      .toString(),
-                                                              totalIbGeoTagged:
-                                                                  totalIbGeoTagged
-                                                                      .toString(),
-                                                              pendingIbTotal:
-                                                                  pendingIbTotal
-                                                                      .toString(),
-                                                              balanceIbTotal:
-                                                                  balanceIbTotal
-                                                                      .toString(),
-                                                              totalOaGeoTagged:
-                                                                  totalOaGeoTagged
-                                                                      .toString(),
-                                                              balanceOaTotal:
-                                                                  balanceOaTotal
-                                                                      .toString(),
-                                                              totalNoOfSchoolScheme:
-                                                                  totalNoOfSchoolScheme
-                                                                      .toString(),
-                                                              totalNoOfPwsScheme:
-                                                                  totalNoOfPwsScheme
-                                                                      .toString(),
-                                                            ));
-                                                          }
-
-                                                          for (int i = 0;
-                                                              i <
-                                                                  value
-                                                                      .schmelist!
-                                                                      .length;
-                                                              i++) {
-                                                            var schemeidnew =
-                                                                value
-                                                                    .schmelist![
-                                                                    i]!
-                                                                    .schemeid;
-                                                            var villageid =
-                                                                value
-                                                                    .schmelist![
-                                                                    i]!
-                                                                    .villageId;
-                                                            var schemenamenew =
-                                                                value
-                                                                    .schmelist![
-                                                                    i]!
-                                                                    .schemename;
-                                                            var schemenacategorynew =
-                                                                value
-                                                                    .schmelist![
-                                                                    i]!
-                                                                    .category;
-                                                            var SourceTypeCategoryId = value.schmelist![i]!.SourceTypeCategoryId;
-                                                            var source_typeCategory = value.schmelist![i]!.source_typeCategory;
-
-                                                            databaseHelperJalJeevan
-                                                                ?.insertMasterSchmelist(
-                                                                    Localmasterdatamoda_Scheme(
-                                                              source_type: Sourceid_type.toString(),          schemeid: schemeidnew.toString(),
-                                                              villageId: villageid
-                                                                  .toString(),
-                                                              schemename:
-                                                                  schemenamenew
-                                                                      .toString(),
-                                                              category: schemenacategorynew
-                                                                      .toString(),
-                                                                      SourceTypeCategoryId: SourceTypeCategoryId.toString(),
-                                                                      source_typeCategory: source_typeCategory.toString(),
-                                                            ));
-                                                          }
-
-                                                          for (int i = 0;
-                                                              i <
-                                                                  value
-                                                                      .sourcelist!
-                                                                      .length;
-                                                              i++) {
-                                                            var sourceId = value
-                                                                .sourcelist![i]!
-                                                                .sourceId;
-                                                            var SchemeId = value
-                                                                .sourcelist![i]!
-                                                                .schemeId;
-                                                            var stateid = value
-                                                                .sourcelist![i]!
-                                                                .stateid;
-                                                            var Schemename =
-                                                                value
-                                                                    .sourcelist![i]!.schemeName;
-                                                            var villageid =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .villageId;
-                                                            var sourceTypeId =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .sourceTypeId;
-                                                            var statename =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .stateName;
-                                                            var sourceTypeCategoryId =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .sourceTypeCategoryId;
-                                                            var habitationId =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .habitationId;
-                                                            var villageName =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .villageName;
-                                                            var existTagWaterSourceId =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .existTagWaterSourceId;
-                                                            var isApprovedState =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .isApprovedState;
-                                                            var landmark = value
-                                                                .sourcelist![i]!
-                                                                .landmark;
-                                                            var latitude = value
-                                                                .sourcelist![i]!
-                                                                .latitude;
-                                                            var longitude =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .longitude;
-                                                            var habitationName =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .habitationName;
-                                                            var location = value
-                                                                .sourcelist![i]!
-                                                                .location;
-                                                            var sourceTypeCategory =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .sourceTypeCategory;
-                                                            var sourceType =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .sourceType;
-                                                            var districtName =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .districtName;
-                                                            var districtId =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .districtId;
-                                                            var panchayatNamenew =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .panchayatName;
-                                                            var blocknamenew =
-                                                                value
-                                                                    .sourcelist![
-                                                                    i]!
-                                                                    .blockName;
-
-                                                            databaseHelperJalJeevan
-                                                                ?.insertMasterSourcedetails(
-                                                                    LocalSourcelistdetailsModal(
-                                                              schemeId: SchemeId
-                                                                  .toString(),
-                                                              sourceId: sourceId
-                                                                  .toString(),
-                                                              villageId: villageid
-                                                                  .toString(),
-                                                              schemeName:
-                                                                  Schemename,
-                                                              sourceTypeId:
-                                                                  sourceTypeId
-                                                                      .toString(),
-                                                              sourceTypeCategoryId:
-                                                                  sourceTypeCategoryId
-                                                                      .toString(),
-                                                              habitationId:
-                                                                  habitationId
-                                                                      .toString(),
-                                                              existTagWaterSourceId:
-                                                                  existTagWaterSourceId
-                                                                      .toString(),
-                                                              isApprovedState:
-                                                                  isApprovedState
-                                                                      .toString(),
-                                                              landmark:
-                                                                  landmark,
-                                                              latitude: latitude
-                                                                  .toString(),
-                                                              longitude: longitude
-                                                                  .toString(),
-                                                              habitationName:
-                                                                  habitationName,
-                                                              location:
-                                                                  location,
-                                                              sourceTypeCategory:
-                                                                  sourceTypeCategory,
-                                                              sourceType:
-                                                                  sourceType,
-                                                              stateName:
-                                                                  statename,
-                                                              districtName:
-                                                                  districtName,
-                                                              blockName:
-                                                                  blocknamenew,
-                                                              panchayatName:
-                                                                  panchayatNamenew,
-                                                              districtId:
-                                                                  districtId
-                                                                      .toString(),
-                                                              villageName:
-                                                                  villageName,
-                                                              stateId: stateid
-                                                                  .toString(),
-                                                            ));
-                                                          }
-
-                                                          for (int i = 0;
-                                                              i <
-                                                                  value
-                                                                      .habitationlist!
-                                                                      .length;
-                                                              i++) {
-                                                            var villafgeid = value
-                                                                .habitationlist![
-                                                                    i]!
-                                                                .villageId;
-                                                            var habitationId = value
-                                                                .habitationlist![
-                                                                    i]!
-                                                                .habitationId;
-                                                            var habitationName = value
-                                                                .habitationlist![
-                                                                    i]!
-                                                                .habitationName;
-
-                                                            databaseHelperJalJeevan?.insertMasterhabitaionlist(LocalHabitaionlistModal(
-                                                                villageId:
-                                                                    villafgeid
-                                                                        .toString(),
-                                                                HabitationId:
-                                                                    habitationId
-                                                                        .toString(),
-                                                                HabitationName:
-                                                                    habitationName
-                                                                        .toString()));
-                                                          }
-                                                          for (int i = 0;
-                                                              i <
-                                                                  value
-                                                                      .informationBoardList!
-                                                                      .length;
-                                                              i++) {
-                                                            databaseHelperJalJeevan?.insertmastersibdetails(LocalmasterInformationBoardItemModal(
-                                                                userId: value.informationBoardList![i]!.userId
-                                                                    .toString(),
-                                                                villageId: value.informationBoardList![i]!.villageId
-                                                                    .toString(),
-                                                                stateId: value
-                                                                    .informationBoardList![
-                                                                    i]!
-                                                                    .stateId
-                                                                    .toString(),
-                                                                schemeId: value
-                                                                    .informationBoardList![
-                                                                    i]!
-                                                                    .schemeId
-                                                                    .toString(),
-                                                                districtName: value
-                                                                    .informationBoardList![
-                                                                    i]!
-                                                                    .districtName,
-                                                                blockName: value
-                                                                    .informationBoardList![i]!
-                                                                    .blockName,
-                                                                panchayatName: value.informationBoardList![i]!.panchayatName,
-                                                                villageName: value.informationBoardList![i]!.villageName,
-                                                                habitationName: value.informationBoardList![i]!.habitationName,
-                                                                latitude: value.informationBoardList![i]!.latitude.toString(),
-                                                                longitude: value.informationBoardList![i]!.longitude.toString(),
-                                                                sourceName: value.informationBoardList![i]!.sourceName,
-                                                                schemeName: value.informationBoardList![i]!.schemeName,
-                                                                message: value.informationBoardList![i]!.message,
-                                                                status: value.informationBoardList![i]!.status.toString()));
-                                                          }
-                                                        });
                                                       }
                                                     });
                                                   }
@@ -6392,7 +5839,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                         base64Image)
                                                                     .then(
                                                                         (value) {
-                                                                  Get.back();
+
                                                                   if (value["Status"]
                                                                           .toString() ==
                                                                       "false") {
@@ -6424,371 +5871,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                             .toString());
 
                                                                     cleartable_localmastertables();
-                                                                    Apiservice.Getmasterapi(
-                                                                            context)
-                                                                        .then(
-                                                                            (value) {
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.villagelist!.length;
-                                                                          i++) {
-                                                                        var userid = value
-                                                                            .villagelist![i]!
-                                                                            .userId;
 
-                                                                        var villageId = value
-                                                                            .villagelist![i]!
-                                                                            .villageId;
-                                                                        var stateId = value
-                                                                            .villagelist![i]!
-                                                                            .stateId;
-                                                                        var villageName = value
-                                                                            .villagelist![i]!
-                                                                            .VillageName;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMastervillagelistdata(Localmasterdatanodal(
-                                                                                UserId: userid.toString(),
-                                                                                villageId: villageId.toString(),
-                                                                                StateId: stateId.toString(),
-                                                                                villageName: villageName.toString()))
-                                                                            .then((value) {});
-                                                                      }
-                                                                      databaseHelperJalJeevan!
-                                                                          .removeDuplicateEntries();
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.villageDetails!.length;
-                                                                          i++) {
-                                                                        var status =
-                                                                            "";
-                                                                        var stateName =
-                                                                            "Assam";
-
-                                                                        var districtName = value
-                                                                            .villageDetails![i]!
-                                                                            .districtName;
-                                                                        var stateid = value
-                                                                            .villageDetails![i]!
-                                                                            .stateId;
-                                                                        var blockName = value
-                                                                            .villageDetails![i]!
-                                                                            .blockName;
-                                                                        var panchayatName = value
-                                                                            .villageDetails![i]!
-                                                                            .panchayatName;
-                                                                        var stateidnew = value
-                                                                            .villageDetails![i]!
-                                                                            .stateId;
-                                                                        var userId = value
-                                                                            .villageDetails![i]!
-                                                                            .userId;
-                                                                        var villageIddetails = value
-                                                                            .villageDetails![i]!
-                                                                            .villageId;
-                                                                        var villageName = value
-                                                                            .villageDetails![i]!
-                                                                            .villageName;
-                                                                        var totalNoOfScheme = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfScheme;
-                                                                        var totalNoOfWaterSource = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfWaterSource;
-                                                                        var totalWsGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalWsGeoTagged;
-                                                                        var pendingWsTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .pendingWsTotal;
-                                                                        var balanceWsTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .balanceWsTotal;
-                                                                        var totalSsGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalSsGeoTagged;
-                                                                        var pendingApprovalSsTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .pendingApprovalSsTotal;
-                                                                        var totalIbRequiredGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalIbRequiredGeoTagged;
-                                                                        var totalIbGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalIbGeoTagged;
-                                                                        var pendingIbTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .pendingIbTotal;
-                                                                        var balanceIbTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .balanceIbTotal;
-                                                                        var totalOaGeoTagged = value
-                                                                            .villageDetails![i]!
-                                                                            .totalOaGeoTagged;
-                                                                        var balanceOaTotal = value
-                                                                            .villageDetails![i]!
-                                                                            .balanceOaTotal;
-                                                                        var totalNoOfSchoolScheme = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfSchoolScheme;
-                                                                        var totalNoOfPwsScheme = value
-                                                                            .villageDetails![i]!
-                                                                            .totalNoOfPwsScheme;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMastervillagedetails(Localmasterdatamodal_VillageDetails(
-                                                                          status:
-                                                                              "0",
-                                                                          stateName:
-                                                                              stateName,
-                                                                          districtName:
-                                                                              districtName,
-                                                                          blockName:
-                                                                              blockName,
-                                                                          panchayatName:
-                                                                              panchayatName,
-                                                                          stateId:
-                                                                              stateidnew.toString(),
-                                                                          userId:
-                                                                              userId.toString(),
-                                                                          villageId:
-                                                                              villageIddetails.toString(),
-                                                                          villageName:
-                                                                              villageName,
-                                                                          totalNoOfScheme:
-                                                                              totalNoOfScheme.toString(),
-                                                                          totalNoOfWaterSource:
-                                                                              totalNoOfWaterSource.toString(),
-                                                                          totalWsGeoTagged:
-                                                                              totalWsGeoTagged.toString(),
-                                                                          pendingWsTotal:
-                                                                              pendingWsTotal.toString(),
-                                                                          balanceWsTotal:
-                                                                              balanceWsTotal.toString(),
-                                                                          totalSsGeoTagged:
-                                                                              totalSsGeoTagged.toString(),
-                                                                          pendingApprovalSsTotal:
-                                                                              pendingApprovalSsTotal.toString(),
-                                                                          totalIbRequiredGeoTagged:
-                                                                              totalIbRequiredGeoTagged.toString(),
-                                                                          totalIbGeoTagged:
-                                                                              totalIbGeoTagged.toString(),
-                                                                          pendingIbTotal:
-                                                                              pendingIbTotal.toString(),
-                                                                          balanceIbTotal:
-                                                                              balanceIbTotal.toString(),
-                                                                          totalOaGeoTagged:
-                                                                              totalOaGeoTagged.toString(),
-                                                                          balanceOaTotal:
-                                                                              balanceOaTotal.toString(),
-                                                                          totalNoOfSchoolScheme:
-                                                                              totalNoOfSchoolScheme.toString(),
-                                                                          totalNoOfPwsScheme:
-                                                                              totalNoOfPwsScheme.toString(),
-                                                                        ));
-                                                                      }
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.schmelist!.length;
-                                                                          i++) {
-                                                                        var schemeidnew = value
-                                                                            .schmelist![i]!
-                                                                            .schemeid;
-                                                                        var villageid = value
-                                                                            .schmelist![i]!
-                                                                            .villageId;
-                                                                        var schemenamenew = value
-                                                                            .schmelist![i]!
-                                                                            .schemename;
-                                                                        var schemenacategorynew = value
-                                                                            .schmelist![i]!
-                                                                            .category;
-                                                                        var SourceTypeCategoryId = value.schmelist![i]!.SourceTypeCategoryId;
-                                                                        var source_typeCategory = value.schmelist![i]!.source_typeCategory;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMasterSchmelist(Localmasterdatamoda_Scheme(
-                                                                          source_type: Sourceid_type.toString(),  schemeid: schemeidnew.toString(),
-                                                                          villageId:
-                                                                              villageid.toString(),
-                                                                          schemename:
-                                                                              schemenamenew.toString(),
-                                                                          category: schemenacategorynew.toString(),
-                                                                          SourceTypeCategoryId: SourceTypeCategoryId.toString(),
-                                                                          source_typeCategory: source_typeCategory.toString(),
-                                                                        ));
-                                                                      }
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.sourcelist!.length;
-                                                                          i++) {
-                                                                        var sourceId = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceId;
-                                                                        var SchemeId = value
-                                                                            .sourcelist![i]!
-                                                                            .schemeId;
-                                                                        var stateid = value
-                                                                            .sourcelist![i]!
-                                                                            .stateid;
-                                                                        var Schemename = value
-                                                                            .sourcelist![i]!
-                                                                            .schemeName;
-                                                                        var villageid = value
-                                                                            .sourcelist![i]!
-                                                                            .villageId;
-                                                                        var sourceTypeId = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceTypeId;
-                                                                        var statename = value
-                                                                            .sourcelist![i]!
-                                                                            .stateName;
-                                                                        var sourceTypeCategoryId = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceTypeCategoryId;
-                                                                        var habitationId = value
-                                                                            .sourcelist![i]!
-                                                                            .habitationId;
-                                                                        var villageName = value
-                                                                            .sourcelist![i]!
-                                                                            .villageName;
-                                                                        var existTagWaterSourceId = value
-                                                                            .sourcelist![i]!
-                                                                            .existTagWaterSourceId;
-                                                                        var isApprovedState = value
-                                                                            .sourcelist![i]!
-                                                                            .isApprovedState;
-                                                                        var landmark = value
-                                                                            .sourcelist![i]!
-                                                                            .landmark;
-                                                                        var latitude = value
-                                                                            .sourcelist![i]!
-                                                                            .latitude;
-                                                                        var longitude = value
-                                                                            .sourcelist![i]!
-                                                                            .longitude;
-                                                                        var habitationName = value
-                                                                            .sourcelist![i]!
-                                                                            .habitationName;
-                                                                        var location = value
-                                                                            .sourcelist![i]!
-                                                                            .location;
-                                                                        var sourceTypeCategory = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceTypeCategory;
-                                                                        var sourceType = value
-                                                                            .sourcelist![i]!
-                                                                            .sourceType;
-                                                                        var districtName = value
-                                                                            .sourcelist![i]!
-                                                                            .districtName;
-                                                                        var districtId = value
-                                                                            .sourcelist![i]!
-                                                                            .districtId;
-                                                                        var panchayatNamenew = value
-                                                                            .sourcelist![i]!
-                                                                            .panchayatName;
-                                                                        var blocknamenew = value
-                                                                            .sourcelist![i]!
-                                                                            .blockName;
-
-                                                                        databaseHelperJalJeevan
-                                                                            ?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
-                                                                          schemeId:
-                                                                              SchemeId.toString(),
-                                                                          sourceId:
-                                                                              sourceId.toString(),
-                                                                          villageId:
-                                                                              villageid.toString(),
-                                                                          schemeName:
-                                                                              Schemename,
-                                                                          sourceTypeId:
-                                                                              sourceTypeId.toString(),
-                                                                          sourceTypeCategoryId:
-                                                                              sourceTypeCategoryId.toString(),
-                                                                          habitationId:
-                                                                              habitationId.toString(),
-                                                                          existTagWaterSourceId:
-                                                                              existTagWaterSourceId.toString(),
-                                                                          isApprovedState:
-                                                                              isApprovedState.toString(),
-                                                                          landmark:
-                                                                              landmark,
-                                                                          latitude:
-                                                                              latitude.toString(),
-                                                                          longitude:
-                                                                              longitude.toString(),
-                                                                          habitationName:
-                                                                              habitationName,
-                                                                          location:
-                                                                              location,
-                                                                          sourceTypeCategory:
-                                                                              sourceTypeCategory,
-                                                                          sourceType:
-                                                                              sourceType,
-                                                                          stateName:
-                                                                              statename,
-                                                                          districtName:
-                                                                              districtName,
-                                                                          blockName:
-                                                                              blocknamenew,
-                                                                          panchayatName:
-                                                                              panchayatNamenew,
-                                                                          districtId:
-                                                                              districtId.toString(),
-                                                                          villageName:
-                                                                              villageName,
-                                                                          stateId:
-                                                                              stateid.toString(),
-                                                                        ));
-                                                                      }
-
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.habitationlist!.length;
-                                                                          i++) {
-                                                                        var villafgeid = value
-                                                                            .habitationlist![i]!
-                                                                            .villageId;
-                                                                        var habitationId = value
-                                                                            .habitationlist![i]!
-                                                                            .habitationId;
-                                                                        var habitationName = value
-                                                                            .habitationlist![i]!
-                                                                            .habitationName;
-
-                                                                        databaseHelperJalJeevan?.insertMasterhabitaionlist(LocalHabitaionlistModal(
-                                                                            villageId:
-                                                                                villafgeid.toString(),
-                                                                            HabitationId: habitationId.toString(),
-                                                                            HabitationName: habitationName.toString()));
-                                                                      }
-                                                                      for (int i =
-                                                                              0;
-                                                                          i < value.informationBoardList!.length;
-                                                                          i++) {
-                                                                        databaseHelperJalJeevan?.insertmastersibdetails(LocalmasterInformationBoardItemModal(
-                                                                            userId:
-                                                                                value.informationBoardList![i]!.userId.toString(),
-                                                                            villageId: value.informationBoardList![i]!.villageId.toString(),
-                                                                            stateId: value.informationBoardList![i]!.stateId.toString(),
-                                                                            schemeId: value.informationBoardList![i]!.schemeId.toString(),
-                                                                            districtName: value.informationBoardList![i]!.districtName,
-                                                                            blockName: value.informationBoardList![i]!.blockName,
-                                                                            panchayatName: value.informationBoardList![i]!.panchayatName,
-                                                                            villageName: value.informationBoardList![i]!.villageName,
-                                                                            habitationName: value.informationBoardList![i]!.habitationName,
-                                                                            latitude: value.informationBoardList![i]!.latitude.toString(),
-                                                                            longitude: value.informationBoardList![i]!.longitude.toString(),
-                                                                            sourceName: value.informationBoardList![i]!.sourceName,
-                                                                            schemeName: value.informationBoardList![i]!.schemeName,
-                                                                            message: value.informationBoardList![i]!.message,
-                                                                            status: value.informationBoardList![i]!.status.toString()));
-                                                                      }
-                                                                    });
                                                                   }
                                                                 });
                                                               }
@@ -7077,10 +6160,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                     index]
                                                                 ["SourceTypeId"]
                                                             .toString();
-                                                    SourceTypeCategoryId_addnewsourcebtn =
-                                                        Listdetaillistofscheme[
-                                                                    index][
-                                                                "sourceTypeCategoryId"]
+                                                    SourceTypeCategoryId_addnewsourcebtn = Listdetaillistofscheme[index]["sourceTypeCategoryId"]
                                                             .toString();
                                                     villagename_addnewsourcebtn =
                                                         getvillagename;
@@ -7462,10 +6542,8 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                             } else {
                                                               Get.to(AddNewSourceScreen(
                                                                   Sourceid_typesend :  Sourceid_type,
-                                                                  source_typeCategorysend:      source_typeCategory,
-
+                                                                  source_typeCategorysend:source_typeCategory,
                                                                   SourceTypeCategoryIdsend:SourceTypeCategoryId,
-
                                                                   selectscheme: selectschamename,
                                                                   selecthabitation:
                                                                       selecthabitation_addnewsourcebtn,
@@ -8258,7 +7336,7 @@ class _NewTagWaterState extends State<NewTagWater> {
                                                                                                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                                                                                                   RoundedRectangleBorder(
                                                                                                     borderRadius: BorderRadius.circular(10.0),
-                                                                                                    side: const BorderSide(color: Appcolor.btncolor),
+                                                                                                    side: BorderSide(color: Appcolor.btncolor),
                                                                                                   ),
                                                                                                 ),
                                                                                               ),
@@ -9289,13 +8367,163 @@ class _NewTagWaterState extends State<NewTagWater> {
   }
 
   Future<void> cleartable_localmastertables() async {
-    await databaseHelperJalJeevan!.truncateTable_localmasterschemelist();
     await databaseHelperJalJeevan!.cleardb_localmasterschemelist();
     await databaseHelperJalJeevan!.cleartable_villagelist();
     await databaseHelperJalJeevan!.cleartable_villagedetails();
     await databaseHelperJalJeevan!.cleardb_localhabitaionlisttable();
     await databaseHelperJalJeevan!.cleardb_sourcedetailstable();
-    await databaseHelperJalJeevan!.cleardb_sibmasterlist();
+    await databaseHelperJalJeevan!.truncatetable_sibmasterdeatils();
+
+    // Fetch new data from API and update local database
+    Apiservice.Getmasterapi(context).then((value) async {
+      // Update Village List
+      for (int i = 0; i < value.villagelist!.length; i++) {
+        var villageData = value.villagelist![i]!;
+        await databaseHelperJalJeevan?.insertMastervillagelistdata(
+          Localmasterdatanodal(
+            UserId: villageData.userId.toString(),
+            villageId: villageData.villageId.toString(),
+            StateId: villageData.stateId.toString(),
+            villageName: villageData.VillageName.toString(),
+          ),
+        );
+      }
+      await databaseHelperJalJeevan!.removeDuplicateEntries();
+
+      // Update Village Details
+      for (int i = 0; i < value.villageDetails!.length; i++) {
+        var villageDetails = value.villageDetails![i]!;
+        await databaseHelperJalJeevan?.insertMastervillagedetails(
+          Localmasterdatamodal_VillageDetails(
+            status: "0",
+            stateName: "Assam",
+            districtName: villageDetails.districtName,
+            blockName: villageDetails.blockName,
+            panchayatName: villageDetails.panchayatName,
+            stateId: villageDetails.stateId.toString(),
+            userId: villageDetails.userId.toString(),
+            villageId: villageDetails.villageId.toString(),
+            villageName: villageDetails.villageName,
+            totalNoOfScheme: villageDetails.totalNoOfScheme.toString(),
+            totalNoOfWaterSource: villageDetails.totalNoOfWaterSource.toString(),
+            totalWsGeoTagged: villageDetails.totalWsGeoTagged.toString(),
+            pendingWsTotal: villageDetails.pendingWsTotal.toString(),
+            balanceWsTotal: villageDetails.balanceWsTotal.toString(),
+            totalSsGeoTagged: villageDetails.totalSsGeoTagged.toString(),
+            pendingApprovalSsTotal: villageDetails.pendingApprovalSsTotal.toString(),
+            totalIbRequiredGeoTagged: villageDetails.totalIbRequiredGeoTagged.toString(),
+            totalIbGeoTagged: villageDetails.totalIbGeoTagged.toString(),
+            pendingIbTotal: villageDetails.pendingIbTotal.toString(),
+            balanceIbTotal: villageDetails.balanceIbTotal.toString(),
+            totalOaGeoTagged: villageDetails.totalOaGeoTagged.toString(),
+            balanceOaTotal: villageDetails.balanceOaTotal.toString(),
+            totalNoOfSchoolScheme: villageDetails.totalNoOfSchoolScheme.toString(),
+            totalNoOfPwsScheme: villageDetails.totalNoOfPwsScheme.toString(),
+          ),
+        );
+      }
+
+      // Update Scheme List
+      for (int i = 0; i < value.schmelist!.length; i++) {
+        var scheme = value.schmelist![i]!;
+        await databaseHelperJalJeevan?.insertMasterSchmelist(
+          Localmasterdatamoda_Scheme(
+            source_type: scheme.source_type.toString(),
+            schemeid: scheme.schemeid.toString(),
+            villageId: scheme.villageId.toString(),
+            schemename: scheme.schemename.toString(),
+            category: scheme.category.toString(),
+            SourceTypeCategoryId: scheme.SourceTypeCategoryId.toString(),
+            source_typeCategory: scheme.source_typeCategory.toString(),
+          ),
+        );
+      }
+
+      // Update Source List
+      for (int i = 0; i < value.sourcelist!.length; i++) {
+        var source = value.sourcelist![i]!;
+        await databaseHelperJalJeevan?.insertMasterSourcedetails(
+          LocalSourcelistdetailsModal(
+            schemeId: source.schemeId.toString(),
+            sourceId: source.sourceId.toString(),
+            villageId: source.villageId.toString(),
+            schemeName: source.schemeName,
+            sourceTypeId: source.sourceTypeId.toString(),
+            sourceTypeCategoryId: source.sourceTypeCategoryId.toString(),
+            habitationId: source.habitationId.toString(),
+            existTagWaterSourceId: source.existTagWaterSourceId.toString(),
+            isApprovedState: source.isApprovedState.toString(),
+            landmark: source.landmark,
+            latitude: source.latitude.toString(),
+            longitude: source.longitude.toString(),
+            habitationName: source.habitationName,
+            location: source.location,
+            sourceTypeCategory: source.sourceTypeCategory,
+            sourceType: source.sourceType,
+            stateName: source.stateName,
+            districtName: source.districtName,
+            blockName: source.blockName,
+            panchayatName: source.panchayatName,
+            districtId: source.districtId.toString(),
+            villageName: source.villageName,
+            stateId: source.stateid.toString(),
+            IsWTP: source.IsWTP.toString(),
+          ),
+        );
+      }
+
+      // Update Habitation List
+      for (int i = 0; i < value.habitationlist!.length; i++) {
+        var habitation = value.habitationlist![i]!;
+        await databaseHelperJalJeevan?.insertMasterhabitaionlist(
+          LocalHabitaionlistModal(
+            villageId: habitation.villageId.toString(),
+            HabitationId: habitation.habitationId.toString(),
+            HabitationName: habitation.habitationName.toString(),
+          ),
+        );
+      }
+
+      // Update Information Board List
+      for (int i = 0; i < value.informationBoardList!.length; i++) {
+        var infoBoard = value.informationBoardList![i]!;
+        await databaseHelperJalJeevan?.insertmastersibdetails(
+          LocalmasterInformationBoardItemModal(
+            userId: infoBoard.userId.toString(),
+            villageId: infoBoard.villageId.toString(),
+            stateId: infoBoard.stateId.toString(),
+            schemeId: infoBoard.schemeId.toString(),
+            districtName: infoBoard.districtName,
+            blockName: infoBoard.blockName,
+            panchayatName: infoBoard.panchayatName,
+            villageName: infoBoard.villageName,
+            habitationName: infoBoard.habitationName,
+            latitude: infoBoard.latitude.toString(),
+            longitude: infoBoard.longitude.toString(),
+            sourceName: infoBoard.sourceName,
+            schemeName: infoBoard.schemeName,
+            message: infoBoard.message,
+            status: infoBoard.status.toString(),
+          ),
+        );
+      }
+    });
+
+    // Handle API timeout or errors
+    try {
+      var value = await Apiservice.Getmasterapi(context).timeout(Duration(seconds: 30));
+      // Data processing logic if needed
+    } catch (e) {
+      if (e is TimeoutException) {
+        print("API call timed out");
+        Stylefile.showmessageforvalidationfalse(context, "Request timed out. Please try again.");
+      } else {
+        print("Error: $e");
+        Stylefile.showmessageforvalidationfalse(context, "An error occurred.");
+      }
+    }
+
+    Get.back();
   }
 
   Future<void> _showalertboxforaddnewsource(String? countofrecord) async {

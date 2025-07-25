@@ -7,15 +7,15 @@ import 'package:intl/intl.dart';
 
 import 'package:http/http.dart' as http;
 
-import '../../utility/Appcolor.dart';
+import '../../addfhtc/jjm_facerd_appcolor.dart';
 
 class ZoomImage extends StatefulWidget {
   String imgurl;
   String lat;
   String long;
 
-    ZoomImage(
-        {required this.imgurl, required this.lat, required this.long, super.key});
+  ZoomImage(
+      {required this.imgurl, required this.lat, required this.long, super.key});
 
   @override
   State<ZoomImage> createState() => _practisesecState(lat: lat, long: long);

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+
 import 'package:provider/provider.dart';
 import '../apiservice/Apiservice.dart';
 import '../database/DataBaseHelperJalJeevan.dart';
@@ -862,55 +863,34 @@ class _VillageListScreenState extends State<Villagelistzero> {
                                                                             ));
                                                                           }
 
-                                                                          for (int i = 0;
-                                                                              i < value.sourcelist!.length;
-                                                                              i++) {
-                                                                            var sourceId =
-                                                                                value.sourcelist![i]!.sourceId;
-                                                                            var SchemeId =
-                                                                                value.sourcelist![i]!.schemeId;
-                                                                            var stateid =
-                                                                                value.sourcelist![i]!.stateid;
-                                                                            var Schemename =
-                                                                                value.sourcelist![i]!.schemeName;
-                                                                            var villageid =
-                                                                                value.sourcelist![i]!.villageId;
-                                                                            var sourceTypeId =
-                                                                                value.sourcelist![i]!.sourceTypeId;
-                                                                            var statename =
-                                                                                value.sourcelist![i]!.stateName;
+                                                                          for (int i = 0; i < value.sourcelist!.length; i++) {
+                                                                            var sourceId = value.sourcelist![i]!.sourceId;
+                                                                            var SchemeId = value.sourcelist![i]!.schemeId;
+                                                                            var stateid = value.sourcelist![i]!.stateid;
+                                                                            var Schemename = value.sourcelist![i]!.schemeName;
+                                                                            var villageid = value.sourcelist![i]!.villageId;
+                                                                            var sourceTypeId = value.sourcelist![i]!.sourceTypeId;
+                                                                            var statename = value.sourcelist![i]!.stateName;
                                                                             var sourceTypeCategoryId =
                                                                                 value.sourcelist![i]!.sourceTypeCategoryId;
-                                                                            var habitationId =
-                                                                                value.sourcelist![i]!.habitationId;
-                                                                            var villageName =
-                                                                                value.sourcelist![i]!.villageName;
+                                                                            var habitationId = value.sourcelist![i]!.habitationId;
+                                                                            var villageName = value.sourcelist![i]!.villageName;
                                                                             var existTagWaterSourceId =
                                                                                 value.sourcelist![i]!.existTagWaterSourceId;
-                                                                            var isApprovedState =
-                                                                                value.sourcelist![i]!.isApprovedState;
-                                                                            var landmark =
-                                                                                value.sourcelist![i]!.landmark;
-                                                                            var latitude =
-                                                                                value.sourcelist![i]!.latitude;
-                                                                            var longitude =
-                                                                                value.sourcelist![i]!.longitude;
-                                                                            var habitationName =
-                                                                                value.sourcelist![i]!.habitationName;
-                                                                            var location =
-                                                                                value.sourcelist![i]!.location;
+                                                                            var isApprovedState = value.sourcelist![i]!.isApprovedState;
+                                                                            var landmark = value.sourcelist![i]!.landmark;
+                                                                            var latitude = value.sourcelist![i]!.latitude;
+                                                                            var longitude = value.sourcelist![i]!.longitude;
+                                                                            var habitationName = value.sourcelist![i]!.habitationName;
+                                                                            var location = value.sourcelist![i]!.location;
                                                                             var sourceTypeCategory =
                                                                                 value.sourcelist![i]!.sourceTypeCategory;
-                                                                            var sourceType =
-                                                                                value.sourcelist![i]!.sourceType;
-                                                                            var districtName =
-                                                                                value.sourcelist![i]!.districtName;
-                                                                            var districtId =
-                                                                                value.sourcelist![i]!.districtId;
-                                                                            var panchayatNamenew =
-                                                                                value.sourcelist![i]!.panchayatName;
-                                                                            var blocknamenew =
-                                                                                value.sourcelist![i]!.blockName;
+                                                                            var sourceType = value.sourcelist![i]!.sourceType;
+                                                                            var districtName = value.sourcelist![i]!.districtName;
+                                                                            var districtId = value.sourcelist![i]!.districtId;
+                                                                            var panchayatNamenew = value.sourcelist![i]!.panchayatName;
+                                                                            var blocknamenew = value.sourcelist![i]!.blockName;
+                                                                            var IsWTP = value.sourcelist![i]!.IsWTP;
 
                                                                             databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
                                                                               schemeId: SchemeId.toString(),
@@ -936,6 +916,8 @@ class _VillageListScreenState extends State<Villagelistzero> {
                                                                               districtId: districtId.toString(),
                                                                               villageName: villageName,
                                                                               stateId: stateid.toString(),
+                                                                              IsWTP: IsWTP.toString(),
+
                                                                             ));
                                                                           }
 

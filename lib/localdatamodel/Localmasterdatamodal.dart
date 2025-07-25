@@ -213,6 +213,7 @@ class LocalSourcelistdetailsModal {
   final String? stateId;
   final String? districtId;
   final String? villageId;
+  final String? IsWTP;
 
   LocalSourcelistdetailsModal({
     required this.schemeId,
@@ -238,6 +239,7 @@ class LocalSourcelistdetailsModal {
     required this.stateId,
     required this.districtId,
     required this.villageId,
+    required this.IsWTP,
   });
 
   Map<String, dynamic> toMap() {
@@ -265,6 +267,7 @@ class LocalSourcelistdetailsModal {
       'stateId': stateId,
       'districtId': districtId,
       'villageId': villageId,
+      'IsWTP': IsWTP,
     };
   }
 
@@ -293,6 +296,7 @@ class LocalSourcelistdetailsModal {
       stateId: json['stateid'],
       districtId: json['DistrictId'],
       villageId: (json['VillageId']),
+      IsWTP: (json['IsWTP']),
     );
   }
 }

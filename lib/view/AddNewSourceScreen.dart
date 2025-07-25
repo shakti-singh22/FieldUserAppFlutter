@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
@@ -13,13 +14,13 @@ import 'package:http/http.dart' as http;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../CommanScreen.dart';
 import '../apiservice/Apiservice.dart';
 import '../database/DataBaseHelperJalJeevan.dart';
 import '../localdatamodel/Localmasterdatamodal.dart';
 import '../localdatamodel/Localpwssourcemodal.dart';
 import '../model/Habitationlistmodal.dart';
 import '../utility/Appcolor.dart';
-import '../utility/CommanScreen.dart';
 import '../utility/Drawlatlong.dart';
 import '../utility/Stylefile.dart';
 import '../utility/Textfile.dart';
@@ -63,25 +64,25 @@ class AddNewSourceScreen extends StatefulWidget {
         required this.source_typeCategorysend,
         required this.SourceTypeCategoryIdsend,
 
-      required this.selectscheme,
-      required this.selecthabitation,
-      required this.selectlocationlanmark,
-      required this.villageid,
-      required this.assettaggingid,
-      required this.StateId,
-      required this.schemeid,
-      required this.SourceId,
-      required this.HabitationId,
-      required this.SourceTypeId,
-      required this.SourceTypeCategoryId,
-      required this.villagename,
-      required this.latitute,
-      required this.longitute,
-      required this.districtname,
-      required this.blockname,
-      required this.sourcetype,
-      required this.panchayatname,
-      super.key});
+        required this.selectscheme,
+        required this.selecthabitation,
+        required this.selectlocationlanmark,
+        required this.villageid,
+        required this.assettaggingid,
+        required this.StateId,
+        required this.schemeid,
+        required this.SourceId,
+        required this.HabitationId,
+        required this.SourceTypeId,
+        required this.SourceTypeCategoryId,
+        required this.villagename,
+        required this.latitute,
+        required this.longitute,
+        required this.districtname,
+        required this.blockname,
+        required this.sourcetype,
+        required this.panchayatname,
+        super.key});
 
   @override
   State<AddNewSourceScreen> createState() => _AddNewSourceScreenState(
@@ -95,8 +96,8 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
   _AddNewSourceScreenState(
       {required this.villageName,
-      required this.villageId,
-      required this.stateId});
+        required this.villageId,
+        required this.stateId});
 
   CroppedFile? croppedFile;
 
@@ -138,6 +139,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
   List<dynamic> SourceTypeCategoryList = [];
   List<dynamic> SourceTypeCategoryList_id = [];
   List<dynamic> sourcetypelistone_id = [];
+  List<dynamic> type_id = [];
   var SourceTypeCategoryId;
   var selecthabitaionname = "-- Select Habitation --";
   var selecthabitaionid;
@@ -221,9 +223,9 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
   }
 
   Future gethabitaionlist(
-    BuildContext context,
-    String token,
-  ) async {
+      BuildContext context,
+      String token,
+      ) async {
     var uri = Uri.parse(
         '${Apiservice.baseurl}JJM_Mobile/GetHabitationlist?UserId=' +
             box.read("userid") +
@@ -269,79 +271,114 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
   }
 
   assettypesource() async {
-    savesourcecategorylist = await databaseHelperJalJeevan!
-        .fetchData_mastersource_categorytype_inDB();
+    savesourcecategorylist = await databaseHelperJalJeevan!.fetchData_mastersource_categorytype_inDB();
 
     setState(() {
       Listofsourcetype = savesourcecategorylist[0]["Result"];
       mainListsourcecategory = savesourcecategorylist[0]["Result"];
+
       setState(() {
         for (int i = 0; i < mainListsourcecategory.length; i++) {
-          SourceTypeCategoryId =
-              mainListsourcecategory![i]!["SourceTypeCategoryId"].toString();
+          SourceTypeCategoryId = mainListsourcecategory![i]!["SourceTypeCategoryId"].toString();
           SourceTypeCategoryList_id.add(SourceTypeCategoryId);
 
-          SourceTypeCategory =
-              mainListsourcecategory![i]!["SourceTypeCategory"];
+          SourceTypeCategory = mainListsourcecategory![i]!["SourceTypeCategory"];
           SourceTypeCategoryList.add(SourceTypeCategory);
 
           final sourcetypeid = mainListsourcecategory![i]!["SourceTypeId"];
           sourcetypelistone_id.add(sourcetypeid);
 
-          final jsonList =
-              SourceTypeCategoryList.map((item) => jsonEncode(item)).toList();
-          final uniqueJsonList = jsonList.toSet().toList();
-          distinctlist =
-              uniqueJsonList.map((item) => jsonDecode(item)).toList();
+          // Fetching TypeId
+          // Fetching TypeId based on SourceTypeCategory and SourceTypeId
 
-          final categoryid =
-              SourceTypeCategoryList_id.map((item) => jsonEncode(item))
-                  .toList();
+          /*   int? typeid; // Declare typeid as nullable or as a specific type
+
+          for (var i = 0; i < mainListsourcecategory.length; i++) {
+            // Check if SourceTypeId matches widget.Sourceid_typesend and SourceTypeCategoryId matches
+            if (mainListsourcecategory[i]["SourceTypeId"].toString() == widget.Sourceid_typesend &&
+                mainListsourcecategory[i]["SourceTypeCategoryId"].toString() == SourceTypeCategoryId) {
+              // Assign the matching TypeId
+              typeid = mainListsourcecategory[i]["TypeId"];
+              break; // Exit the loop once a match is found
+            }
+          }
+
+// Check if typeid has a value before adding it to type_id
+          if (typeid != null) {
+            setState(() {
+              type_id.add(typeid);
+            });
+
+            print("Fetched TypeId: $typeid");
+          } else {
+            print("No matching TypeId found for Sourceid_typesend: ${widget.Sourceid_typesend} and SourceTypeCategoryId: $SourceTypeCategoryId");
+          }*/
+
+          final jsonList = SourceTypeCategoryList.map((item) => jsonEncode(item)).toList();
+          final uniqueJsonList = jsonList.toSet().toList();
+          distinctlist = uniqueJsonList.map((item) => jsonDecode(item)).toList();
+
+          final categoryid = SourceTypeCategoryList_id.map((item) => jsonEncode(item)).toList();
           final categorylist = categoryid.toSet().toList();
-          distinct_categorylist =
-              categorylist.map((item) => jsonDecode(item)).toList();
+          distinct_categorylist = categorylist.map((item) => jsonDecode(item)).toList();
 
           if (SourceTypeCategoryId.toString() == "1") {
             setState(() {
-              minisource.add(mainListsourcecategory![i]!["SourceType"].toString());
+              if (!minisource.contains(mainListsourcecategory![i]!["SourceType"].toString())) {
+                minisource.add(mainListsourcecategory![i]!["SourceType"].toString());
+              }
+
               sourcetypeidlistone.add(mainListsourcecategory![i]!["SourceTypeId"].toString());
-              sourcetypeground=mainListsourcecategory![i]!["SourceType"].toString();
-              sourcetypegroundid=mainListsourcecategory![i]!["SourceTypeId"].toString();
+              sourcetypeground = mainListsourcecategory![i]!["SourceType"].toString();
+              sourcetypegroundid = mainListsourcecategory![i]!["SourceTypeId"].toString();
             });
           } else if (SourceTypeCategoryId.toString() == "2") {
             setState(() {
-              minisource2.add(mainListsourcecategory![i]!["SourceType"].toString());
+              if (!minisource2.contains(mainListsourcecategory![i]!["SourceType"].toString())) {
+                minisource2.add(mainListsourcecategory![i]!["SourceType"].toString());
+              }
               sourcetypeidlist.add(mainListsourcecategory![i]!["SourceTypeId"].toString());
 
-              sourcetypesurface=mainListsourcecategory![i]!["SourceType"].toString();
-              sourcetypesurfaceid=mainListsourcecategory![i]!["SourceTypeId"].toString();
-
-
+              sourcetypesurface = mainListsourcecategory![i]!["SourceType"].toString();
+              sourcetypesurfaceid = mainListsourcecategory![i]!["SourceTypeId"].toString();
             });
           } else if (SourceTypeCategoryId.toString() == "6") {
             setState(() {
-              minisourcebulk
-                  .add(mainListsourcecategory![i]!["SourceType"].toString());
-              sourcetypeidlistbulk
-                  .add(mainListsourcecategory![i]!["SourceTypeId"].toString());
+              if (!minisourcebulk.contains(mainListsourcecategory![i]!["SourceType"].toString())) {
+                minisourcebulk.add(mainListsourcecategory![i]!["SourceType"].toString());
+              }
+              sourcetypeidlistbulk.add(mainListsourcecategory![i]!["SourceTypeId"].toString());
               bulksourcetypename = mainListsourcecategory![i]!["SourceType"].toString();
-              bulsourcetypeid =
-                  mainListsourcecategory![i]!["SourceTypeId"].toString();
-              bulsourcetypecatename =
-                  mainListsourcecategory![i]!["SourceTypeCategory"].toString();
+              bulsourcetypeid = mainListsourcecategory![i]!["SourceTypeId"].toString();
+              bulsourcetypecatename = mainListsourcecategory![i]!["SourceTypeCategory"].toString();
               bulsourcetypecategoryid = mainListsourcecategory![i]!["SourceTypeCategoryId"].toString();
-
             });
           }
         }
       });
+
       setState(() {});
     });
   }
+  int? getTypeIdBasedOnSourceType(String sourceidTypesend) {
+    // Loop through the main list of source categories
+    for (var i = 0; i < mainListsourcecategory.length; i++) {
+      // Check if SourceTypeId matches widget.Sourceid_typesend and SourceTypeCategoryId matches
+      if (mainListsourcecategory[i]["SourceTypeId"].toString() == sourceidTypesend &&
+          mainListsourcecategory[i]["SourceTypeCategoryId"].toString() == SourceTypeCategoryId) {
+        // Return the matching TypeId
+        return mainListsourcecategory[i]["TypeId"];
+      }
+    }
+    // Return null if no match is found
+    return null;
+  }
+
+
 
   Future<void> _fetchhabitaiondropdownDropdownItems(String villageId) async {
     List<Map<String, dynamic>>? distinctSchemes =
-        await databaseHelperJalJeevan!.getDistinctHabitaion(villageId);
+    await databaseHelperJalJeevan!.getDistinctHabitaion(villageId);
     habitationlist.clear();
     habitationlist.add(habitaionlistmodal);
     for (int i = 0; i < distinctSchemes!.length; i++) {
@@ -538,7 +575,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                   Container(
                                     child: const Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         Text(Textfile.headingjaljeevan,
                                             textAlign: TextAlign.justify,
@@ -574,7 +611,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           ),
                                         ),
                                         actionsAlignment:
-                                            MainAxisAlignment.center,
+                                        MainAxisAlignment.center,
                                         title: Container(
                                           color: Appcolor.red,
                                           child: const Center(
@@ -600,7 +637,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                   style: TextStyle(
                                                       fontSize: 16,
                                                       fontWeight:
-                                                          FontWeight.bold,
+                                                      FontWeight.bold,
                                                       color: Appcolor.black),
                                                 ),
                                               ),
@@ -618,7 +655,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                 width: 1,
                                               ),
                                               borderRadius:
-                                                  BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                             ),
                                             child: TextButton(
                                               child: const Text(
@@ -643,7 +680,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                 width: 1,
                                               ),
                                               borderRadius:
-                                                  BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                             ),
                                             child: TextButton(
                                               child: const Text(
@@ -746,7 +783,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                             height: 10,
                           ),
 //source_type
-                   /*       widget.Sourceid_typesend == "6"
+                          /*       widget.Sourceid_typesend == "6"
                               ? Container(
                                   decoration: BoxDecoration(
                                     color: Appcolor.lightgrey,
@@ -817,229 +854,39 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
 
 
-                      Column(
-                        children: [
-                          Visibility(
-                            visible: widget.Sourceid_typesend == "6",
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Appcolor.lightgrey,
-                                border: Border.all(
-                                  color: Appcolor.lightgrey,
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(10.0),
-                                ),
-                              ),
-                              child: Material(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: InkWell(
-                                  splashColor: Appcolor.splashcolor,
-                                  onTap: () {},
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(10.0),
-                                        child: Text(
-                                          "Source category",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const Divider(
-                                        height: 10,
-                                        color: Appcolor.lightgrey,
-                                        thickness: 1,
-                                      ),
 
-                                      Padding(
-                                        padding: const EdgeInsets.all(10.0),
-                                        child: RichText(
-                                          text: TextSpan(
-                                            text: SourceTypeCategory + ":-",
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                                color: Appcolor.black),
-                                            children: <TextSpan>[
-                                              TextSpan(
-                                                  text: bulksourcetypename,
-                                                  style: new TextStyle(
-                                                      fontWeight:
-                                                      FontWeight.w400,
-                                                      fontSize: 14,
-                                                      color:
-                                                      Appcolor.black)),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Visibility(
-                            visible: widget.Sourceid_typesend == "1",
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Appcolor.lightgrey,
-                                border: Border.all(
-                                  color: Appcolor.lightgrey,
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(10.0),
-                                ),
-                              ),
-                              child: Material(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: InkWell(
-                                  splashColor: Appcolor.splashcolor,
-                                  onTap: () {},
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(10.0),
-                                        child: Text(
-                                          "Source category",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const Divider(
-                                        height: 10,
-                                        color: Appcolor.lightgrey,
-                                        thickness: 1,
-                                      ),
-                                      Container(
-                                        child:
-
-                                          Column(
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.all(10.0),
-                                                child: Text(widget.source_typeCategorysend),
-                                              ),
-
-                                            ],
-                                          )
-
-
-
-                                      ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Visibility(
-                            visible: widget.Sourceid_typesend == "2",
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Appcolor.lightgrey,
-                                border: Border.all(
-                                  color: Appcolor.lightgrey,
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(10.0),
-                                ),
-                              ),
-                              child: Material(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: InkWell(
-                                  splashColor: Appcolor.splashcolor,
-                                  onTap: () {},
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(10.0),
-                                        child: Text(
-                                          "Source category",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const Divider(
-                                        height: 10,
-                                        color: Appcolor.lightgrey,
-                                        thickness: 1,
-                                      ),
-                                      Container(
-                                        child:
-                                       Padding(
-                                         padding: const EdgeInsets.all(10.0),
-                                         child: Text(widget.source_typeCategorysend),
-                                       )
-                                      ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                          Container(
-                                  margin: const EdgeInsets.only(
-                                      top: 10, right: 0, left: 0, bottom: 10),
+                          Column(
+                            children: [
+                              Visibility(
+                                visible: widget.Sourceid_typesend == "6",
+                                child: Container(
                                   decoration: BoxDecoration(
-                                    color: Appcolor.white,
+                                    color: Appcolor.lightgrey,
                                     border: Border.all(
                                       color: Appcolor.lightgrey,
                                       width: 1,
                                     ),
                                     borderRadius: const BorderRadius.all(
-                                      Radius.circular(
-                                        10.0,
-                                      ),
+                                      Radius.circular(10.0),
                                     ),
                                   ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      widget.source_typeCategorysend.toString() == "Ground Water"
-                                          ?     Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      onTap: () {},
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           const Padding(
                                             padding: EdgeInsets.all(10.0),
                                             child: Text(
-                                              "Select Source type",
+                                              "Source category",
                                               style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ),
                                           const Divider(
@@ -1047,175 +894,520 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                             color: Appcolor.lightgrey,
                                             thickness: 1,
                                           ),
-                                          //widget.source_typeCategorysend
 
-                                          ListView.builder(
-                                                  itemCount: minisource.length,
-                                                  shrinkWrap: true,
-                                                  physics:
-                                                      const NeverScrollableScrollPhysics(),
-                                                  itemBuilder:
-                                                      (context, int index) {
-                                                    return Container(
-                                                      margin:
-                                                          const EdgeInsets.all(
-                                                              3),
-                                                      child: Material(
-                                                        elevation: 5,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10.0),
-                                                        child: InkWell(
-                                                          splashColor: Appcolor
-                                                              .splashcolor,
-                                                          onTap: () {},
-                                                          child: Column(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Container(
-                                                                  margin:
-                                                                      const EdgeInsets
-                                                                          .all(
-                                                                          0),
-                                                                  child:
-                                                                      RadioListTile(
-                                                                    activeColor:
-                                                                        Appcolor
-                                                                            .btncolor,
-                                                                    enableFeedback:
-                                                                        true,
-                                                                    contentPadding: const EdgeInsets
-                                                                        .symmetric(
-                                                                        horizontal:
-                                                                            0),
-                                                                    visualDensity: const VisualDensity(
-                                                                        horizontal:
-                                                                            VisualDensity
-                                                                                .minimumDensity,
-                                                                        vertical:
-                                                                            VisualDensity.minimumDensity),
-                                                                    title: new Text(
-                                                                        minisource[index]
-                                                                            .toString()),
-                                                                    value: minisource[
-                                                                            index]
-                                                                        .toString(),
-                                                                    groupValue:
-                                                                        select_sourcetyperadiobutton,
-                                                                    onChanged:
-                                                                        (value) {
-                                                                      setState(
-                                                                          () {
-                                                                        select_sourcetyperadiobutton =
-                                                                            value!;
-                                                                        select_sourcetypeid =
-                                                                            sourcetypeidlistone[index].toString();
-                                                                      });
-                                                                    },
-                                                                  )),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  })
-                                             /* : const SizedBox(),*/
+                                          Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: RichText(
+                                              text: TextSpan(
+                                                text: SourceTypeCategory + ":-",
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: Appcolor.black),
+                                                children: <TextSpan>[
+                                                  TextSpan(
+                                                      text: bulksourcetypename,
+                                                      style: new TextStyle(
+                                                          fontWeight:
+                                                          FontWeight.w400,
+                                                          fontSize: 14,
+                                                          color:
+                                                          Appcolor.black)),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 2,
+                                          ),
                                         ],
-                                      ):SizedBox(),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          widget.source_typeCategorysend.toString() == "Surface Water"
-                                              ? ListView.builder(
-                                                  itemCount: minisource2.length,
-                                                  shrinkWrap: true,
-                                                  physics:
-                                                      const NeverScrollableScrollPhysics(),
-                                                  itemBuilder:
-                                                      (context, int index) {
-                                                    return Container(
-                                                      margin:
-                                                          const EdgeInsets.only(
-                                                              left: 5,
-                                                              right: 5,
-                                                              bottom: 5),
-                                                      child: Material(
-                                                        elevation: 5,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10.0),
-                                                        child: InkWell(
-                                                          splashColor: Appcolor
-                                                              .splashcolor,
-                                                          onTap: () {},
-                                                          child: Column(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Container(
-                                                                  child:
-                                                                      RadioListTile(
-                                                                activeColor:
-                                                                    Appcolor
-                                                                        .btncolor,
-                                                                enableFeedback:
-                                                                    true,
-                                                                contentPadding:
-                                                                    const EdgeInsets
-                                                                        .symmetric(
-                                                                        horizontal:
-                                                                            0),
-                                                                visualDensity: const VisualDensity(
-                                                                    horizontal:
-                                                                        VisualDensity
-                                                                            .minimumDensity,
-                                                                    vertical:
-                                                                        VisualDensity
-                                                                            .minimumDensity),
-                                                                title: new Text(
-                                                                    minisource2[
-                                                                            index]
-                                                                        .toString()),
-                                                                value: minisource2[
-                                                                        index]
-                                                                    .toString(),
-                                                                groupValue:
-                                                                    select_sourcetyperadiobutton,
-                                                                onChanged:
-                                                                    (value) {
-                                                                  setState(() {
-                                                                    select_sourcetyperadiobutton =
-                                                                        value!;
-                                                                    select_sourcetypeid =
-                                                                        sourcetypeidlist[index]
-                                                                            .toString();
-                                                                  });
-                                                                },
-                                                              )),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  })
-                                              : const SizedBox()
-                                        ],
-                                      )
-                                    ],
+                                      ),
+                                    ),
                                   ),
                                 ),
+                              ),
+                              Visibility(
+                                visible: widget.Sourceid_typesend == "1",
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Appcolor.lightgrey,
+                                    border: Border.all(
+                                      color: Appcolor.lightgrey,
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      onTap: () {},
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(10.0),
+                                            child: Text(
+                                              "Source category",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const Divider(
+                                            height: 10,
+                                            color: Appcolor.lightgrey,
+                                            thickness: 1,
+                                          ),
+                                          Container(
+                                              child:
+
+                                              Column(
+                                                children: [
+                                                  Padding(
+                                                    padding: const EdgeInsets.all(10.0),
+                                                    child: Text(widget.source_typeCategorysend),
+                                                  ),
+
+                                                ],
+                                              )
+
+
+
+                                          ),
+                                          const SizedBox(
+                                            height: 2,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Visibility(
+                                visible: widget.Sourceid_typesend == "10",
+                                child:              Container(
+
+                                  //  margin: const EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    color:  Appcolor.lightgrey,
+                                    border: Border.all(
+                                      color: Appcolor.lightgrey,
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(
+                                        10.0,
+                                      ), //                 <--- border radius here
+                                    ),
+                                  ),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                        splashColor: Appcolor.splashcolor,
+                                        onTap: () {},
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+
+                                            const Padding(
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Text(
+                                                "Select source category",
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                            const Divider(
+                                              height: 10,
+                                              color: Appcolor.lightgrey,
+                                              thickness: 1,
+                                              // indent : 10,
+                                              //endIndent : 10,
+                                            ),
+                                            Container(
+                                              child: ListView.builder(
+                                                  itemCount: distinctlist.length,
+                                                  shrinkWrap: true,
+                                                  physics: NeverScrollableScrollPhysics(),
+                                                  itemBuilder: (context, int index) {
+                                                    return Container(
+                                                      margin: const EdgeInsets.only(left: 3 , right: 3 , bottom: 5 ),
+                                                      child: Material(
+                                                        elevation: 5,
+                                                        borderRadius: BorderRadius.circular(
+                                                            10.0),
+                                                        child: InkWell(
+                                                          splashColor: Appcolor.splashcolor,
+                                                          onTap: () {},
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                            MainAxisAlignment.start,
+                                                            crossAxisAlignment:
+                                                            CrossAxisAlignment.start,
+                                                            children: [
+                                                              Container(
+
+                                                                  margin: const EdgeInsets.all(0),
+                                                                  child:
+                                                                  RadioListTile(
+                                                                    activeColor: Appcolor
+                                                                        .btncolor,
+                                                                    //   toggleable: true,
+                                                                    enableFeedback: true,
+                                                                    //contentPadding: EdgeInsets.symmetric(horizontal: 0.0 , vertical: 0.0),
+                                                                    contentPadding:
+                                                                    const EdgeInsets.symmetric(
+                                                                        horizontal: 0),
+                                                                    visualDensity:
+                                                                    const VisualDensity(
+                                                                        horizontal: VisualDensity.minimumDensity,
+                                                                        vertical: VisualDensity.minimumDensity),
+                                                                    title: new Text(distinctlist[index].toString()),
+                                                                    value: distinctlist[index].toString(),
+                                                                    groupValue: selectradiobutton,
+
+                                                                    onChanged: (value) {
+                                                                      setState(() {
+                                                                        selectradiobutton = value!;
+                                                                        selectradiobutton_category = distinct_categorylist[index]!;
+                                                                        print("selectradiobutton_cate" +distinct_categorylist[index]! );
+
+                                                                      });
+                                                                    },
+                                                                  )
+                                                              ),
+
+
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }),
+                                            ),
+
+                                            SizedBox(height: 2,),
+
+
+
+
+
+
+
+                                          ],
+                                        )),
+                                  ),
+                                ),
+                              ),
+
+
+                              Visibility(
+                                visible: widget.Sourceid_typesend == "2",
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Appcolor.lightgrey,
+                                    border: Border.all(
+                                      color: Appcolor.lightgrey,
+                                      width: 1,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InkWell(
+                                      splashColor: Appcolor.splashcolor,
+                                      onTap: () {},
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(10.0),
+                                            child: Text("Source category",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const Divider(
+                                            height: 10,
+                                            color: Appcolor.lightgrey,
+                                            thickness: 1,
+                                          ),
+                                          Container(
+                                              child:
+                                              Padding(
+                                                padding: const EdgeInsets.all(10.0),
+                                                child: Text(widget.source_typeCategorysend),
+                                              )
+                                          ),
+                                          const SizedBox(
+                                            height: 2,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          Container(
+                              margin: const EdgeInsets.only(
+                                  top: 10, right: 0, left: 0, bottom: 10),
+                              decoration: BoxDecoration(
+                                color: Appcolor.white,
+                                border: Border.all(
+                                  color: Appcolor.lightgrey,
+                                  width: 1,
+                                ),
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(
+                                    10.0,
+                                  ),
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  widget.source_typeCategorysend == "Ground Water"
+                                      ? ListView.builder(
+                                    itemCount: minisource.length,
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (context, int index) {
+                                      return RadioListTile(
+                                        activeColor: Appcolor.btncolor,
+                                        value: minisource[index].toString(),
+                                        groupValue: select_sourcetyperadiobutton,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            select_sourcetyperadiobutton = value!;
+                                            select_sourcetypeid = sourcetypeidlistone[index].toString();
+                                          });
+                                        },
+                                        title: Text(minisource[index]),
+                                      );
+                                    },
+                                  )
+                                      : const SizedBox(), widget.source_typeCategorysend == "Surface Water"
+                                      ? ListView.builder(
+                                    itemCount: minisource2.length,
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (context, int index) {
+                                      return RadioListTile(
+                                        activeColor: Appcolor.btncolor,
+                                        value: minisource2[index].toString(),
+                                        groupValue: select_sourcetyperadiobutton,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            select_sourcetyperadiobutton = value!;
+                                            select_sourcetypeid = sourcetypeidlist[index].toString();
+                                          });
+                                        },
+                                        title: Text(minisource2[index]),
+                                      );
+                                    },
+                                  )
+                                      : const SizedBox(),
+                                ],
+                              )
+
+                          ),
+
+                          Visibility(
+                            visible: widget.Sourceid_typesend == "10",
+                            child: selectradiobutton=="" ? SizedBox() :
+                            Container(
+                              margin: const EdgeInsets.only(top: 10, right: 0, left: 0, bottom: 10),
+                              decoration: BoxDecoration(
+                                color:  Appcolor.white,
+                                border: Border.all(
+                                  color: Appcolor.lightgrey,
+                                  width: 1,
+                                ),
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(
+                                    10.0,
+                                  ), //                 <--- border radius here
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Padding(
+                                        padding: EdgeInsets.all(10.0),
+                                        child: Text(
+                                          "Select Source type",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      const Divider(
+                                        height: 10,
+                                        color: Appcolor.lightgrey,
+                                        thickness: 1,
+                                        // indent : 10,
+                                        //endIndent : 10,
+                                      ),
+                                      selectradiobutton == "Ground Water" ?
+                                      ListView.builder(
+                                          itemCount: minisource.length,
+                                          shrinkWrap: true,
+                                          physics: NeverScrollableScrollPhysics(),
+                                          itemBuilder: (context, int index) {
+                                            return Container(
+                                              margin: const EdgeInsets.all(3),
+                                              child: Material(
+                                                elevation: 5,
+                                                borderRadius: BorderRadius.circular(
+                                                    10.0),
+                                                child: InkWell(
+                                                  splashColor: Appcolor.splashcolor,
+                                                  onTap: () {},
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                    children: [
+                                                      Container(
+
+                                                          margin: const EdgeInsets.all(0),
+                                                          child:
+                                                          RadioListTile(
+                                                            activeColor: Appcolor.btncolor,
+                                                            enableFeedback: true,
+                                                            contentPadding:
+                                                            const EdgeInsets.symmetric(
+                                                                horizontal: 0),
+                                                            visualDensity:
+                                                            const VisualDensity(
+                                                                horizontal:
+                                                                VisualDensity.minimumDensity,
+                                                                vertical: VisualDensity.minimumDensity),
+                                                            title: new Text(minisource[index].toString()),
+                                                            value: minisource[index].toString(),
+                                                            groupValue: select_sourcetyperadiobutton,
+
+                                                            onChanged: (value) {
+                                                              setState(() {
+                                                                select_sourcetyperadiobutton = value!;
+                                                                select_sourcetypeid=sourcetypeidlist[index].toString();
+                                                                print("subcategory_groundorsurface"+select_sourcetyperadiobutton.toString());
+
+
+                                                              });
+                                                            },
+                                                          )
+                                                      ),
+
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          })      : SizedBox(),
+                                    ],
+                                  ),
+
+
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      selectradiobutton == "Surface Water"     ? ListView.builder(
+                                          itemCount: minisource2.length,
+                                          shrinkWrap: true,
+                                          physics: NeverScrollableScrollPhysics(),
+                                          itemBuilder: (context, int index) {
+                                            return Container(
+                                              margin: const EdgeInsets.only(left: 5, right: 5, bottom: 5),
+                                              child: Material(
+                                                elevation: 5,
+                                                borderRadius: BorderRadius.circular(
+                                                    10.0),
+                                                child: InkWell(
+                                                  splashColor: Appcolor.splashcolor,
+                                                  onTap: () {},
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                    children: [
+                                                      Container(
+
+                                                        //  margin: const EdgeInsets.all(5),
+                                                          child:
+                                                          RadioListTile(
+                                                            activeColor: Appcolor
+                                                                .btncolor,
+                                                            //   toggleable: true,
+                                                            enableFeedback: true,
+                                                            //contentPadding: EdgeInsets.symmetric(horizontal: 0.0 , vertical: 0.0),
+                                                            contentPadding:
+                                                            const EdgeInsets.symmetric(
+                                                                horizontal: 0),
+                                                            visualDensity:
+                                                            const VisualDensity(
+                                                                horizontal:
+                                                                VisualDensity
+                                                                    .minimumDensity,
+                                                                vertical: VisualDensity
+                                                                    .minimumDensity),
+                                                            title: new Text(minisource2[index].toString()),
+                                                            value: minisource2[index].toString(),
+                                                            groupValue: select_sourcetyperadiobutton,
+
+                                                            onChanged: (value) {
+                                                              setState(() {
+                                                                select_sourcetyperadiobutton = value!;
+
+
+                                                                //sourcetypeidlistone
+                                                                select_sourcetypeid=sourcetypeidlist[index].toString();
+
+                                                                print("surcetypesub"+select_sourcetypeid!);
+                                                              });
+                                                            },
+                                                          )
+                                                      ),
+
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }) : SizedBox()
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
                           Container(
                             margin: const EdgeInsets.all(2),
                             decoration: BoxDecoration(
@@ -1279,7 +1471,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                         ),
                                         value: habitaionlistmodal,
                                         items:
-                                            habitationlist.map((habitations) {
+                                        habitationlist.map((habitations) {
                                           return DropdownMenuItem<
                                               Habitaionlistmodal>(
                                             value: habitations,
@@ -1341,12 +1533,12 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                             FirstNonNumericalFormatter(),
                                           ],
                                           controller:
-                                              locationlandmarkcontroller,
+                                          locationlandmarkcontroller,
                                           decoration: InputDecoration(
                                             fillColor: Colors.grey.shade100,
                                             border: OutlineInputBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                             ),
                                             hintText: "Enter landmark/location",
                                             hintStyle: const TextStyle(
@@ -1354,7 +1546,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                 fontWeight: FontWeight.w400),
                                           ),
                                           keyboardType:
-                                              TextInputType.visiblePassword,
+                                          TextInputType.visiblePassword,
                                           textInputAction: TextInputAction.done,
                                         ),
                                       ),
@@ -1445,27 +1637,27 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           padding: const EdgeInsets.all(5.0),
                                           child: locationprogress == true
                                               ? const Center(
-                                                  child: Padding(
-                                                    padding:
-                                                        EdgeInsets.all(5.0),
-                                                    child: SizedBox(
-                                                        height: 15,
-                                                        width: 15,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          strokeWidth: 1,
-                                                        )),
-                                                  ),
-                                                )
+                                            child: Padding(
+                                              padding:
+                                              EdgeInsets.all(5.0),
+                                              child: SizedBox(
+                                                  height: 15,
+                                                  width: 15,
+                                                  child:
+                                                  CircularProgressIndicator(
+                                                    strokeWidth: 1,
+                                                  )),
+                                            ),
+                                          )
                                               : Text(
-                                                  ' ${_currentPosition?.latitude ?? ""}',
-                                                  maxLines: 4,
-                                                  style: const TextStyle(
-                                                      color: Appcolor.black,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      fontSize: 14),
-                                                ),
+                                            ' ${_currentPosition?.latitude ?? ""}',
+                                            maxLines: 4,
+                                            style: const TextStyle(
+                                                color: Appcolor.black,
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                fontSize: 14),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1513,27 +1705,27 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           padding: const EdgeInsets.all(5.0),
                                           child: locationprogress == true
                                               ? const Center(
-                                                  child: Padding(
-                                                    padding:
-                                                        EdgeInsets.all(5.0),
-                                                    child: SizedBox(
-                                                        height: 15,
-                                                        width: 15,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          strokeWidth: 1,
-                                                        )),
-                                                  ),
-                                                )
+                                            child: Padding(
+                                              padding:
+                                              EdgeInsets.all(5.0),
+                                              child: SizedBox(
+                                                  height: 15,
+                                                  width: 15,
+                                                  child:
+                                                  CircularProgressIndicator(
+                                                    strokeWidth: 1,
+                                                  )),
+                                            ),
+                                          )
                                               : Text(
-                                                  ' ${_currentPosition?.longitude ?? ""}',
-                                                  maxLines: 4,
-                                                  style: const TextStyle(
-                                                      color: Appcolor.black,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      fontSize: 14),
-                                                ),
+                                            ' ${_currentPosition?.longitude ?? ""}',
+                                            maxLines: 4,
+                                            style: const TextStyle(
+                                                color: Appcolor.black,
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                fontSize: 14),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1565,53 +1757,53 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                   children: [
                                     imgFile == null
                                         ? Center(
-                                            child: Container(
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(5),
-                                                  border: Border.all(
-                                                      width: 2,
-                                                      color: Appcolor
-                                                          .COLOR_PRIMARY),
-                                                ),
-                                                padding:
-                                                    const EdgeInsets.all(3),
-                                                margin: const EdgeInsets.only(
-                                                    left: 0, top: 10),
-                                                width: 260,
-                                                height: 200,
-                                                child: const Image(
-                                                  width: 260,
-                                                  height: 200,
-                                                  fit: BoxFit.fill,
-                                                  image: AssetImage(
-                                                    'images/imagenot.png',
-                                                  ),
-                                                )),
-                                          )
-                                        : Center(
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                border: Border.all(
-                                                    width: 2,
-                                                    color:
-                                                        Appcolor.COLOR_PRIMARY),
-                                              ),
-                                              padding: const EdgeInsets.all(3),
-                                              margin: const EdgeInsets.only(
-                                                  left: 10, top: 10),
-                                              width: 260,
-                                              height: 200,
-                                              child: Image.file(
-                                                imgFile!,
-                                                width: 260,
-                                                height: 200,
-                                                fit: BoxFit.fill,
-                                              ),
-                                            ),
+                                      child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                            BorderRadius.circular(5),
+                                            border: Border.all(
+                                                width: 2,
+                                                color: Appcolor
+                                                    .COLOR_PRIMARY),
                                           ),
+                                          padding:
+                                          const EdgeInsets.all(3),
+                                          margin: const EdgeInsets.only(
+                                              left: 0, top: 10),
+                                          width: 260,
+                                          height: 200,
+                                          child: const Image(
+                                            width: 260,
+                                            height: 200,
+                                            fit: BoxFit.fill,
+                                            image: AssetImage(
+                                              'images/imagenot.png',
+                                            ),
+                                          )),
+                                    )
+                                        : Center(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                          BorderRadius.circular(5),
+                                          border: Border.all(
+                                              width: 2,
+                                              color:
+                                              Appcolor.COLOR_PRIMARY),
+                                        ),
+                                        padding: const EdgeInsets.all(3),
+                                        margin: const EdgeInsets.only(
+                                            left: 10, top: 10),
+                                        width: 260,
+                                        height: 200,
+                                        child: Image.file(
+                                          imgFile!,
+                                          width: 260,
+                                          height: 200,
+                                          fit: BoxFit.fill,
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(
                                       height: 25,
                                     ),
@@ -1623,14 +1815,14 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                         decoration: BoxDecoration(
                                             color: const Color(0xFF0D3A98),
                                             borderRadius:
-                                                BorderRadius.circular(8)),
+                                            BorderRadius.circular(8)),
                                         child: TextButton(
                                           onPressed: () {
                                             if (_currentPosition == null) {
                                               Stylefile
                                                   .showmessageforvalidationfalse(
-                                                      context,
-                                                      "Please enter latitude longitude ");
+                                                  context,
+                                                  "Please enter latitude longitude ");
                                             } else {
                                               openCamera();
                                             }
@@ -1696,8 +1888,8 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           context, "Please select image");
                                     } else {
                                       bool? exists =
-                                          await databaseHelperJalJeevan
-                                              ?.isRecordExistsLocallyaddnew(
+                                      await databaseHelperJalJeevan
+                                          ?.isRecordExistsLocallyaddnew(
                                         _currentPosition!.latitude.toString(),
                                         _currentPosition!.longitude.toString(),
                                         widget.schemeid.toString(),
@@ -1710,45 +1902,45 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                       } else {
                                         databaseHelperJalJeevan
                                             ?.insertpwssourcelocal(
-                                                LocalPWSSavedData(
-                                          userId: box.read("userid"),
-                                          villageId:
+                                            LocalPWSSavedData(
+                                              userId: box.read("userid"),
+                                              villageId:
                                               widget.villageid.toString(),
-                                          assetTaggingId:
+                                              assetTaggingId:
                                               widget.assettaggingid.toString(),
-                                          stateId: box.read("stateid"),
-                                          schemeId: widget.schemeid.toString(),
-                                          schemename:
+                                              stateId: box.read("stateid"),
+                                              schemeId: widget.schemeid.toString(),
+                                              schemename:
                                               widget.selectscheme.toString(),
-                                          blockName:
+                                              blockName:
                                               widget.blockname.toString(),
-                                          villageName:
+                                              villageName:
                                               widget.villagename.toString(),
-                                          panchayatName:
+                                              panchayatName:
                                               getpanchayatname.toString(),
-                                          sourceName: bulsourcetypecatename,
-                                          sourceType: bulksourcetypename,
-                                          sourceId: widget.SourceId.toString(),
-                                          divisionId:
+                                              sourceName: bulsourcetypecatename,
+                                              sourceType: bulksourcetypename,
+                                              sourceId: widget.SourceId.toString(),
+                                              divisionId:
                                               box.read("DivisionId").toString(),
-                                          habitationId:
+                                              habitationId:
                                               selecthabitaionid.toString(),
-                                          habitationName:
+                                              habitationName:
                                               selecthabitaionname.toString(),
-                                          landmark: locationlandmarkcontroller
-                                              .text
-                                              .toString(),
-                                          latitude: _currentPosition!.latitude
-                                              .toString(),
-                                          longitude: _currentPosition!.longitude
-                                              .toString(),
-                                          accuracy:
+                                              landmark: locationlandmarkcontroller
+                                                  .text
+                                                  .toString(),
+                                              latitude: _currentPosition!.latitude
+                                                  .toString(),
+                                              longitude: _currentPosition!.longitude
+                                                  .toString(),
+                                              accuracy:
                                               accuracyofgetlocation.toString(),
-                                          image: base64Image,
-                                          sourceTypeCategoryId: bulsourcetypecategoryid,
-                                          subsourceaddnew: bulsourcetypeid,
-                                          Status: "Pending",
-                                        ))
+                                              image: base64Image,
+                                              sourceTypeCategoryId: bulsourcetypecategoryid,
+                                              subsourceaddnew: bulsourcetypeid,
+                                              Status: "Pending",
+                                            ))
                                             .then((value) {
                                           showAlertDialog(context);
                                         });
@@ -1758,7 +1950,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
 
                                   else {
-                                   /* if (selectradiobutton.toString() == "") {
+                                    /* if (selectradiobutton.toString() == "") {
                                       Stylefile.showmessageforvalidationfalse(
                                           context, "Please select source ");
                                     } else*/ if (select_sourcetyperadiobutton ==
@@ -1791,8 +1983,8 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           context, "Please select image");
                                     } else {
                                       bool? exists =
-                                          await databaseHelperJalJeevan
-                                              ?.isRecordExistsLocallyaddnew(
+                                      await databaseHelperJalJeevan
+                                          ?.isRecordExistsLocallyaddnew(
                                         _currentPosition!.latitude.toString(),
                                         _currentPosition!.longitude.toString(),
                                         widget.schemeid.toString(),
@@ -1805,51 +1997,51 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                       } else {
                                         databaseHelperJalJeevan
                                             ?.insertpwssourcelocal(
-                                                LocalPWSSavedData(
-                                          userId: box.read("userid"),
-                                          villageId:
+                                            LocalPWSSavedData(
+                                              userId: box.read("userid"),
+                                              villageId:
                                               widget.villageid.toString(),
-                                          assetTaggingId:
+                                              assetTaggingId:
                                               widget.assettaggingid.toString(),
-                                          stateId: box.read("stateid"),
-                                          schemeId: widget.schemeid.toString(),
-                                          schemename:
+                                              stateId: box.read("stateid"),
+                                              schemeId: widget.schemeid.toString(),
+                                              schemename:
                                               widget.selectscheme.toString(),
-                                          blockName:
+                                              blockName:
                                               widget.blockname.toString(),
-                                          villageName:
+                                              villageName:
                                               widget.villagename.toString(),
-                                          panchayatName:
+                                              panchayatName:
                                               getpanchayatname.toString(),
-                                          sourceName: widget.source_typeCategorysend,
-                                          // select_sourcetyperadiobutton >> in this openwell
+                                              sourceName: widget.source_typeCategorysend,
+                                              // select_sourcetyperadiobutton >> in this openwell
 
 
-                                          sourceType: select_sourcetyperadiobutton.toString(),
-                                          sourceId: widget.SourceId.toString(),
+                                              sourceType: select_sourcetyperadiobutton.toString(),
+                                              sourceId: widget.SourceId.toString(),
 
 
-                                          divisionId:
+                                              divisionId:
                                               box.read("DivisionId").toString(),
-                                          habitationId:
+                                              habitationId:
                                               selecthabitaionid.toString(),
-                                          habitationName:
+                                              habitationName:
                                               selecthabitaionname.toString(),
-                                          landmark: locationlandmarkcontroller
-                                              .text
-                                              .toString(),
-                                          latitude: _currentPosition!.latitude
-                                              .toString(),
-                                          longitude: _currentPosition!.longitude
-                                              .toString(),
-                                          accuracy:
+                                              landmark: locationlandmarkcontroller
+                                                  .text
+                                                  .toString(),
+                                              latitude: _currentPosition!.latitude
+                                                  .toString(),
+                                              longitude: _currentPosition!.longitude
+                                                  .toString(),
+                                              accuracy:
                                               accuracyofgetlocation.toString(),
-                                          image: base64Image,
-                                          sourceTypeCategoryId: widget.SourceTypeCategoryIdsend.toString(),
-                                          subsourceaddnew:
+                                              image: base64Image,
+                                              sourceTypeCategoryId: widget.SourceTypeCategoryIdsend.toString(),
+                                              subsourceaddnew:
                                               select_sourcetypeid.toString(),
-                                          Status: "Pending",
-                                        ))
+                                              Status: "Pending",
+                                            ))
                                             .then((value) {
                                           showAlertDialog(context);
                                         });
@@ -1985,37 +2177,37 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                             context, "Please select image");
                                       } else {
                                         Apiservice.PWSSourceSavetaggingapi(
-                                                context,
-                                                box.read("UserToken").toString(),
-                                                box.read("userid").toString(),
-                                                widget.villageid.toString(),
-                                                widget.assettaggingid.toString(),
-                                                box.read("stateid"),
-                                                widget.schemeid.toString(),
+                                            context,
+                                            box.read("UserToken").toString(),
+                                            box.read("userid").toString(),
+                                            widget.villageid.toString(),
+                                            widget.assettaggingid.toString(),
+                                            box.read("stateid"),
+                                            widget.schemeid.toString(),
 
 
-                                                widget.SourceId.toString(),
+                                            widget.SourceId.toString(),
 
 
 
-                                                /* sourceName: bulsourcetypecatename,
+                                            /* sourceName: bulsourcetypecatename,
                                           sourceType: bulksourcetypename,*/
-                                                box.read("DivisionId").toString(),
-                                                selecthabitaionid.toString(),
-                                                /*select_sourcetypeid.toString(),
+                                            box.read("DivisionId").toString(),
+                                            selecthabitaionid.toString(),
+                                            /*select_sourcetypeid.toString(),
                                               selectradiobutton_category.toString(),*/
-                                                bulsourcetypeid.toString(),
-                                                bulsourcetypecategoryid.toString(),
+                                            bulsourcetypeid.toString(),
+                                            bulsourcetypecategoryid.toString(),
 
-                                                locationlandmarkcontroller.text
-                                                    .toString(),
-                                                _currentPosition!.latitude
-                                                    .toString(),
-                                                _currentPosition!.longitude
-                                                    .toString(),
-                                                accuracyofgetlocation
-                                                    .toString(),
-                                                base64Image)
+                                            locationlandmarkcontroller.text
+                                                .toString(),
+                                            _currentPosition!.latitude
+                                                .toString(),
+                                            _currentPosition!.longitude
+                                                .toString(),
+                                            accuracyofgetlocation
+                                                .toString(),
+                                            base64Image)
                                             .then((value) {
                                           bulsourcetypecategoryid="";
                                           Get.back();
@@ -2023,21 +2215,20 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                               "false") {
                                             Stylefile
                                                 .showmessageforvalidationtrue(
-                                                    context,
-                                                    value["msg"].toString());
+                                                context,
+                                                value["msg"].toString());
                                           } else if (value["Status"]
-                                                  .toString() ==
+                                              .toString() ==
                                               "true") {
                                             Stylefile
                                                 .showmessageforvalidationtrue(
-                                                    context,
-                                                    value["msg"].toString());
+                                                context,
+                                                value["msg"].toString());
                                             cleartable_localmastertables();
-                                            Apiservice.Getmasterapi(context)
-                                                .then((value) {
+                                            Apiservice.Getmasterapi(context).then((value) {
                                               for (int i = 0;
-                                                  i < value.villagelist!.length;
-                                                  i++) {
+                                              i < value.villagelist!.length;
+                                              i++) {
                                                 var userid = value
                                                     .villagelist![i]!.userId;
 
@@ -2051,26 +2242,26 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                 databaseHelperJalJeevan
                                                     ?.insertMastervillagelistdata(
-                                                        Localmasterdatanodal(
-                                                            UserId: userid
-                                                                .toString(),
-                                                            villageId: villageId
-                                                                .toString(),
-                                                            StateId: stateId
-                                                                .toString(),
-                                                            villageName:
-                                                                villageName
-                                                                    .toString()))
+                                                    Localmasterdatanodal(
+                                                        UserId: userid
+                                                            .toString(),
+                                                        villageId: villageId
+                                                            .toString(),
+                                                        StateId: stateId
+                                                            .toString(),
+                                                        villageName:
+                                                        villageName
+                                                            .toString()))
                                                     .then((value) {});
                                               }
                                               databaseHelperJalJeevan!
                                                   .removeDuplicateEntries();
 
                                               for (int i = 0;
-                                                  i <
-                                                      value.villageDetails!
-                                                          .length;
-                                                  i++) {
+                                              i <
+                                                  value.villageDetails!
+                                                      .length;
+                                              i++) {
                                                 var stateName = "Assam";
 
                                                 var districtName = value
@@ -2144,64 +2335,64 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                 databaseHelperJalJeevan
                                                     ?.insertMastervillagedetails(
-                                                        Localmasterdatamodal_VillageDetails(
-                                                  status: "0",
-                                                  stateName: stateName,
-                                                  districtName: districtName,
-                                                  blockName: blockName,
-                                                  panchayatName: panchayatName,
-                                                  stateId:
+                                                    Localmasterdatamodal_VillageDetails(
+                                                      status: "0",
+                                                      stateName: stateName,
+                                                      districtName: districtName,
+                                                      blockName: blockName,
+                                                      panchayatName: panchayatName,
+                                                      stateId:
                                                       stateidnew.toString(),
-                                                  userId: userId.toString(),
-                                                  villageId: villageIddetails
-                                                      .toString(),
-                                                  villageName: villageName,
-                                                  totalNoOfScheme:
+                                                      userId: userId.toString(),
+                                                      villageId: villageIddetails
+                                                          .toString(),
+                                                      villageName: villageName,
+                                                      totalNoOfScheme:
                                                       totalNoOfScheme
                                                           .toString(),
-                                                  totalNoOfWaterSource:
+                                                      totalNoOfWaterSource:
                                                       totalNoOfWaterSource
                                                           .toString(),
-                                                  totalWsGeoTagged:
+                                                      totalWsGeoTagged:
                                                       totalWsGeoTagged
                                                           .toString(),
-                                                  pendingWsTotal:
+                                                      pendingWsTotal:
                                                       pendingWsTotal.toString(),
-                                                  balanceWsTotal:
+                                                      balanceWsTotal:
                                                       balanceWsTotal.toString(),
-                                                  totalSsGeoTagged:
+                                                      totalSsGeoTagged:
                                                       totalSsGeoTagged
                                                           .toString(),
-                                                  pendingApprovalSsTotal:
+                                                      pendingApprovalSsTotal:
                                                       pendingApprovalSsTotal
                                                           .toString(),
-                                                  totalIbRequiredGeoTagged:
+                                                      totalIbRequiredGeoTagged:
                                                       totalIbRequiredGeoTagged
                                                           .toString(),
-                                                  totalIbGeoTagged:
+                                                      totalIbGeoTagged:
                                                       totalIbGeoTagged
                                                           .toString(),
-                                                  pendingIbTotal:
+                                                      pendingIbTotal:
                                                       pendingIbTotal.toString(),
-                                                  balanceIbTotal:
+                                                      balanceIbTotal:
                                                       balanceIbTotal.toString(),
-                                                  totalOaGeoTagged:
+                                                      totalOaGeoTagged:
                                                       totalOaGeoTagged
                                                           .toString(),
-                                                  balanceOaTotal:
+                                                      balanceOaTotal:
                                                       balanceOaTotal.toString(),
-                                                  totalNoOfSchoolScheme:
+                                                      totalNoOfSchoolScheme:
                                                       totalNoOfSchoolScheme
                                                           .toString(),
-                                                  totalNoOfPwsScheme:
+                                                      totalNoOfPwsScheme:
                                                       totalNoOfPwsScheme
                                                           .toString(),
-                                                ));
+                                                    ));
                                               }
 
                                               for (int i = 0;
-                                                  i < value.schmelist!.length;
-                                                  i++) {
+                                              i < value.schmelist!.length;
+                                              i++) {
                                                 var source_type = value
                                                     .schmelist![i]!.source_type;
                                                 var schemeidnew = value
@@ -2217,128 +2408,84 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                 databaseHelperJalJeevan
                                                     ?.insertMasterSchmelist(
-                                                        Localmasterdatamoda_Scheme(
-                                                  source_type:
+                                                    Localmasterdatamoda_Scheme(
+                                                      source_type:
                                                       source_type.toString(),
-                                                  schemeid:
+                                                      schemeid:
                                                       schemeidnew.toString(),
-                                                  villageId:
+                                                      villageId:
                                                       villageid.toString(),
-                                                  schemename:
+                                                      schemename:
                                                       schemenamenew.toString(),
-                                                  category: schemenacategorynew.toString(),
-                                                          SourceTypeCategoryId: SourceTypeCategoryId.toString(),
-                                                          source_typeCategory: source_typeCategory.toString(),
-                                                ));
+                                                      category: schemenacategorynew.toString(),
+                                                      SourceTypeCategoryId: SourceTypeCategoryId.toString(),
+                                                      source_typeCategory: source_typeCategory.toString(),
+                                                    ));
                                               }
 
-                                              for (int i = 0;
-                                                  i < value.sourcelist!.length;
-                                                  i++) {
-                                                var sourceId = value
-                                                    .sourcelist![i]!.sourceId;
-                                                var SchemeId = value
-                                                    .sourcelist![i]!.schemeId;
-                                                var stateid = value
-                                                    .sourcelist![i]!.stateid;
-                                                var Schemename = value
-                                                    .sourcelist![i]!.schemeName;
-                                                var villageid = value
-                                                    .sourcelist![i]!.villageId;
-                                                var sourceTypeId = value
-                                                    .sourcelist![i]!
-                                                    .sourceTypeId;
-                                                var statename = value
-                                                    .sourcelist![i]!.stateName;
-                                                var sourceTypeCategoryId = value
-                                                    .sourcelist![i]!
-                                                    .sourceTypeCategoryId;
-                                                var habitationId = value
-                                                    .sourcelist![i]!
-                                                    .habitationId;
-                                                var villageName = value
-                                                    .sourcelist![i]!
-                                                    .villageName;
+                                              for (int i = 0; i < value.sourcelist!.length; i++) {
+                                                var sourceId = value.sourcelist![i]!.sourceId;
+                                                var SchemeId = value.sourcelist![i]!.schemeId;
+                                                var stateid = value.sourcelist![i]!.stateid;
+                                                var Schemename = value.sourcelist![i]!.schemeName;
+                                                var villageid = value.sourcelist![i]!.villageId;
+                                                var sourceTypeId = value.sourcelist![i]!.sourceTypeId;
+                                                var statename = value.sourcelist![i]!.stateName;
+                                                var sourceTypeCategoryId =
+                                                    value.sourcelist![i]!.sourceTypeCategoryId;
+                                                var habitationId = value.sourcelist![i]!.habitationId;
+                                                var villageName = value.sourcelist![i]!.villageName;
                                                 var existTagWaterSourceId =
-                                                    value.sourcelist![i]!
-                                                        .existTagWaterSourceId;
-                                                var isApprovedState = value
-                                                    .sourcelist![i]!
-                                                    .isApprovedState;
-                                                var landmark = value
-                                                    .sourcelist![i]!.landmark;
-                                                var latitude = value
-                                                    .sourcelist![i]!.latitude;
-                                                var longitude = value
-                                                    .sourcelist![i]!.longitude;
-                                                var habitationName = value
-                                                    .sourcelist![i]!
-                                                    .habitationName;
-                                                var location = value
-                                                    .sourcelist![i]!.location;
-                                                var sourceTypeCategory = value
-                                                    .sourcelist![i]!
-                                                    .sourceTypeCategory;
-                                                var sourceType = value
-                                                    .sourcelist![i]!.sourceType;
-                                                var districtName = value
-                                                    .sourcelist![i]!
-                                                    .districtName;
-                                                var districtId = value
-                                                    .sourcelist![i]!.districtId;
-                                                var panchayatNamenew = value
-                                                    .sourcelist![i]!
-                                                    .panchayatName;
-                                                var blocknamenew = value
-                                                    .sourcelist![i]!.blockName;
+                                                    value.sourcelist![i]!.existTagWaterSourceId;
+                                                var isApprovedState = value.sourcelist![i]!.isApprovedState;
+                                                var landmark = value.sourcelist![i]!.landmark;
+                                                var latitude = value.sourcelist![i]!.latitude;
+                                                var longitude = value.sourcelist![i]!.longitude;
+                                                var habitationName = value.sourcelist![i]!.habitationName;
+                                                var location = value.sourcelist![i]!.location;
+                                                var sourceTypeCategory =
+                                                    value.sourcelist![i]!.sourceTypeCategory;
+                                                var sourceType = value.sourcelist![i]!.sourceType;
+                                                var districtName = value.sourcelist![i]!.districtName;
+                                                var districtId = value.sourcelist![i]!.districtId;
+                                                var panchayatNamenew = value.sourcelist![i]!.panchayatName;
+                                                var blocknamenew = value.sourcelist![i]!.blockName;
+                                                var IsWTP = value.sourcelist![i]!.IsWTP;
 
-                                                databaseHelperJalJeevan
-                                                    ?.insertMasterSourcedetails(
-                                                        LocalSourcelistdetailsModal(
+                                                databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
                                                   schemeId: SchemeId.toString(),
                                                   sourceId: sourceId.toString(),
-                                                  villageId:
-                                                      villageid.toString(),
+                                                  villageId: villageid.toString(),
                                                   schemeName: Schemename,
-                                                  sourceTypeId:
-                                                      sourceTypeId.toString(),
-                                                  sourceTypeCategoryId:
-                                                      sourceTypeCategoryId
-                                                          .toString(),
-                                                  habitationId:
-                                                      habitationId.toString(),
-                                                  existTagWaterSourceId:
-                                                      existTagWaterSourceId
-                                                          .toString(),
-                                                  isApprovedState:
-                                                      isApprovedState
-                                                          .toString(),
+                                                  sourceTypeId: sourceTypeId.toString(),
+                                                  sourceTypeCategoryId: sourceTypeCategoryId.toString(),
+                                                  habitationId: habitationId.toString(),
+                                                  existTagWaterSourceId: existTagWaterSourceId.toString(),
+                                                  isApprovedState: isApprovedState.toString(),
                                                   landmark: landmark,
                                                   latitude: latitude.toString(),
-                                                  longitude:
-                                                      longitude.toString(),
-                                                  habitationName:
-                                                      habitationName,
+                                                  longitude: longitude.toString(),
+                                                  habitationName: habitationName,
                                                   location: location,
                                                   sourceTypeCategory: sourceTypeCategory,
                                                   sourceType: sourceType,
                                                   stateName: statename,
                                                   districtName: districtName,
                                                   blockName: blocknamenew,
-                                                  panchayatName:
-                                                      panchayatNamenew,
-                                                  districtId:
-                                                      districtId.toString(),
+                                                  panchayatName: panchayatNamenew,
+                                                  districtId: districtId.toString(),
                                                   villageName: villageName,
                                                   stateId: stateid.toString(),
+                                                  IsWTP: IsWTP.toString(),
+
                                                 ));
                                               }
 
                                               for (int i = 0;
-                                                  i <
-                                                      value.habitationlist!
-                                                          .length;
-                                                  i++) {
+                                              i <
+                                                  value.habitationlist!
+                                                      .length;
+                                              i++) {
                                                 var villafgeid = value
                                                     .habitationlist![i]!
                                                     .villageId;
@@ -2351,31 +2498,31 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                 databaseHelperJalJeevan
                                                     ?.insertMasterhabitaionlist(
-                                                        LocalHabitaionlistModal(
-                                                            villageId:
-                                                                villafgeid
-                                                                    .toString(),
-                                                            HabitationId:
-                                                                habitationId
-                                                                    .toString(),
-                                                            HabitationName:
-                                                                habitationName
-                                                                    .toString()));
+                                                    LocalHabitaionlistModal(
+                                                        villageId:
+                                                        villafgeid
+                                                            .toString(),
+                                                        HabitationId:
+                                                        habitationId
+                                                            .toString(),
+                                                        HabitationName:
+                                                        habitationName
+                                                            .toString()));
                                               }
                                               for (int i = 0; i < value.informationBoardList!.length; i++) {
                                                 databaseHelperJalJeevan?.insertmastersibdetails(LocalmasterInformationBoardItemModal(
                                                     userId: value.informationBoardList![i]!.userId.toString(),
                                                     villageId: value.informationBoardList![i]!.villageId.toString(),
                                                     stateId: value.informationBoardList![i]!.stateId
-                                                            .toString(),
+                                                        .toString(),
                                                     schemeId: value
                                                         .informationBoardList![
-                                                            i]!
+                                                    i]!
                                                         .schemeId
                                                         .toString(),
                                                     districtName: value
                                                         .informationBoardList![
-                                                            i]!
+                                                    i]!
                                                         .districtName,
                                                     blockName: value
                                                         .informationBoardList![i]!
@@ -2398,7 +2545,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
 
                                     else {
-                                    /*  if (selectradiobutton.toString() == "") {
+                                      /*  if (selectradiobutton.toString() == "") {
                                         Stylefile.showmessageforvalidationfalse(
                                             context, "Please select source ");
                                       } else */if (select_sourcetyperadiobutton ==
@@ -2407,7 +2554,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                             context,
                                             "Please select source type");
                                       } else if (selecthabitaionname
-                                              .toString() ==
+                                          .toString() ==
                                           "-- Select Habitation --") {
                                         Stylefile.showmessageforvalidationfalse(
                                             context, "Please select habitaion");
@@ -2436,8 +2583,8 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                             "-- Select Habitation --") {
                                           Stylefile
                                               .showmessageforvalidationfalse(
-                                                  context,
-                                                  "Please select habitaion");
+                                              context,
+                                              "Please select habitaion");
                                         } else if (locationlandmarkcontroller
                                             .text
                                             .trim()
@@ -2459,56 +2606,56 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                         } else if (imgFile == null) {
                                           Stylefile
                                               .showmessageforvalidationfalse(
-                                                  context,
-                                                  "Please select image");
+                                              context,
+                                              "Please select image");
                                         } else {
                                           /*select_sourcetypeid.toString(),
                                               selectradiobutton_category.toString()*/
                                           /* var source_typeCategorysend;
                                                  var SourceTypeCategoryIdsend;*/
                                           Apiservice.PWSSourceSavetaggingapi(
-                                                  context,
-                                                  box.read("UserToken").toString(),
-                                                  box.read("userid").toString(),
-                                                  widget.villageid.toString(),
-                                                  widget.assettaggingid.toString(),
-                                                  box.read("stateid"),
-                                                  widget.schemeid.toString(),
-                                                  widget.SourceId.toString(),
-                                                  box.read("DivisionId").toString(),
-                                                  selecthabitaionid.toString(),
-                                                  select_sourcetypeid.toString(),
-                                                  widget.SourceTypeCategoryIdsend.toString(),
-                                             /* widget.source_typeCategorysend,
+                                              context,
+                                              box.read("UserToken").toString(),
+                                              box.read("userid").toString(),
+                                              widget.villageid.toString(),
+                                              widget.assettaggingid.toString(),
+                                              box.read("stateid"),
+                                              widget.schemeid.toString(),
+                                              widget.SourceId.toString(),
+                                              box.read("DivisionId").toString(),
+                                              selecthabitaionid.toString(),
+                                              select_sourcetypeid.toString(),
+                                              widget.SourceTypeCategoryIdsend.toString(),
+                                              /* widget.source_typeCategorysend,
                                               widget.SourceTypeCategoryIdsend,*/
-                                                  locationlandmarkcontroller.text.toString(),
-                                                  _currentPosition!.latitude.toString(),
-                                                  _currentPosition!.longitude.toString(),
-                                                  accuracyofgetlocation.toString(),
-                                                  base64Image)
+                                              locationlandmarkcontroller.text.toString(),
+                                              _currentPosition!.latitude.toString(),
+                                              _currentPosition!.longitude.toString(),
+                                              accuracyofgetlocation.toString(),
+                                              base64Image)
                                               .then((value) {
                                             Get.back();
                                             if (value["Status"].toString() ==
                                                 "false") {
                                               Stylefile
                                                   .showmessageforvalidationtrue(
-                                                      context,
-                                                      value["msg"].toString());
+                                                  context,
+                                                  value["msg"].toString());
                                             } else if (value["Status"]
-                                                    .toString() ==
+                                                .toString() ==
                                                 "true") {
                                               Stylefile
                                                   .showmessageforvalidationtrue(
-                                                      context,
-                                                      value["msg"].toString());
+                                                  context,
+                                                  value["msg"].toString());
                                               cleartable_localmastertables();
                                               Apiservice.Getmasterapi(context)
                                                   .then((value) {
                                                 for (int i = 0;
-                                                    i <
-                                                        value.villagelist!
-                                                            .length;
-                                                    i++) {
+                                                i <
+                                                    value.villagelist!
+                                                        .length;
+                                                i++) {
                                                   var userid = value
                                                       .villagelist![i]!.userId;
 
@@ -2523,26 +2670,26 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                   databaseHelperJalJeevan
                                                       ?.insertMastervillagelistdata(
-                                                          Localmasterdatanodal(
-                                                              UserId: userid
-                                                                  .toString(),
-                                                              villageId: villageId
-                                                                  .toString(),
-                                                              StateId: stateId
-                                                                  .toString(),
-                                                              villageName:
-                                                                  villageName
-                                                                      .toString()))
+                                                      Localmasterdatanodal(
+                                                          UserId: userid
+                                                              .toString(),
+                                                          villageId: villageId
+                                                              .toString(),
+                                                          StateId: stateId
+                                                              .toString(),
+                                                          villageName:
+                                                          villageName
+                                                              .toString()))
                                                       .then((value) {});
                                                 }
                                                 databaseHelperJalJeevan!
                                                     .removeDuplicateEntries();
 
                                                 for (int i = 0;
-                                                    i <
-                                                        value.villageDetails!
-                                                            .length;
-                                                    i++) {
+                                                i <
+                                                    value.villageDetails!
+                                                        .length;
+                                                i++) {
                                                   var stateName = "Assam";
 
                                                   var districtName = value
@@ -2617,70 +2764,70 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                   databaseHelperJalJeevan
                                                       ?.insertMastervillagedetails(
-                                                          Localmasterdatamodal_VillageDetails(
-                                                    status: "0",
-                                                    stateName: stateName,
-                                                    districtName: districtName,
-                                                    blockName: blockName,
-                                                    panchayatName:
+                                                      Localmasterdatamodal_VillageDetails(
+                                                        status: "0",
+                                                        stateName: stateName,
+                                                        districtName: districtName,
+                                                        blockName: blockName,
+                                                        panchayatName:
                                                         panchayatName,
-                                                    stateId:
+                                                        stateId:
                                                         stateidnew.toString(),
-                                                    userId: userId.toString(),
-                                                    villageId: villageIddetails
-                                                        .toString(),
-                                                    villageName: villageName,
-                                                    totalNoOfScheme:
+                                                        userId: userId.toString(),
+                                                        villageId: villageIddetails
+                                                            .toString(),
+                                                        villageName: villageName,
+                                                        totalNoOfScheme:
                                                         totalNoOfScheme
                                                             .toString(),
-                                                    totalNoOfWaterSource:
+                                                        totalNoOfWaterSource:
                                                         totalNoOfWaterSource
                                                             .toString(),
-                                                    totalWsGeoTagged:
+                                                        totalWsGeoTagged:
                                                         totalWsGeoTagged
                                                             .toString(),
-                                                    pendingWsTotal:
+                                                        pendingWsTotal:
                                                         pendingWsTotal
                                                             .toString(),
-                                                    balanceWsTotal:
+                                                        balanceWsTotal:
                                                         balanceWsTotal
                                                             .toString(),
-                                                    totalSsGeoTagged:
+                                                        totalSsGeoTagged:
                                                         totalSsGeoTagged
                                                             .toString(),
-                                                    pendingApprovalSsTotal:
+                                                        pendingApprovalSsTotal:
                                                         pendingApprovalSsTotal
                                                             .toString(),
-                                                    totalIbRequiredGeoTagged:
+                                                        totalIbRequiredGeoTagged:
                                                         totalIbRequiredGeoTagged
                                                             .toString(),
-                                                    totalIbGeoTagged:
+                                                        totalIbGeoTagged:
                                                         totalIbGeoTagged
                                                             .toString(),
-                                                    pendingIbTotal:
+                                                        pendingIbTotal:
                                                         pendingIbTotal
                                                             .toString(),
-                                                    balanceIbTotal:
+                                                        balanceIbTotal:
                                                         balanceIbTotal
                                                             .toString(),
-                                                    totalOaGeoTagged:
+                                                        totalOaGeoTagged:
                                                         totalOaGeoTagged
                                                             .toString(),
-                                                    balanceOaTotal:
+                                                        balanceOaTotal:
                                                         balanceOaTotal
                                                             .toString(),
-                                                    totalNoOfSchoolScheme:
+                                                        totalNoOfSchoolScheme:
                                                         totalNoOfSchoolScheme
                                                             .toString(),
-                                                    totalNoOfPwsScheme:
+                                                        totalNoOfPwsScheme:
                                                         totalNoOfPwsScheme
                                                             .toString(),
-                                                  ));
+                                                      ));
                                                 }
 
                                                 for (int i = 0;
-                                                    i < value.schmelist!.length;
-                                                    i++) {
+                                                i < value.schmelist!.length;
+                                                i++) {
                                                   var source_type = value
                                                       .schmelist![i]!
                                                       .source_type;
@@ -2700,141 +2847,84 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                   databaseHelperJalJeevan
                                                       ?.insertMasterSchmelist(
-                                                          Localmasterdatamoda_Scheme(
-                                                    source_type:
+                                                      Localmasterdatamoda_Scheme(
+                                                        source_type:
                                                         source_type.toString(),
-                                                    schemeid:
+                                                        schemeid:
                                                         schemeidnew.toString(),
-                                                    villageId:
+                                                        villageId:
                                                         villageid.toString(),
-                                                    schemename: schemenamenew
-                                                        .toString(),
-                                                    category: schemenacategorynew.toString(),
-                                                            SourceTypeCategoryId: SourceTypeCategoryId.toString(),
-                                                            source_typeCategory: source_typeCategory.toString(),
-                                                  ));
+                                                        schemename: schemenamenew
+                                                            .toString(),
+                                                        category: schemenacategorynew.toString(),
+                                                        SourceTypeCategoryId: SourceTypeCategoryId.toString(),
+                                                        source_typeCategory: source_typeCategory.toString(),
+                                                      ));
                                                 }
 
-                                                for (int i = 0;
-                                                    i <
-                                                        value
-                                                            .sourcelist!.length;
-                                                    i++) {
-                                                  var sourceId = value
-                                                      .sourcelist![i]!.sourceId;
-                                                  var SchemeId = value
-                                                      .sourcelist![i]!.schemeId;
-                                                  var stateid = value
-                                                      .sourcelist![i]!.stateid;
-                                                  var Schemename = value
-                                                      .sourcelist![i]!
-                                                      .schemeName;
-                                                  var villageid = value
-                                                      .sourcelist![i]!
-                                                      .villageId;
-                                                  var sourceTypeId = value
-                                                      .sourcelist![i]!
-                                                      .sourceTypeId;
-                                                  var statename = value
-                                                      .sourcelist![i]!
-                                                      .stateName;
+                                                for (int i = 0; i < value.sourcelist!.length; i++) {
+                                                  var sourceId = value.sourcelist![i]!.sourceId;
+                                                  var SchemeId = value.sourcelist![i]!.schemeId;
+                                                  var stateid = value.sourcelist![i]!.stateid;
+                                                  var Schemename = value.sourcelist![i]!.schemeName;
+                                                  var villageid = value.sourcelist![i]!.villageId;
+                                                  var sourceTypeId = value.sourcelist![i]!.sourceTypeId;
+                                                  var statename = value.sourcelist![i]!.stateName;
                                                   var sourceTypeCategoryId =
-                                                      value.sourcelist![i]!
-                                                          .sourceTypeCategoryId;
-                                                  var habitationId = value
-                                                      .sourcelist![i]!
-                                                      .habitationId;
-                                                  var villageName = value
-                                                      .sourcelist![i]!
-                                                      .villageName;
+                                                      value.sourcelist![i]!.sourceTypeCategoryId;
+                                                  var habitationId = value.sourcelist![i]!.habitationId;
+                                                  var villageName = value.sourcelist![i]!.villageName;
                                                   var existTagWaterSourceId =
-                                                      value.sourcelist![i]!
-                                                          .existTagWaterSourceId;
-                                                  var isApprovedState = value
-                                                      .sourcelist![i]!
-                                                      .isApprovedState;
-                                                  var landmark = value
-                                                      .sourcelist![i]!.landmark;
-                                                  var latitude = value
-                                                      .sourcelist![i]!.latitude;
-                                                  var longitude = value
-                                                      .sourcelist![i]!
-                                                      .longitude;
-                                                  var habitationName = value
-                                                      .sourcelist![i]!
-                                                      .habitationName;
-                                                  var location = value
-                                                      .sourcelist![i]!.location;
-                                                  var sourceTypeCategory = value
-                                                      .sourcelist![i]!
-                                                      .sourceTypeCategory;
-                                                  var sourceType = value
-                                                      .sourcelist![i]!
-                                                      .sourceType;
-                                                  var districtName = value
-                                                      .sourcelist![i]!
-                                                      .districtName;
-                                                  var districtId = value
-                                                      .sourcelist![i]!
-                                                      .districtId;
-                                                  var panchayatNamenew = value
-                                                      .sourcelist![i]!
-                                                      .panchayatName;
-                                                  var blocknamenew = value
-                                                      .sourcelist![i]!
-                                                      .blockName;
+                                                      value.sourcelist![i]!.existTagWaterSourceId;
+                                                  var isApprovedState = value.sourcelist![i]!.isApprovedState;
+                                                  var landmark = value.sourcelist![i]!.landmark;
+                                                  var latitude = value.sourcelist![i]!.latitude;
+                                                  var longitude = value.sourcelist![i]!.longitude;
+                                                  var habitationName = value.sourcelist![i]!.habitationName;
+                                                  var location = value.sourcelist![i]!.location;
+                                                  var sourceTypeCategory =
+                                                      value.sourcelist![i]!.sourceTypeCategory;
+                                                  var sourceType = value.sourcelist![i]!.sourceType;
+                                                  var districtName = value.sourcelist![i]!.districtName;
+                                                  var districtId = value.sourcelist![i]!.districtId;
+                                                  var panchayatNamenew = value.sourcelist![i]!.panchayatName;
+                                                  var blocknamenew = value.sourcelist![i]!.blockName;
+                                                  var IsWTP = value.sourcelist![i]!.IsWTP;
 
-                                                  databaseHelperJalJeevan
-                                                      ?.insertMasterSourcedetails(
-                                                          LocalSourcelistdetailsModal(
-                                                    schemeId:
-                                                        SchemeId.toString(),
-                                                    sourceId:
-                                                        sourceId.toString(),
-                                                    villageId:
-                                                        villageid.toString(),
+                                                  databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
+                                                    schemeId: SchemeId.toString(),
+                                                    sourceId: sourceId.toString(),
+                                                    villageId: villageid.toString(),
                                                     schemeName: Schemename,
-                                                    sourceTypeId:
-                                                        sourceTypeId.toString(),
-                                                    sourceTypeCategoryId:
-                                                        sourceTypeCategoryId
-                                                            .toString(),
-                                                    habitationId:
-                                                        habitationId.toString(),
-                                                    existTagWaterSourceId:
-                                                        existTagWaterSourceId
-                                                            .toString(),
-                                                    isApprovedState:
-                                                        isApprovedState
-                                                            .toString(),
+                                                    sourceTypeId: sourceTypeId.toString(),
+                                                    sourceTypeCategoryId: sourceTypeCategoryId.toString(),
+                                                    habitationId: habitationId.toString(),
+                                                    existTagWaterSourceId: existTagWaterSourceId.toString(),
+                                                    isApprovedState: isApprovedState.toString(),
                                                     landmark: landmark,
-                                                    latitude:
-                                                        latitude.toString(),
-                                                    longitude:
-                                                        longitude.toString(),
-                                                    habitationName:
-                                                        habitationName,
+                                                    latitude: latitude.toString(),
+                                                    longitude: longitude.toString(),
+                                                    habitationName: habitationName,
                                                     location: location,
-                                                    sourceTypeCategory:
-                                                        sourceTypeCategory,
+                                                    sourceTypeCategory: sourceTypeCategory,
                                                     sourceType: sourceType,
                                                     stateName: statename,
                                                     districtName: districtName,
                                                     blockName: blocknamenew,
-                                                    panchayatName:
-                                                        panchayatNamenew,
-                                                    districtId:
-                                                        districtId.toString(),
+                                                    panchayatName: panchayatNamenew,
+                                                    districtId: districtId.toString(),
                                                     villageName: villageName,
                                                     stateId: stateid.toString(),
+                                                    IsWTP: IsWTP.toString(),
+
                                                   ));
                                                 }
 
                                                 for (int i = 0;
-                                                    i <
-                                                        value.habitationlist!
-                                                            .length;
-                                                    i++) {
+                                                i <
+                                                    value.habitationlist!
+                                                        .length;
+                                                i++) {
                                                   var villafgeid = value
                                                       .habitationlist![i]!
                                                       .villageId;
@@ -2847,40 +2937,40 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
                                                   databaseHelperJalJeevan
                                                       ?.insertMasterhabitaionlist(
-                                                          LocalHabitaionlistModal(
-                                                              villageId:
-                                                                  villafgeid
-                                                                      .toString(),
-                                                              HabitationId:
-                                                                  habitationId
-                                                                      .toString(),
-                                                              HabitationName:
-                                                                  habitationName
-                                                                      .toString()));
+                                                      LocalHabitaionlistModal(
+                                                          villageId:
+                                                          villafgeid
+                                                              .toString(),
+                                                          HabitationId:
+                                                          habitationId
+                                                              .toString(),
+                                                          HabitationName:
+                                                          habitationName
+                                                              .toString()));
                                                 }
                                                 for (int i = 0;
-                                                    i <
-                                                        value
-                                                            .informationBoardList!
-                                                            .length;
-                                                    i++) {
+                                                i <
+                                                    value
+                                                        .informationBoardList!
+                                                        .length;
+                                                i++) {
                                                   databaseHelperJalJeevan?.insertmastersibdetails(LocalmasterInformationBoardItemModal(
                                                       userId: value.informationBoardList![i]!.userId
                                                           .toString(),
                                                       villageId: value
                                                           .informationBoardList![
-                                                              i]!
+                                                      i]!
                                                           .villageId
                                                           .toString(),
                                                       stateId:
-                                                          value.informationBoardList![i]!.stateId
-                                                              .toString(),
+                                                      value.informationBoardList![i]!.stateId
+                                                          .toString(),
                                                       schemeId:
-                                                          value.informationBoardList![i]!.schemeId
-                                                              .toString(),
+                                                      value.informationBoardList![i]!.schemeId
+                                                          .toString(),
                                                       districtName: value
                                                           .informationBoardList![
-                                                              i]!
+                                                      i]!
                                                           .districtName,
                                                       blockName: value
                                                           .informationBoardList![i]!
@@ -2931,7 +3021,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
   Future<void> uploadLocalDataAndClear(BuildContext context) async {
     try {
       final List<LocalPWSSavedData>? localDataList =
-          await databaseHelperJalJeevan?.getAllLocalPWSSavedData();
+      await databaseHelperJalJeevan?.getAllLocalPWSSavedData();
       if (localDataList!.isEmpty) {
         return;
       }
@@ -3041,6 +3131,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                     Stylefile.showmessageforvalidationtrue(
                         context, "The record has been saved successfully.");
                   },
+
                   child: const Text('OK',
                       style: TextStyle(
                           fontSize: 14,

@@ -1396,120 +1396,61 @@ class _NewTagState extends State<NewTagScreen> {
                                                     ));
                                                   }
 
-                                                  for (int i = 0;
-                                                      i <
-                                                          value.sourcelist!
-                                                              .length;
-                                                      i++) {
-                                                    var sourceId = value
-                                                        .sourcelist![i]!.sourceId;
-                                                    var SchemeId = value
-                                                        .sourcelist![i]!.schemeId;
-                                                    var stateid = value
-                                                        .sourcelist![i]!.stateid;
-                                                    var Schemename = value
-                                                        .sourcelist![i]!
-                                                        .schemeName;
-                                                    var villageid = value
-                                                        .sourcelist![i]!
-                                                        .villageId;
-                                                    var sourceTypeId = value
-                                                        .sourcelist![i]!
-                                                        .sourceTypeId;
-                                                    var statename = value
-                                                        .sourcelist![i]!
-                                                        .stateName;
+                                                  for (int i = 0; i < value.sourcelist!.length; i++) {
+                                                    var sourceId = value.sourcelist![i]!.sourceId;
+                                                    var SchemeId = value.sourcelist![i]!.schemeId;
+                                                    var stateid = value.sourcelist![i]!.stateid;
+                                                    var Schemename = value.sourcelist![i]!.schemeName;
+                                                    var villageid = value.sourcelist![i]!.villageId;
+                                                    var sourceTypeId = value.sourcelist![i]!.sourceTypeId;
+                                                    var statename = value.sourcelist![i]!.stateName;
                                                     var sourceTypeCategoryId =
-                                                        value.sourcelist![i]!
-                                                            .sourceTypeCategoryId;
-                                                    var habitationId = value
-                                                        .sourcelist![i]!
-                                                        .habitationId;
-                                                    var villageName = value
-                                                        .sourcelist![i]!
-                                                        .villageName;
+                                                        value.sourcelist![i]!.sourceTypeCategoryId;
+                                                    var habitationId = value.sourcelist![i]!.habitationId;
+                                                    var villageName = value.sourcelist![i]!.villageName;
                                                     var existTagWaterSourceId =
-                                                        value.sourcelist![i]!
-                                                            .existTagWaterSourceId;
-                                                    var isApprovedState = value
-                                                        .sourcelist![i]!
-                                                        .isApprovedState;
-                                                    var landmark = value
-                                                        .sourcelist![i]!.landmark;
-                                                    var latitude = value
-                                                        .sourcelist![i]!.latitude;
-                                                    var longitude = value
-                                                        .sourcelist![i]!
-                                                        .longitude;
-                                                    var habitationName = value
-                                                        .sourcelist![i]!
-                                                        .habitationName;
-                                                    var location = value
-                                                        .sourcelist![i]!.location;
+                                                        value.sourcelist![i]!.existTagWaterSourceId;
+                                                    var isApprovedState = value.sourcelist![i]!.isApprovedState;
+                                                    var landmark = value.sourcelist![i]!.landmark;
+                                                    var latitude = value.sourcelist![i]!.latitude;
+                                                    var longitude = value.sourcelist![i]!.longitude;
+                                                    var habitationName = value.sourcelist![i]!.habitationName;
+                                                    var location = value.sourcelist![i]!.location;
                                                     var sourceTypeCategory =
-                                                        value.sourcelist![i]!
-                                                            .sourceTypeCategory;
-                                                    var sourceType = value
-                                                        .sourcelist![i]!
-                                                        .sourceType;
-                                                    var districtName = value
-                                                        .sourcelist![i]!
-                                                        .districtName;
-                                                    var districtId = value
-                                                        .sourcelist![i]!
-                                                        .districtId;
-                                                    var panchayatNamenew = value
-                                                        .sourcelist![i]!
-                                                        .panchayatName;
-                                                    var blocknamenew = value
-                                                        .sourcelist![i]!
-                                                        .blockName;
+                                                        value.sourcelist![i]!.sourceTypeCategory;
+                                                    var sourceType = value.sourcelist![i]!.sourceType;
+                                                    var districtName = value.sourcelist![i]!.districtName;
+                                                    var districtId = value.sourcelist![i]!.districtId;
+                                                    var panchayatNamenew = value.sourcelist![i]!.panchayatName;
+                                                    var blocknamenew = value.sourcelist![i]!.blockName;
+                                                    var IsWTP = value.sourcelist![i]!.IsWTP;
 
-                                                    databaseHelperJalJeevan
-                                                        ?.insertMasterSourcedetails(
-                                                            LocalSourcelistdetailsModal(
-                                                      schemeId:
-                                                          SchemeId.toString(),
-                                                      sourceId:
-                                                          sourceId.toString(),
-                                                      villageId:
-                                                          villageid.toString(),
+                                                    databaseHelperJalJeevan?.insertMasterSourcedetails(LocalSourcelistdetailsModal(
+                                                      schemeId: SchemeId.toString(),
+                                                      sourceId: sourceId.toString(),
+                                                      villageId: villageid.toString(),
                                                       schemeName: Schemename,
-                                                      sourceTypeId: sourceTypeId
-                                                          .toString(),
-                                                      sourceTypeCategoryId:
-                                                          sourceTypeCategoryId
-                                                              .toString(),
-                                                      habitationId: habitationId
-                                                          .toString(),
-                                                      existTagWaterSourceId:
-                                                          existTagWaterSourceId
-                                                              .toString(),
-                                                      isApprovedState:
-                                                          isApprovedState
-                                                              .toString(),
+                                                      sourceTypeId: sourceTypeId.toString(),
+                                                      sourceTypeCategoryId: sourceTypeCategoryId.toString(),
+                                                      habitationId: habitationId.toString(),
+                                                      existTagWaterSourceId: existTagWaterSourceId.toString(),
+                                                      isApprovedState: isApprovedState.toString(),
                                                       landmark: landmark,
-                                                      latitude:
-                                                          latitude.toString(),
-                                                      longitude:
-                                                          longitude.toString(),
-                                                      habitationName:
-                                                          habitationName,
+                                                      latitude: latitude.toString(),
+                                                      longitude: longitude.toString(),
+                                                      habitationName: habitationName,
                                                       location: location,
-                                                      sourceTypeCategory:
-                                                          sourceTypeCategory,
+                                                      sourceTypeCategory: sourceTypeCategory,
                                                       sourceType: sourceType,
                                                       stateName: statename,
-                                                      districtName:
-                                                          districtName,
+                                                      districtName: districtName,
                                                       blockName: blocknamenew,
-                                                      panchayatName:
-                                                          panchayatNamenew,
-                                                      districtId:
-                                                          districtId.toString(),
+                                                      panchayatName: panchayatNamenew,
+                                                      districtId: districtId.toString(),
                                                       villageName: villageName,
-                                                      stateId:
-                                                          stateid.toString(),
+                                                      stateId: stateid.toString(),
+                                                      IsWTP: IsWTP.toString(),
+
                                                     ));
                                                   }
 

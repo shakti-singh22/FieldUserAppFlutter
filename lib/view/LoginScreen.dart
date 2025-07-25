@@ -6,10 +6,11 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 
+import '../addfhtc/jjm_facerd_appcolor.dart';
 import '../controller/Logincontroller.dart';
-import '../utility/Appcolor.dart';
 import '../utility/Stylefile.dart';
 import '../utility/Textfile.dart';
 import '../utility/Utilityclass.dart';
@@ -40,12 +41,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   _launchURL() async {
-    final Uri uri = Uri.parse(
+    final Uri url = Uri.parse(
         'https://ejalshakti.gov.in/JJM/JJM/DataEntry/user/ViewFlipBook.aspx?id=8');
-    String encodedUrl = Uri.encodeFull(uri.toString());
+    String encodedUrl = Uri.encodeFull(url.toString());
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
+      if (await canLaunch(encodedUrl)) {
+        await launch(encodedUrl);
       } else {
         throw 'Could not launch $encodedUrl';
       }
@@ -294,10 +295,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               onChanged: (password) {
                                 var bytes = utf8.encode(password);
                                 var digest = sha512.convert(bytes);
-                                hashedPassword =
-                                    digest.toString().toUpperCase();
-                                HASHpassword = hashedPassword +
-                                    RandomNumbersalt.toString();
+                                hashedPassword = digest.toString().toUpperCase();
+                                HASHpassword = hashedPassword + RandomNumbersalt.toString();
                               },
                             ),
                           ),
@@ -426,10 +425,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 'example.com');
                                         if (result.isNotEmpty &&
                                             result[0].rawAddress.isNotEmpty) {
-                                          logincontroller.LoginApi(
-                                              context,
-                                              HASHpassword,
-                                              RandomNumbersalt.toString());
+                                          logincontroller.LoginApi(context, HASHpassword, RandomNumbersalt.toString());
                                           FocusScope.of(context).unfocus();
                                         }
                                         random = generateRandomString(6);
@@ -459,7 +455,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     "Unable to Connect to the Internet. Please check your network settings.");
                               }
                             },
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
@@ -469,8 +465,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       fontWeight: FontWeight.w500,
                                       fontSize: 15),
                                 ),
-                                SizedBox(width: 8),
-                                Icon(
+                                const SizedBox(width: 8),
+                                const Icon(
                                   Icons.download_rounded,
                                   color: Appcolor.btncolor,
                                 ),

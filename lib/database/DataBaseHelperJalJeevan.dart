@@ -40,7 +40,7 @@ class DatabaseHelperJalJeevan {
     String path = join(documentDirectory.path, 'JalJeevanMission.db');
     return await openDatabase(
       path,
-      version: 7, // Change this to trigger onUpgrade
+      version: 10, // Change this to trigger onUpgrade
       onCreate: _oncreate,
       onUpgrade: _onUpgrade,
     );
@@ -138,7 +138,7 @@ class DatabaseHelperJalJeevan {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 7) { // Change this condition based on your current version
+    if (oldVersion < 10) { // Change this condition based on your current version
       await db.execute(
           "ALTER TABLE Otherassetssavedataofflinetable ADD COLUMN WTP_selectedSourceIds TEXT"
       );

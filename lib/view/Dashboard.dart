@@ -1670,12 +1670,9 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
-  void showAlertDialogforupdateapp(BuildContext context) async {
-    List<String> messageParts = box.read("appAPKVersionMessage") != null
-        ? box.read("appAPKVersionMessage").toString().split("\\n")
-        : ["No update message available."];
+  void showAlertDialogforupdateapp(BuildContext context) async {List<String> messageParts = box.read("appAPKVersionMessage") != null ? box.read("appAPKVersionMessage").toString().split("\\n") : ["No update message available."];
 
-    showDialog<void>(
+     showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -1745,6 +1742,7 @@ class _DashboardState extends State<Dashboard> {
                           } on PlatformException catch (e) {
                             launch(box.read("appAPKURL"));
                           } finally {
+                            
                             launch(box.read("appAPKURL"));
                           }
                           box.remove("UserToken");
@@ -3927,8 +3925,7 @@ class _DashboardState extends State<Dashboard> {
                                     floatingloader = true;
                                   });
 
-                                  Apiservice.Getmasterapi(context)
-                                      .then((value) {
+                                  Apiservice.Getmasterapi(context).then((value) {
                                     databaseHelperJalJeevan!
                                         .insertMasterapidatetime(
                                         Localmasterdatetime(

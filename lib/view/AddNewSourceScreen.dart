@@ -384,7 +384,6 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
     for (int i = 0; i < distinctSchemes!.length; i++) {
       var habitaionid = distinctSchemes![i]!["HabitationId"].toString();
       var habitaionname = distinctSchemes![i]!["HabitationName"].toString();
-
       habitationlist.add(Habitaionlistmodal(habitaionname, habitaionid));
     }
 
@@ -851,10 +850,6 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                   ),
                                 )
                               : SizedBox(),*/
-
-
-
-
                           Column(
                             children: [
                               Visibility(
@@ -965,19 +960,14 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           ),
                                           Container(
                                               child:
-
                                               Column(
                                                 children: [
                                                   Padding(
                                                     padding: const EdgeInsets.all(10.0),
                                                     child: Text(widget.source_typeCategorysend),
                                                   ),
-
                                                 ],
                                               )
-
-
-
                                           ),
                                           const SizedBox(
                                             height: 2,
@@ -1053,7 +1043,6 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                             CrossAxisAlignment.start,
                                                             children: [
                                                               Container(
-
                                                                   margin: const EdgeInsets.all(0),
                                                                   child:
                                                                   RadioListTile(
@@ -1072,7 +1061,6 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                                     title: new Text(distinctlist[index].toString()),
                                                                     value: distinctlist[index].toString(),
                                                                     groupValue: selectradiobutton,
-
                                                                     onChanged: (value) {
                                                                       setState(() {
                                                                         selectradiobutton = value!;
@@ -1083,8 +1071,6 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                                     },
                                                                   )
                                                               ),
-
-
                                                             ],
                                                           ),
                                                         ),
@@ -1315,8 +1301,6 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                                 select_sourcetyperadiobutton = value!;
                                                                 select_sourcetypeid=sourcetypeidlist[index].toString();
                                                                 print("subcategory_groundorsurface"+select_sourcetyperadiobutton.toString());
-
-
                                                               });
                                                             },
                                                           )
@@ -1331,7 +1315,6 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                           })      : SizedBox(),
                                     ],
                                   ),
-
 
                                   Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
@@ -1358,7 +1341,6 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                     CrossAxisAlignment.start,
                                                     children: [
                                                       Container(
-
                                                         //  margin: const EdgeInsets.all(5),
                                                           child:
                                                           RadioListTile(
@@ -1380,12 +1362,9 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                                             title: new Text(minisource2[index].toString()),
                                                             value: minisource2[index].toString(),
                                                             groupValue: select_sourcetyperadiobutton,
-
                                                             onChanged: (value) {
                                                               setState(() {
                                                                 select_sourcetyperadiobutton = value!;
-
-
                                                                 //sourcetypeidlistone
                                                                 select_sourcetypeid=sourcetypeidlist[index].toString();
 
@@ -1909,6 +1888,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                               assetTaggingId:
                                               widget.assettaggingid.toString(),
                                               stateId: box.read("stateid"),
+                                              districtid: box.read("districtid"),
                                               schemeId: widget.schemeid.toString(),
                                               schemename:
                                               widget.selectscheme.toString(),
@@ -2004,6 +1984,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                               assetTaggingId:
                                               widget.assettaggingid.toString(),
                                               stateId: box.read("stateid"),
+                                              districtid: box.read("districtid"),
                                               schemeId: widget.schemeid.toString(),
                                               schemename:
                                               widget.selectscheme.toString(),

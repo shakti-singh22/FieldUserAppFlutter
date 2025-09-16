@@ -5,6 +5,7 @@ class LocalPWSSavedData {
   final String villageId;
   final String assetTaggingId;
   final String stateId;
+  final String districtid;
   final String schemeId;
   final String schemename;
   final String blockName;
@@ -31,6 +32,7 @@ class LocalPWSSavedData {
     required this.villageId,
     required this.assetTaggingId,
     required this.stateId,
+    required this.districtid,
     required this.schemeId,
     required this.schemename,
     required this.blockName,
@@ -59,6 +61,7 @@ class LocalPWSSavedData {
       villageId: json['Villageid'] as String,
       assetTaggingId: json['Assettaggingid'] as String,
       stateId: json['Stateid'] as String,
+      districtid: json['Districtid'] as String,
       schemeId: json['Schemeid'] as String,
       schemename: json['schemename'] as String,
       blockName: json['blockName'] as String,
@@ -88,6 +91,7 @@ class LocalPWSSavedData {
       'Villageid': villageId,
       'Assettaggingid': assetTaggingId,
       'Stateid': stateId,
+      'Districtid': districtid,
       'Schemeid': schemeId,
       'schemename': schemename,
       'blockName': blockName,

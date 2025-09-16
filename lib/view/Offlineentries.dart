@@ -1009,6 +1009,32 @@ class _PWSPendingapprovalState extends State<Offlineentries> {
       bool shouldCallGetMasterAPI = true;
 
       for (final localData in localDataList) {
+        // Step 1: Validate LGD
+        bool isValidLGD = await Apiservice.validateLGD(
+          stateId: localData.stateId,
+          districtId: localData.districtid,
+          villageId: localData.villageId,
+          lat: localData.latitude,
+          lon: localData.longitude,
+        );
+
+        if (!isValidLGD) {
+          // ❌ Mark as "Not valid" in local DB
+          final db = await databaseHelperJalJeevan!.db; // ✅ Get the actual Database object
+          await db!.rawUpdate(
+            "UPDATE Local_PWSSavedatato_server SET IsLGD = ? WHERE schemeid = ? AND villageid = ?",
+            ["Not valid", localData.schemeId, localData.villageId],
+          );
+          // Optional: update UI or logs
+          Stylefile.showmessageforvalidationfalse(
+            context,
+            "LGD validation failed for VillageId: ${localData.villageId}",
+          );
+
+          continue; // skip to next record
+        }
+
+        // Step 2: Upload valid data
         final response = await Apiservice.PWSSourceSavetaggingapi(
           context,
           box.read("UserToken").toString(),
@@ -1029,19 +1055,24 @@ class _PWSPendingapprovalState extends State<Offlineentries> {
           localData.image,
         );
 
-        print("api_res$response");
         if (response["Status"].toString() == "true") {
+          // ✅ Uploaded successfully, remove from local DB
           successfulUploadCount++;
-          await databaseHelperJalJeevan
-              ?.truncateTableByVillageId_pwssavedonserver(localData.schemeId);
+          await databaseHelperJalJeevan?.truncateTableByVillageId_pwssavedonserver(localData.schemeId);
         } else {
-          Stylefile.showmessageforvalidationfalse(context, "This PWS source is alredy tagged.");
+          // ❌ Failed to upload due to server reason
           await databaseHelperJalJeevan?.updateStatusInPendingList(
-              localData.villageId,
-              localData.schemeId,
-              'This source is already tagged');
+            localData.villageId,
+            localData.schemeId,
+            'This source is already tagged',
+          );
+          Stylefile.showmessageforvalidationfalse(
+            context,
+            "This PWS source is already tagged.",
+          );
         }
       }
+
       if (successfulUploadCount > 0) {
         Stylefile.showmessageforvalidationtrue(context,
             "$successfulUploadCount record(s) has been uploaded successfully.");

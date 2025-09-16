@@ -97,6 +97,7 @@ class Logincontroller extends GetxController {
         box.write("UserToken", value["Token"].toString());
         box.write("userid", value["Userid"].toString());
         box.write("stateid", value["StateId"].toString());
+        box.write("districtid", value["DistrictId"].toString());
         box.write("DivisionId", value["DivisionId"].toString());
         box.write("TotalOfflineVillage", value["TotalOfflineVillage"].toString());
         box.write('loginBool', true);

@@ -689,4 +689,53 @@ class Apiservice {
       return jsonDecode(response.body);
     } catch (e) {}
   }
+
+
+    static Future<bool> validateLGD({
+      required String stateId,
+      required String districtId,
+      required String villageId,
+      required String lat,
+      required String lon,
+    }) async {
+      try {
+        final Map<String, dynamic> requestBody = {
+          "StateId": int.parse(stateId),
+          "DistrictId": int.parse(districtId),
+          "VillageId": int.parse(villageId),
+          "lat": lat,
+          "lon": lon,
+          "Application": "JJMAPP",
+          "Distance": 0
+        };
+
+        print("📤 Sending LGD validation request with body: $requestBody");
+
+        final response = await http.post(
+          Uri.parse("https://ejalshakti.gov.in/webapi/JJM/Getreversegeocoding"),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(requestBody),
+        );
+
+        print("📥 Response Status: ${response.statusCode}");
+        print("📥 Response Body: ${response.body}");
+
+        if (response.statusCode == 200) {
+          final json = jsonDecode(response.body);
+          final bool status = json["Status"] == true;
+          print("✅ LGD Validation Result: $status");
+          return status;
+        } else {
+          print("❌ LGD API returned non-200 status");
+          return false;
+        }
+      } catch (e) {
+        print("💥 LGD API validation failed with error: $e");
+        return false;
+      }
+    }
+
+
+
+
 }

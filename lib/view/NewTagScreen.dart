@@ -1033,8 +1033,8 @@ class _NewTagState extends State<NewTagScreen> {
                                               widget.villageid.toString(),
                                           assetTaggingId:
                                               getassettaggingid.toString(),
-                                          stateId:
-                                              box.read("stateid").toString(),
+                                          stateId: box.read("stateid").toString(),
+                                          districtid: box.read("districtid"),
                                           schemeId: widget.schemeid.toString(),
                                           schemename: widget.selectscheme,
                                           blockName: widget.blockname,

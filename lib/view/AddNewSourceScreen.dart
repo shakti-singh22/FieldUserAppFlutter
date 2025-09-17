@@ -24,6 +24,7 @@ import '../utility/Appcolor.dart';
 import '../utility/Drawlatlong.dart';
 import '../utility/Stylefile.dart';
 import '../utility/Textfile.dart';
+import '../utility/ViewMap.dart';
 import 'Dashboard.dart';
 import 'LoginScreen.dart';
 import 'NewTagScreen.dart';
@@ -174,6 +175,8 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
   var bulsourcetypecatename = "";
   var bulsourcetypecategoryid = "";
 
+  double? nearestDistance;
+
   Future<void> _getCurrentPosition(BuildContext context) async {
     setState(() {
       locationprogress = true;
@@ -213,6 +216,83 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
       debugPrintStack();
     }
   }
+  Widget _buildAddButtonCard({
+    required String imagePath,
+    required Color iconColor,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: iconColor.withOpacity(0.6),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.12),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: iconColor.withOpacity(0.6),
+                  width: 1.2,
+                ),
+              ),
+              child: Image.asset(
+                imagePath,
+                width: 32,
+                height: 32,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: onTap,
+              icon: Icon(Icons.add, color: Colors.white, size: 18),
+              label: const Text(
+                "Add",
+                style: TextStyle(fontSize: 14, color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: iconColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
 
   Future<bool> checkLocationPermission() async {
     PermissionStatus permission = await Permission.location.status;
@@ -287,32 +367,6 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
 
           final sourcetypeid = mainListsourcecategory![i]!["SourceTypeId"];
           sourcetypelistone_id.add(sourcetypeid);
-
-          // Fetching TypeId
-          // Fetching TypeId based on SourceTypeCategory and SourceTypeId
-
-          /*   int? typeid; // Declare typeid as nullable or as a specific type
-
-          for (var i = 0; i < mainListsourcecategory.length; i++) {
-            // Check if SourceTypeId matches widget.Sourceid_typesend and SourceTypeCategoryId matches
-            if (mainListsourcecategory[i]["SourceTypeId"].toString() == widget.Sourceid_typesend &&
-                mainListsourcecategory[i]["SourceTypeCategoryId"].toString() == SourceTypeCategoryId) {
-              // Assign the matching TypeId
-              typeid = mainListsourcecategory[i]["TypeId"];
-              break; // Exit the loop once a match is found
-            }
-          }
-
-// Check if typeid has a value before adding it to type_id
-          if (typeid != null) {
-            setState(() {
-              type_id.add(typeid);
-            });
-
-            print("Fetched TypeId: $typeid");
-          } else {
-            print("No matching TypeId found for Sourceid_typesend: ${widget.Sourceid_typesend} and SourceTypeCategoryId: $SourceTypeCategoryId");
-          }*/
 
           final jsonList = SourceTypeCategoryList.map((item) => jsonEncode(item)).toList();
           final uniqueJsonList = jsonList.toSet().toList();
@@ -1713,6 +1767,71 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                               ),
                             ),
                           ),
+
+
+                          Container(
+                            width: 500,
+                            child: _buildAddButtonCard(
+                              imagePath: "images/map.png",
+                              iconColor: Colors.blue,
+                              title: "MAP",
+                              onTap: () async {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    final screenHeight = MediaQuery.of(context).size.height;
+                                    final screenWidth = MediaQuery.of(context).size.width;
+
+                                    return StatefulBuilder(
+                                      builder: (context, setState) {
+                                        return AlertDialog(
+                                          contentPadding: const EdgeInsets.all(10),
+                                          content: SizedBox(
+                                            height: screenHeight * 0.6,
+                                            width: screenWidth * 1.5,
+                                            child: SimpleMapPage(
+                                              latitude: _currentPosition!.latitude,
+                                              longitude: _currentPosition!.longitude,
+                                              onDistanceCalculated: (distance) {
+                                                setState(() {
+                                                  nearestDistance = distance;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          actions: [
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  nearestDistance != null
+                                                      ? "📏 Distance: ${nearestDistance!.toStringAsFixed(2)} m"
+                                                      : "Calculating...",
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.end,
+                                                  children: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                      child: const Text("Close"),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        );
+
+                                      },
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+
                           Container(
                             margin: const EdgeInsets.only(top: 10),
                             decoration: BoxDecoration(
@@ -2064,71 +2183,7 @@ class _AddNewSourceScreenState extends State<AddNewSourceScreen> {
                                       'example.com');
                                   if (result.isNotEmpty &&
                                       result[0].rawAddress.isNotEmpty) {
-                                    /*
-                                      if (selectradiobutton.toString() == "") {
-                                        Stylefile.showmessageforvalidationfalse(
-                                            context, "Please select source ");
-                                      }
-                                      else if (select_sourcetyperadiobutton ==
-                                          "") {
-                                        Stylefile.showmessageforvalidationfalse(
-                                            context,
-                                            "Please select source type");
-                                      } else
-                                      if (selecthabitaionname.toString() ==
-                                          "-- Select Habitation --") {
-                                        Stylefile.showmessageforvalidationfalse(
-                                            context, "Please select habitaion");
-                                      } else if (locationlandmarkcontroller.text
-                                          .trim()
-                                          .toString()
-                                          .isEmpty) {
-                                        Stylefile.showmessageforvalidationfalse(
-                                            context,
-                                            "Please enter location/landmark");
-                                      } else if (_currentPosition == null ||
-                                          _currentPosition!
-                                              .latitude
-                                              .toString()
-                                              .isEmpty ||
-                                          _currentPosition!
-                                              .longitude
-                                              .toString()
-                                              .isEmpty) {
-                                        Stylefile.showmessageforvalidationfalse(
-                                            context,
-                                            "Location data is not available. Please ensure location permission is granted.");
-                                      } else if (imgFile == null) {
-                                        Stylefile.showmessageforvalidationfalse(
-                                            context, "Please select image");
-                                      } else {
-                                        if (selecthabitaionname.toString() ==
-                                            "-- Select Habitation --") {
-                                          Stylefile.showmessageforvalidationfalse(
-                                              context, "Please select habitaion");
-                                        } else if (locationlandmarkcontroller.text
-                                            .trim()
-                                            .toString()
-                                            .isEmpty) {
-                                          Stylefile.showmessageforvalidationfalse(
-                                              context,
-                                              "Please enter location/landmark");
-                                        } else if (_currentPosition == null ||
-                                            _currentPosition!
-                                                .latitude
-                                                .toString()
-                                                .isEmpty ||
-                                            _currentPosition!
-                                                .longitude
-                                                .toString()
-                                                .isEmpty) {
-                                          Stylefile.showmessageforvalidationfalse(
-                                              context,
-                                              "Location data is not available. Please ensure location permission is granted.");
-                                        } else if (imgFile == null) {
-                                          Stylefile.showmessageforvalidationfalse(
-                                              context, "Please select image");
-                                        } */
+
                                     if (widget.Sourceid_typesend == "6") {
                                       if (selecthabitaionname.toString() ==
                                           "-- Select Habitation --") {

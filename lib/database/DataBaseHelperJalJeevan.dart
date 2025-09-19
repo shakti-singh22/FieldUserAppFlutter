@@ -97,9 +97,9 @@ class DatabaseHelperJalJeevan {
 
     await db.execute(
         "CREATE TABLE Local_PWSSavedatato_server(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "Userid TEXT, Villageid TEXT, Assettaggingid TEXT, Stateid TEXT, Schemeid TEXT,schemename TEXT , blockName TEXT ,villageName TEXT,sourceName TEXT,sourceType TEXT,panchayatName TEXT, sourceTypeCategoryId TEXT, DivisionId TEXT, "
+            "Userid TEXT, Villageid TEXT, Assettaggingid TEXT, Stateid TEXT,Districtid TEXT, Schemeid TEXT,schemename TEXT , blockName TEXT ,villageName TEXT,sourceName TEXT,sourceType TEXT,panchayatName TEXT, sourceTypeCategoryId TEXT, DivisionId TEXT, "
             "habitationName TEXT,habitationId TEXT,  landmark TEXT, latitude TEXT, "
-            "longitude TEXT, Accuracy TEXT, Image TEXT, SourceId TEXT,subsourceaddnew TEXT , Status TEXT,Date TEXT"
+            "longitude TEXT, Accuracy TEXT, Image TEXT, SourceId TEXT,subsourceaddnew TEXT , Status TEXT,Date TEXT, IsLGD TEXT"
             ")");
 
     await db.execute(
